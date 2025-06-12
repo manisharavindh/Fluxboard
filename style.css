@@ -1,0 +1,80 @@
+:root {
+  --primary-dark: #2B2A33;
+  --secondary-dark: #1C1B22;
+  --color-dark: #FBFBFE;
+
+  --blue: #0DF;
+  --red: #F95657;
+  
+  --secondary: #F9F9FB;
+  --popup-dark: #42414D;
+  --border-dark: #605F66;
+  
+  --initial-color-1: rgba(0, 221, 255, 0.6);
+  --initial-color-2: rgba(255, 64, 129, 0.6);
+  --initial-color-3: rgba(139, 195, 74, 0.6);
+  --initial-color-4: rgba(255, 193, 7, 0.6);
+  --initial-color-5: rgba(156, 39, 176, 0.6);
+  --nav-active-dark: #3B3A45;
+  --nav-active-hover-dark: #2B2A31;
+  --primary-light: #F9F9FB;
+  --color-light: #1C1B22;
+  
+  --red-error: rgba(255, 68, 68, 0.1);
+  
+  /* Performance optimizations */
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-duration: 0.2s;
+}
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    height: 100vh;
+    width: 100vw;
+}
+
+.wrapper {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 8px;
+    background-color: var(--primary-dark);
+    padding: 8px;
+}
+
+.wrapper > div {
+    background-color: var(--dash-bg-dark);
+    color: var(--color-dark);
+    border-radius: 8px;
+    /* border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-dark);
+    font-size: 1.5rem;
+    font-weight: bold; */
+}
+    
+.div1 {
+    grid-column: span 4 / span 4;
+    grid-row: span 6 / span 6;
+}
+
+.div2 {
+    grid-row: span 3 / span 3;
+    grid-column-start: 5;
+}
+
+.div3 {
+    grid-row: span 3 / span 3;
+    grid-column-start: 5;
+    grid-row-start: 4;
+}
+        
