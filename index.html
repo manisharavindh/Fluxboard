@@ -10,15 +10,93 @@
 <body>
     <div class="wrapper">
         <div class="div1">
-            <p>links</p>
+            <div class="sub-div1">
+                <!-- <img src="/img/logo.png" alt="Fluxboard Logo" class="logo"> -->
+                <p>✅ Fluxboard</p>
+            </div>
+            <div class="sub-div2">
+                <div class="search-box">
+                    <div class="icon">
+                        <img src="/img/google.webp" alt="none">
+                    </div>
+                    <input type="text" placeholder="Search with Google or type URL" />
+                </div>
+            </div>
+            <div class="sub-div3">
+                <!-- link element -->
+                <div class="link-element">
+                    <img src="/img/link.png" alt="link" class="link-icon">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon">
+                </div>
+                <!-- folder element -->
+                <div class="folder-element">
+                    <div class="folder-head" onclick="folder_toggle(this)">
+                        <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
+                        <img src="/img/opened.png" alt="folder" class="folder-opened-icon">
+                        <p>Folder Name</p>
+                        <img src="/img/menu.png" alt="edit" class="edit-icon">
+                    </div>
+                    <div class="folder-body">
+                        <div class="link-element">
+                            <img src="/img/link.png" alt="link" class="link-icon">
+                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
+                            <img src="/img/menu.png" alt="edit" class="edit-icon">
+                        </div>
+                    </div>
+                </div>
+                <!-- new link -->
+                <div class="new-link">
+                    <div class="add-link">
+                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                    </div>
+                    <div class="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                    </div>
+                </div>
+            </div>
+            <div class="sub-div4">
+                <div class="link-element">
+                    <img src="/img/link.png" alt="link" class="link-icon">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon">
+                </div>
+                <div class="new-link">
+                    <div class="add-link">
+                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                    </div>
+                    <div class="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                    </div>
+                </div>
+            </div>
+            <div class="sub-div5">
+                <div class="link-element">
+                    <img src="/img/link.png" alt="link" class="link-icon">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon">
+                </div>
+                <div class="new-link">
+                    <div class="add-link">
+                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                    </div>
+                    <div class="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="div2">
             <p>todo</p>
         </div>
         <div class="div3">
-            <p>quick notes</p>
+            <p>📝 Quick Notes</p>
+            <textarea placeholder="..."></textarea>
+        </div>
+        <div class="div4">
+            <p>more</p>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
