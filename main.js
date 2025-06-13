@@ -1,8 +1,8 @@
 // Function to toggle folder visibility
-function folder_toggle() {
-    const folderBody = document.querySelector('.folder-body');
-    const closedIcon = document.querySelector('.folder-closed-icon');
-    const openedIcon = document.querySelector('.folder-opened-icon');
+function folder_toggle(element) {
+    const folderBody = element.parentElement.querySelector('.folder-body');
+    const closedIcon = element.querySelector('.folder-closed-icon');
+    const openedIcon = element.querySelector('.folder-opened-icon');
 
     if (folderBody.style.display === 'block') {
         folderBody.style.display = 'none';
@@ -14,3 +14,460 @@ function folder_toggle() {
         openedIcon.style.display = 'block';
     }
 }
+
+function handleSearch(event) {
+    event.preventDefault();
+    const input = document.getElementById('searchInput').value.trim();
+    
+    const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-.,@?^=%&:/~+#]*[\w-@?^=%&/~+#])?$/;
+    
+    if (urlRegex.test(input)) {
+        const url = input.startsWith('http') ? input : `https://${input}`;
+        window.location.href = url;
+    } else {
+        const searchQuery = encodeURIComponent(input);
+        window.location.href = `https://www.google.com/search?q=${searchQuery}`;
+    }
+}
+
+// Initialize modal elements
+const bookmarkModal = document.getElementById('bookmarkModal');
+const modalTitle = document.getElementById('modalTitle');
+const bookmarkForm = document.getElementById('bookmarkForm');
+const bookmarkCloseBtn = bookmarkModal.querySelector('.close');
+
+const folderModal = document.getElementById('folderModal');
+const folderModalTitle = document.getElementById('folderModalTitle');
+const folderForm = document.getElementById('folderForm');
+const folderCloseBtn = folderModal.querySelector('.close');
+
+let currentEditElement = null;
+let currentContainer = null;
+let currentFolderElement = null;
+let currentFolderContainer = null;
+
+// Close modal handlers
+bookmarkCloseBtn.onclick = () => bookmarkModal.style.display = "none";
+folderCloseBtn.onclick = () => folderModal.style.display = "none";
+
+window.onclick = (event) => {
+    if (event.target === bookmarkModal) bookmarkModal.style.display = "none";
+    if (event.target === folderModal) folderModal.style.display = "none";
+};
+
+// Save bookmarks to localStorage
+function saveBookmarks() {
+    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    const bookmarks = {};
+    
+    sections.forEach(section => {
+        const sectionElement = document.querySelector('.' + section);
+        if (sectionElement) {
+            bookmarks[section] = serializeSection(sectionElement);
+        }
+    });
+    
+    localStorage.setItem('fluxboard_bookmarks', JSON.stringify(bookmarks));
+    console.log('Bookmarks saved:', bookmarks);
+}
+
+// Function to add new link
+function addLink(container) {
+    currentContainer = container;
+    currentEditElement = null;
+    modalTitle.textContent = "Add Bookmark";
+    document.getElementById('bookmarkName').value = '';
+    document.getElementById('bookmarkUrl').value = '';
+    bookmarkModal.style.display = "block";
+}
+
+// Function to add new folder
+function addFolder(container) {
+    currentFolderContainer = container;
+    currentFolderElement = null;
+    folderModalTitle.textContent = "Add Folder";
+    document.getElementById('folderName').value = '';
+    folderModal.style.display = "block";
+}
+
+// Function to edit link
+function editLink(element) {
+    const linkElement = element.closest('.link-element');
+    const paragraph = linkElement.querySelector('p');
+    currentEditElement = linkElement;
+    currentContainer = linkElement.parentElement;
+    
+    modalTitle.textContent = "Edit Bookmark";
+    document.getElementById('bookmarkName').value = paragraph.textContent;
+    document.getElementById('bookmarkUrl').value = paragraph.getAttribute('data-url') || '';
+    document.getElementById('deleteBookmark').style.display = 'block'; // Show delete button
+    bookmarkModal.style.display = "block";
+}
+
+// Function to edit folder
+function editFolder(element) {
+    const folderHead = element.closest('.folder-head');
+    const folderName = folderHead.querySelector('p');
+    currentFolderElement = folderHead;
+    currentFolderContainer = folderHead.closest('.folder-element').parentElement;
+    
+    folderModalTitle.textContent = "Edit Folder";
+    document.getElementById('folderName').value = folderName.textContent;
+    document.getElementById('deleteFolder').style.display = 'block'; // Show delete button
+    folderModal.style.display = "block";
+}
+
+// Serialize a section's content
+function serializeSection(section) {
+    const items = [];
+    Array.from(section.children).forEach(element => {
+        if (element.classList.contains('new-link')) return;
+        
+        if (element.classList.contains('link-element')) {
+            const p = element.querySelector('p');
+            if (p) {
+                items.push({
+                    type: 'link',
+                    name: p.textContent,
+                    url: p.getAttribute('data-url') || ''
+                });
+            }
+        } else if (element.classList.contains('folder-element')) {
+            const folderHead = element.querySelector('.folder-head');
+            const folderBody = element.querySelector('.folder-body');
+            if (folderHead && folderBody) {
+                items.push({
+                    type: 'folder',
+                    name: folderHead.querySelector('p').textContent,
+                    items: serializeSection(folderBody)
+                });
+            }
+        }
+    });
+    return items;
+}
+
+// Create bookmark element
+function createBookmarkElement(bookmark, container) {
+    const linkElement = document.createElement('div');
+    linkElement.className = 'link-element';
+    linkElement.innerHTML = `
+        <img src="/img/link.png" alt="link" class="link-icon">
+        <p data-url="${bookmark.url}">${bookmark.name}</p>
+        <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+    `;
+    linkElement.querySelector('p').onclick = () => window.open(bookmark.url, '_blank');
+    
+    // Always insert before .new-link
+    const newLinkDiv = container.querySelector('.new-link');
+    if (newLinkDiv) {
+        container.insertBefore(linkElement, newLinkDiv);
+    } else {
+        container.appendChild(linkElement);
+    }
+    return linkElement;
+}
+
+// Create folder element
+function createFolderElement(folder, container) {
+    const folderElement = document.createElement('div');
+    folderElement.className = 'folder-element';
+    folderElement.innerHTML = `
+        <div class="folder-head" onclick="folder_toggle(this)">
+            <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
+            <img src="/img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
+            <p>${folder.name}</p>
+            <img src="/img/new_link.png" alt="add new link" class="edit-icon" onclick="addLink(this.closest('.folder-element').querySelector('.folder-body'))">
+            <img src="/img/new_folder.png" alt="add new folder" class="edit-icon" onclick="addFolder(this.closest('.folder-element').querySelector('.folder-body'))">
+            <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editFolder(this)">
+        </div>
+        <div class="folder-body" style="display: none;">
+        </div>
+    `;
+    
+    const folderBody = folderElement.querySelector('.folder-body');
+    if (folder.items && Array.isArray(folder.items)) {
+        folder.items.forEach(item => {
+            if (item.type === 'link') {
+                createBookmarkElement(item, folderBody);
+            } else if (item.type === 'folder') {
+                createFolderElement(item, folderBody);
+            }
+        });
+    }
+    
+    // Always insert before .new-link
+    const newLinkDiv = container.querySelector('.new-link');
+    if (newLinkDiv) {
+        container.insertBefore(folderElement, newLinkDiv);
+    } else {
+        container.appendChild(folderElement);
+    }
+    return folderElement;
+}
+
+// Handle bookmark form submission
+// Handle bookmark deletion
+document.getElementById('deleteBookmark').onclick = () => {
+    if (currentEditElement) {
+        currentEditElement.remove();
+        bookmarkModal.style.display = "none";
+        saveBookmarks();
+    }
+};
+
+// Handle folder deletion
+document.getElementById('deleteFolder').onclick = () => {
+    if (currentFolderElement) {
+        const folderElement = currentFolderElement.closest('.folder-element');
+        // Check if folder has contents
+        const folderBody = folderElement.querySelector('.folder-body');
+        if (folderBody && folderBody.children.length > 0) {
+            if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
+                return;
+            }
+        }
+        folderElement.remove();
+        folderModal.style.display = "none";
+        saveBookmarks();
+    }
+};
+
+bookmarkForm.onsubmit = (e) => {
+    e.preventDefault();
+    const name = document.getElementById('bookmarkName').value;
+    const url = document.getElementById('bookmarkUrl').value;
+    
+    if (currentEditElement) {
+        // Edit existing bookmark
+        const paragraph = currentEditElement.querySelector('p');
+        paragraph.textContent = name;
+        paragraph.setAttribute('data-url', url);
+        paragraph.onclick = () => window.open(url, '_blank');
+    } else {
+        // Create new bookmark
+        createBookmarkElement({ name, url }, currentContainer);
+    }
+    
+    bookmarkModal.style.display = "none";
+    saveBookmarks();
+}
+
+// Handle folder form submission
+folderForm.onsubmit = (e) => {
+    e.preventDefault();
+    const name = document.getElementById('folderName').value;
+    
+    if (currentFolderElement) {
+        // Edit existing folder
+        currentFolderElement.querySelector('p').textContent = name;
+    } else {
+        // Create new folder
+        createFolderElement({ name, items: [] }, currentFolderContainer);
+    }
+    
+    folderModal.style.display = "none";
+    saveBookmarks();
+}
+
+// Export bookmarks
+function exportBookmarks() {
+    const bookmarks = getAllBookmarks();
+    const dataStr = JSON.stringify(bookmarks, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', 'fluxboard_bookmarks.json');
+    document.body.appendChild(linkElement);
+    linkElement.click();
+    document.body.removeChild(linkElement);
+}
+
+// Import bookmarks
+function importBookmarks() {
+    document.getElementById('importInput').click();
+}
+
+// Handle import
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const bookmarks = JSON.parse(e.target.result);
+                setAllBookmarks(bookmarks);
+                saveBookmarks();
+            } catch (error) {
+                console.error('Error importing bookmarks:', error);
+                alert('Error importing bookmarks: Invalid file format');
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+
+// Get all bookmarks
+function getAllBookmarks() {
+    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    const bookmarks = {};
+    
+    sections.forEach(section => {
+        const sectionElement = document.querySelector('.' + section);
+        if (sectionElement) {
+            bookmarks[section] = serializeSection(sectionElement);
+        }
+    });
+    
+    return bookmarks;
+}
+
+// Set all bookmarks
+function setAllBookmarks(bookmarks) {
+    Object.entries(bookmarks).forEach(([section, items]) => {
+        const sectionElement = document.querySelector('.' + section);
+        if (sectionElement) {
+            // Save the new-link div
+            const newLinkDiv = sectionElement.querySelector('.new-link');
+            // Clear the section
+            sectionElement.innerHTML = '';
+            
+            // Add all items
+            if (Array.isArray(items)) {
+                items.forEach(item => {
+                    if (item.type === 'link') {
+                        createBookmarkElement(item, sectionElement);
+                    } else if (item.type === 'folder') {
+                        createFolderElement(item, sectionElement);
+                    }
+                });
+            }
+            
+            // Always add new-link at the end
+            if (newLinkDiv) {
+                sectionElement.appendChild(newLinkDiv);
+            }
+        }
+    });
+}
+
+// Clear all bookmarks
+function clearAllBookmarks() {
+    if (!confirm('Are you sure you want to delete all bookmarks? This action cannot be undone!')) {
+        return;
+    }
+    
+    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    sections.forEach(section => {
+        const sectionElement = document.querySelector('.' + section);
+        if (sectionElement) {
+            const newLinkDiv = sectionElement.querySelector('.new-link');
+            sectionElement.innerHTML = '';
+            if (newLinkDiv) {
+                sectionElement.appendChild(newLinkDiv);
+            }
+        }
+    });
+    
+    localStorage.removeItem('fluxboard_bookmarks');
+}
+
+// Load saved bookmarks on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedBookmarks = localStorage.getItem('fluxboard_bookmarks');
+    if (savedBookmarks) {
+        try {
+            const bookmarks = JSON.parse(savedBookmarks);
+            setAllBookmarks(bookmarks);
+        } catch (error) {
+            console.error('Error loading bookmarks:', error);
+        }
+    }
+    
+    // Add click handlers for buttons
+    document.querySelectorAll('.add-link img').forEach(button => {
+        button.onclick = () => addLink(button.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6, .folder-body'));
+    });
+    
+    document.querySelectorAll('.add-folder img').forEach(button => {
+        button.onclick = () => addFolder(button.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6, .folder-body'));
+    });
+    
+    let currentEditingElement = null;
+    const deleteBookmarkBtn = document.getElementById('deleteBookmark');
+    const deleteFolderBtn = document.getElementById('deleteFolder');
+
+    function openModal(modal, isEdit = false, element = null) {
+        modal.style.display = "block";
+        currentEditingElement = element;
+
+        if (modal.id === 'bookmarkModal') {
+            const deleteBtn = document.getElementById('deleteBookmark');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (isEdit) {
+                modalTitle.textContent = 'Edit Bookmark';
+                deleteBtn.style.display = 'block';
+                document.getElementById('bookmarkName').value = element.querySelector('span').textContent;
+                document.getElementById('bookmarkUrl').value = element.querySelector('a').href;
+            } else {
+                modalTitle.textContent = 'Add Bookmark';
+                deleteBtn.style.display = 'none';
+                document.getElementById('bookmarkForm').reset();
+            }
+        } else if (modal.id === 'folderModal') {
+            const deleteBtn = document.getElementById('deleteFolder');
+            const modalTitle = document.getElementById('folderModalTitle');
+            
+            if (isEdit) {
+                modalTitle.textContent = 'Edit Folder';
+                deleteBtn.style.display = 'block';
+                document.getElementById('folderName').value = element.querySelector('.folder-name').textContent;
+            } else {
+                modalTitle.textContent = 'Add Folder';
+                deleteBtn.style.display = 'none';
+                document.getElementById('folderForm').reset();
+            }
+        }
+    }
+
+    // Add click handlers for delete buttons
+    deleteBookmarkBtn.addEventListener('click', function() {
+        if (currentEditingElement) {
+            currentEditingElement.remove();
+            saveToLocalStorage();
+            closeModal(bookmarkModal);
+        }
+    });
+
+    deleteFolderBtn.addEventListener('click', function() {
+        if (currentEditingElement) {
+            // Check if folder is empty
+            if (currentEditingElement.querySelector('.folder-content').children.length > 0) {
+                if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
+                    return;
+                }
+            }
+            currentEditingElement.remove();
+            saveToLocalStorage();
+            closeModal(folderModal);
+        }
+    });
+
+    // Update the click handlers for bookmarks and folders to support editing
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('bookmark') || e.target.closest('.bookmark')) {
+            const bookmark = e.target.classList.contains('bookmark') ? e.target : e.target.closest('.bookmark');
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                openModal(bookmarkModal, true, bookmark);
+            }
+        } else if (e.target.classList.contains('folder-name')) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                openModal(folderModal, true, e.target.closest('.folder'));
+            }
+        }
+    });
+});

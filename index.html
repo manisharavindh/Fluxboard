@@ -13,75 +13,95 @@
             <div class="sub-div1">
                 <!-- <img src="/img/logo.png" alt="Fluxboard Logo" class="logo"> -->
                 <p>✅ Fluxboard</p>
+                <div class="storage-actions">
+                    <input type="file" id="importInput" accept=".json" style="display: none;" onchange="handleImport(event)">
+                </div>
             </div>
             <div class="sub-div2">
-                <div class="search-box">
+                <form class="search-box" id="searchForm" autocomplete="off" onsubmit="handleSearch(event)">
                     <div class="icon">
                         <img src="/img/google.webp" alt="none">
                     </div>
-                    <input type="text" placeholder="Search with Google or type URL" />
-                </div>
+                    <input type="text" id="searchInput" placeholder="Search with Google or type URL" />
+                </form>
             </div>
             <div class="sub-div3">
                 <!-- link element -->
-                <div class="link-element">
+                <!-- <div class="link-element">
                     <img src="/img/link.png" alt="link" class="link-icon">
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
-                    <img src="/img/menu.png" alt="edit" class="edit-icon">
-                </div>
+                    <p data-url="https://github.com" onclick="window.open(this.getAttribute('data-url'), '_blank')">GitHub - Where the world builds software</p>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+                </div> -->
                 <!-- folder element -->
-                <div class="folder-element">
+                <!-- <div class="folder-element">
                     <div class="folder-head" onclick="folder_toggle(this)">
                         <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
-                        <img src="/img/opened.png" alt="folder" class="folder-opened-icon">
-                        <p>Folder Name</p>
-                        <img src="/img/menu.png" alt="edit" class="edit-icon">
+                        <img src="/img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
+                        <p>Development Tools</p>
+                        <img src="/img/new_link.png" alt="add new link" class="edit-icon" onclick="addLink(this.closest('.folder-element').querySelector('.folder-body'))">
+                        <img src="/img/new_folder.png" alt="add new folder" class="edit-icon" onclick="addFolder(this.closest('.folder-element').querySelector('.folder-body'))">
+                        <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editFolder(this)">
                     </div>
-                    <div class="folder-body">
+                    <div class="folder-body" style="display: none;">
                         <div class="link-element">
                             <img src="/img/link.png" alt="link" class="link-icon">
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
-                            <img src="/img/menu.png" alt="edit" class="edit-icon">
+                            <p data-url="https://code.visualstudio.com" onclick="window.open(this.getAttribute('data-url'), '_blank')">Visual Studio Code - Code Editing. Redefined</p>
+                            <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <!-- new link -->
                 <div class="new-link">
                     <div class="add-link">
-                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                        <img src="/img/new_link.png" alt="add new link" id="add-link" onclick="addLink(this.closest('.sub-div3'))">
                     </div>
                     <div class="add-folder">
-                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder" onclick="addFolder(this.closest('.sub-div3'))">
                     </div>
                 </div>
             </div>
             <div class="sub-div4">
-                <div class="link-element">
+                <!-- <div class="link-element">
                     <img src="/img/link.png" alt="link" class="link-icon">
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
-                    <img src="/img/menu.png" alt="edit" class="edit-icon">
-                </div>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+                </div> -->
                 <div class="new-link">
                     <div class="add-link">
-                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                        <img src="/img/new_link.png" alt="add new link" onclick="addLink(this.closest('.sub-div4'))">
                     </div>
                     <div class="add-folder">
-                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" onclick="addFolder(this.closest('.sub-div4'))">
                     </div>
                 </div>
             </div>
             <div class="sub-div5">
-                <div class="link-element">
+                <!-- <div class="link-element">
                     <img src="/img/link.png" alt="link" class="link-icon">
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
-                    <img src="/img/menu.png" alt="edit" class="edit-icon">
-                </div>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+                </div> -->
                 <div class="new-link">
                     <div class="add-link">
-                        <img src="/img/new_link.png" alt="add new link" id="add-link">
+                        <img src="/img/new_link.png" alt="add new link" onclick="addLink(this.closest('.sub-div5'))">
                     </div>
                     <div class="add-folder">
-                        <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" onclick="addFolder(this.closest('.sub-div5'))">
+                    </div>
+                </div>
+            </div>
+            <div class="sub-div6">
+                <!-- <div class="link-element">
+                    <img src="/img/link.png" alt="link" class="link-icon">
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque minus dolores quibusdam? Suscipit eum provident explicabo necessitatibus laboriosam cumque voluptas ipsam consectetur voluptate! Dolores magnam tenetur corporis, veniam nihil placeat.</p>
+                    <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+                </div> -->
+                <div class="new-link">
+                    <div class="add-link">
+                        <img src="/img/new_link.png" alt="add new link" onclick="addLink(this.closest('.sub-div6'))">
+                    </div>
+                    <div class="add-folder">
+                        <img src="/img/new_folder.png" alt="add new folder" onclick="addFolder(this.closest('.sub-div6'))">
                     </div>
                 </div>
             </div>
@@ -96,7 +116,47 @@
         <div class="div4">
             <p>more</p>
         </div>
+        
+        <!-- Data Buttons -->
+        <div class="data-buttons">
+            <button onclick="exportBookmarks()" class="action-btn">E</button>
+            <button onclick="importBookmarks()" class="action-btn">I</button>
+            <button onclick="clearAllBookmarks()" class="action-btn action-btn-danger">D</button>
+        </div>
     </div>
+
+
+    <!-- Modal Form for Bookmarks -->
+    <div id="bookmarkModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add Bookmark</h2>
+            <form id="bookmarkForm">
+                <input type="text" id="bookmarkName" placeholder="Enter name" required>
+                <input type="url" id="bookmarkUrl" placeholder="Enter URL" required>
+                <div class="modal-buttons">
+                    <button type="button" id="deleteBookmark" class="delete-btn" style="display: none;">Delete</button>
+                    <button type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form for Folders -->
+    <div id="folderModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="folderModalTitle">Add Folder</h2>
+            <form id="folderForm">
+                <input type="text" id="folderName" placeholder="Enter folder name" required>
+                <div class="modal-buttons">
+                    <button type="button" id="deleteFolder" class="delete-btn" style="display: none;">Delete</button>
+                    <button type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>
