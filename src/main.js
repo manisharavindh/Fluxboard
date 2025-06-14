@@ -64,7 +64,11 @@ function saveBookmarks() {
     sections.forEach(section => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            bookmarks[section] = serializeSection(sectionElement);
+            const groupTitle = sectionElement.querySelector('.group-title 5').textContent;
+            bookmarks[section] = {
+                title: groupTitle,
+                items: serializeSection(sectionElement)
+            };
         }
     });
     
@@ -74,6 +78,11 @@ function saveBookmarks() {
 
 // Function to add new link
 function addLink(container) {
+    // If we're adding to a main section, we need to identify the actual container for items
+    if (container.classList.contains('sub-div3') || container.classList.contains('sub-div4') || 
+        container.classList.contains('sub-div5') || container.classList.contains('sub-div6')) {
+        container = container; // The container is now correct since we append directly
+    }
     currentContainer = container;
     currentEditElement = null;
     modalTitle.textContent = "Add Bookmark";
@@ -84,6 +93,11 @@ function addLink(container) {
 
 // Function to add new folder
 function addFolder(container) {
+    // If we're adding to a main section, we need to identify the actual container for items
+    if (container.classList.contains('sub-div3') || container.classList.contains('sub-div4') || 
+        container.classList.contains('sub-div5') || container.classList.contains('sub-div6')) {
+        container = container; // The container is now correct since we append directly
+    }
     currentFolderContainer = container;
     currentFolderElement = null;
     folderModalTitle.textContent = "Add Folder";
@@ -165,13 +179,8 @@ function createBookmarkElement(bookmark, container) {
     const linkText = linkElement.querySelector('p');
     linkText.addEventListener('click', () => window.open(bookmark.url, '_blank'));
     
-    // Always insert before .new-link
-    const newLinkDiv = container.querySelector('.new-link');
-    if (newLinkDiv) {
-        container.insertBefore(linkElement, newLinkDiv);
-    } else {
-        container.appendChild(linkElement);
-    }
+    // Simply append the element to the container
+    container.appendChild(linkElement);
     return linkElement;
 }
 
@@ -232,13 +241,8 @@ function createFolderElement(folder, container) {
         });
     }
     
-    // Always insert before .new-link
-    const newLinkDiv = container.querySelector('.new-link');
-    if (newLinkDiv) {
-        container.insertBefore(folderElement, newLinkDiv);
-    } else {
-        container.appendChild(folderElement);
-    }
+    // Simply append the folder element to the container
+    container.appendChild(folderElement);
     return folderElement;
 }
 
@@ -309,7 +313,12 @@ folderForm.onsubmit = (e) => {
 // Export bookmarks
 function exportBookmarks() {
     const bookmarks = getAllBookmarks();
-    const dataStr = JSON.stringify(bookmarks, null, 2);
+    const exportData = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        bookmarks: bookmarks
+    };
+    const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
     
     const linkElement = document.createElement('a');
@@ -332,7 +341,9 @@ function handleImport(event) {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const bookmarks = JSON.parse(e.target.result);
+                const data = JSON.parse(e.target.result);
+                // Handle both new and old format
+                const bookmarks = data.bookmarks || data;
                 setAllBookmarks(bookmarks);
                 saveBookmarks();
             } catch (error) {
@@ -352,7 +363,11 @@ function getAllBookmarks() {
     sections.forEach(section => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            bookmarks[section] = serializeSection(sectionElement);
+            const titleElement = sectionElement.querySelector('.group-title h5');
+            bookmarks[section] = {
+                title: titleElement ? titleElement.textContent : '',
+                items: serializeSection(sectionElement)
+            };
         }
     });
     
@@ -361,29 +376,31 @@ function getAllBookmarks() {
 
 // Set all bookmarks
 function setAllBookmarks(bookmarks) {
-    Object.entries(bookmarks).forEach(([section, items]) => {
+    Object.entries(bookmarks).forEach(([section, data]) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            // Save the new-link div
-            const newLinkDiv = sectionElement.querySelector('.new-link');
-            // Clear the section
-            sectionElement.innerHTML = '';
+            // Update the group title if it exists in the data
+            const titleElement = sectionElement.querySelector('.group-title h5');
+            if (data.title !== undefined && titleElement) {
+                titleElement.textContent = data.title;
+            }
+
+            // Remove all items except the group-title
+            Array.from(sectionElement.children).forEach(child => {
+                if (!child.classList.contains('group-title')) {
+                    child.remove();
+                }
+            });
             
             // Add all items
-            if (Array.isArray(items)) {
-                items.forEach(item => {
-                    if (item.type === 'link') {
-                        createBookmarkElement(item, sectionElement);
-                    } else if (item.type === 'folder') {
-                        createFolderElement(item, sectionElement);
-                    }
-                });
-            }
-            
-            // Always add new-link at the end
-            if (newLinkDiv) {
-                sectionElement.appendChild(newLinkDiv);
-            }
+            const items = Array.isArray(data) ? data : (data.items || []);
+            items.forEach(item => {
+                if (item.type === 'link') {
+                    createBookmarkElement(item, sectionElement);
+                } else if (item.type === 'folder') {
+                    createFolderElement(item, sectionElement);
+                }
+            });
         }
     });
 }
@@ -395,18 +412,36 @@ function clearAllBookmarks() {
     }
     
     const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
-    sections.forEach(section => {
+    sections.forEach((section, index) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            const newLinkDiv = sectionElement.querySelector('.new-link');
-            sectionElement.innerHTML = '';
-            if (newLinkDiv) {
-                sectionElement.appendChild(newLinkDiv);
+            // Reset the title to default
+            const titleElement = sectionElement.querySelector('.group-title h5');
+            if (titleElement) {
+                titleElement.textContent = String(index + 1);
             }
+            
+            // Remove all items except the group-title
+            Array.from(sectionElement.children).forEach(child => {
+                if (!child.classList.contains('group-title')) {
+                    child.remove();
+                }
+            });
         }
     });
     
-    localStorage.removeItem('fluxboard_bookmarks');
+    // Clear bookmarks and reset titles
+    const emptyBookmarks = {};
+    sections.forEach((section, index) => {
+        emptyBookmarks[section] = {
+            title: String(index + 1),
+            items: []
+        };
+    });
+    
+    // Clear both bookmarks and titles from localStorage
+    localStorage.removeItem('groupTitles');
+    localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
 }
 
 // Load saved bookmarks on page load
@@ -515,7 +550,7 @@ const groupTitleInput = document.getElementById('groupTitle');
 
 function editGroupTitle(titleElement) {
     currentGroupTitleElement = titleElement;
-    const currentTitle = titleElement.querySelector('h3').textContent;
+    const currentTitle = titleElement.querySelector('h5').textContent;
     groupTitleInput.value = currentTitle;
     groupTitleModal.style.display = 'block';
 }
@@ -531,7 +566,7 @@ groupTitleForm.addEventListener('submit', function(event) {
     if (currentGroupTitleElement) {
         const newTitle = groupTitleInput.value.trim();
         if (newTitle) {
-            currentGroupTitleElement.querySelector('h3').textContent = newTitle;
+            currentGroupTitleElement.querySelector('h5').textContent = newTitle;
             // Save to localStorage if needed
             saveGroupTitles();
         }
@@ -550,7 +585,7 @@ window.addEventListener('click', function(event) {
 function saveGroupTitles() {
     const titles = {};
     document.querySelectorAll('.group-title').forEach((element, index) => {
-        const title = element.querySelector('h3').textContent;
+        const title = element.querySelector('h5').textContent;
         titles[`group${index + 1}`] = title;
     });
     localStorage.setItem('groupTitles', JSON.stringify(titles));
@@ -562,7 +597,7 @@ function loadGroupTitles() {
     document.querySelectorAll('.group-title').forEach((element, index) => {
         const savedTitle = titles[`group${index + 1}`];
         if (savedTitle) {
-            element.querySelector('h3').textContent = savedTitle;
+            element.querySelector('h5').textContent = savedTitle;
         }
     });
 }
@@ -582,19 +617,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Group title handlers
     document.querySelectorAll('.group-title').forEach(titleElement => {
-        titleElement.addEventListener('click', () => editGroupTitle(titleElement));
+        titleElement.addEventListener('click', (e) => {
+            // Don't trigger if clicking on add-link or add-folder elements or their children
+            if (e.target.closest('.add-link') || e.target.closest('.add-folder')) {
+                return;
+            }
+            editGroupTitle(titleElement);
+        });
     });
 
     // Add link handlers
     document.querySelectorAll('.add-link').forEach(linkElement => {
-        linkElement.addEventListener('click', () => {
+        linkElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up to group-title
             addLink(linkElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
         });
     });
 
     // Add folder handlers
     document.querySelectorAll('.add-folder').forEach(folderElement => {
-        folderElement.addEventListener('click', () => {
+        folderElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up to group-title
             addFolder(folderElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
         });
     });

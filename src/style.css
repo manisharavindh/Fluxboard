@@ -249,32 +249,6 @@ body{
     opacity: 0.8;
 }
 
-.new-link{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
-.new-link div{
-    width: 49.5%;
-    background-color: var(--secondary-dark);
-    display: grid;
-    place-items: center;
-    margin-top: 0.5rem;
-    cursor: pointer;
-}
-
-.new-link div:hover{
-    background-color: var(--popup-dark);
-}
-
-.new-link div img{
-    width: 20px;
-    height: 20px;
-    transform: scale(0.8);
-    opacity: 0.5;
-}
-
 /* FOLDER */
 
 .folder-body .folder-element, .folder-element .link-element{
@@ -487,20 +461,48 @@ body{
 }
 
 .group-title {
-    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.5rem; 
+    margin-bottom: 0.5rem;
+    background-color: var(--secondary-dark);
+    border-radius: 0.25rem;
     cursor: pointer;
-    transition: var(--transition-duration) var(--transition-timing);
 }
 
-.group-title:hover {
-    background-color: var(--nav-active-dark);
+.group-title h5 {
+    /* border: 1px solid red; */
+    width: 75%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.8;
 }
 
-.group-title h3 {
-    color: var(--color-dark);
-    font-size: 1rem;
-    font-weight: 500;
-    margin: 0;
-    padding: 5px;
-    border-radius: 4px;
+.new-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.15rem;
+}
+.new-link div{
+    width: 49.5%;
+    background-color: var(--secondary-dark);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    opacity: 0.8;
+    border-radius: 0.25rem;
+}
+
+.new-link div:hover{
+    background-color: var(--popup-dark);
+    opacity: 0.8;
+}
+
+.new-link div img{
+    width: 20px;
+    height: 20px;
+    transform: scale(0.8);
 }
