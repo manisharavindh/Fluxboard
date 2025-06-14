@@ -395,7 +395,8 @@ body{
 }
 
 #bookmarkForm,
-#folderForm {
+#folderForm,
+.folderForm {
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -403,7 +404,8 @@ body{
 }
 
 #bookmarkForm input,
-#folderForm input {
+#folderForm input,
+.folderForm input {
     padding: 8px;
     border: 1px solid var(--popup-dark);
     border-radius: 4px;
@@ -413,7 +415,8 @@ body{
 }
 
 #bookmarkForm button,
-#folderForm button {
+#folderForm button,
+.folderForm button {
     padding: 8px 16px;
     background-color: var(--blue);
     color: var(--primary-dark);
@@ -424,7 +427,8 @@ body{
 }
 
 #bookmarkForm button:hover,
-#folderForm button:hover {
+#folderForm button:hover,
+.folderForm button:hover {
     opacity: 0.9;
 }
 
@@ -480,4 +484,23 @@ body{
 .action-btn-danger {
     background-color: var(--red) !important;
     color: var(--color-dark) !important;
+}
+
+.group-title {
+    padding: 10px;
+    cursor: pointer;
+    transition: var(--transition-duration) var(--transition-timing);
+}
+
+.group-title:hover {
+    background-color: var(--nav-active-dark);
+}
+
+.group-title h3 {
+    color: var(--color-dark);
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    padding: 5px;
+    border-radius: 4px;
 }

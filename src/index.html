@@ -12,11 +12,11 @@
             <div class="sub-div1">
                 <p>📋 Fluxboard</p>
                 <div class="storage-actions">
-                    <input type="file" id="importInput" accept=".json" style="display: none;" onchange="handleImport(event)">
+                    <input type="file" id="importInput" accept=".json" style="display: none;">
                 </div>
             </div>
             <div class="sub-div2">
-                <form class="search-box" id="searchForm" autocomplete="off" onsubmit="handleSearch(event)">
+                <form class="search-box" id="searchForm" autocomplete="off">
                     <div class="icon">
                         <img src="/img/google.webp" alt="none">
                     </div>
@@ -24,41 +24,53 @@
                 </form>
             </div>
             <div class="sub-div3">
+                <div class="group-title">
+                    <h3>1</h3>
+                </div>
                 <div class="new-link">
-                    <div class="add-link" onclick="addLink(this.closest('.sub-div3'))">
+                    <div class="add-link">
                         <img src="/img/new_link.png" alt="add new link" id="add-link">
                     </div>
-                    <div class="add-folder" onclick="addFolder(this.closest('.sub-div3'))">
+                    <div class="add-folder">
                         <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
                     </div>
                 </div>
             </div>
             <div class="sub-div4">
+                <div class="group-title">
+                    <h3>2</h3>
+                </div>
                 <div class="new-link">
-                    <div class="add-link" onclick="addLink(this.closest('.sub-div4'))">
+                    <div class="add-link">
                         <img src="/img/new_link.png" alt="add new link">
                     </div>
-                    <div class="add-folder" onclick="addFolder(this.closest('.sub-div4'))">
+                    <div class="add-folder">
                         <img src="/img/new_folder.png" alt="add new folder">
                     </div>
                 </div>
             </div>
             <div class="sub-div5">
+                <div class="group-title">
+                    <h3>3</h3>
+                </div>
                 <div class="new-link">
-                    <div class="add-link" onclick="addLink(this.closest('.sub-div5'))">
+                    <div class="add-link">
                         <img src="/img/new_link.png" alt="add new link">
                     </div>
-                    <div class="add-folder" onclick="addFolder(this.closest('.sub-div5'))">
+                    <div class="add-folder">
                         <img src="/img/new_folder.png" alt="add new folder">
                     </div>
                 </div>
             </div>
             <div class="sub-div6">
+                <div class="group-title">
+                    <h3>4</h3>
+                </div>
                 <div class="new-link">
-                    <div class="add-link" onclick="addLink(this.closest('.sub-div6'))">
+                    <div class="add-link">
                         <img src="/img/new_link.png" alt="add new link">
                     </div>
-                    <div class="add-folder" onclick="addFolder(this.closest('.sub-div6'))">
+                    <div class="add-folder">
                         <img src="/img/new_folder.png" alt="add new folder">
                     </div>
                 </div>
@@ -74,14 +86,12 @@
         <div class="div4">
             <p>⚙️ More</p>
             <div class="data-buttons">
-                <button onclick="exportBookmarks()" class="action-btn">Export Data</button>
-                <button onclick="importBookmarks()" class="action-btn">Import Data</button>
-                <button onclick="clearAllBookmarks()" class="action-btn action-btn-danger">Delete All</button>
+                <button class="action-btn">Export Data</button>
+                <button class="action-btn">Import Data</button>
+                <button class="action-btn action-btn-danger">Delete All</button>
             </div>
         </div>
-
     </div>
-
 
     <!-- Modal Form for Bookmarks -->
     <div id="bookmarkModal" class="modal">
@@ -114,6 +124,23 @@
                 <input type="text" id="folderName" placeholder="Enter folder name" required>
                 <div class="modal-buttons">
                     <button type="button" id="deleteFolder" class="delete-btn" style="display: none;">Delete</button>
+                    <button type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form for Group Title -->
+    <div id="groupTitleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Group Title</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="groupTitleForm" class="folderForm">
+                <h4>Title</h4>
+                <input type="text" id="groupTitle" placeholder="Enter group title" required>
+                <div class="modal-buttons">
                     <button type="submit">Save</button>
                 </div>
             </form>

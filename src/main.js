@@ -45,6 +45,7 @@ let currentEditElement = null;
 let currentContainer = null;
 let currentFolderElement = null;
 let currentFolderContainer = null;
+let currentGroupTitleElement = null;
 
 // Close modal handlers
 bookmarkCloseBtn.onclick = () => bookmarkModal.style.display = "none";
@@ -154,9 +155,15 @@ function createBookmarkElement(bookmark, container) {
     linkElement.innerHTML = `
         <img src="/img/link.png" alt="link" class="link-icon">
         <p data-url="${bookmark.url}">${bookmark.name}</p>
-        <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editLink(this)">
+        <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
-    linkElement.querySelector('p').onclick = () => window.open(bookmark.url, '_blank');
+    
+    // Add event listeners
+    const editIcon = linkElement.querySelector('.edit-icon');
+    editIcon.addEventListener('click', () => editLink(editIcon));
+    
+    const linkText = linkElement.querySelector('p');
+    linkText.addEventListener('click', () => window.open(bookmark.url, '_blank'));
     
     // Always insert before .new-link
     const newLinkDiv = container.querySelector('.new-link');
@@ -173,17 +180,46 @@ function createFolderElement(folder, container) {
     const folderElement = document.createElement('div');
     folderElement.className = 'folder-element';
     folderElement.innerHTML = `
-        <div class="folder-head" onclick="folder_toggle(this)">
+        <div class="folder-head">
             <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
             <img src="/img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
             <p>${folder.name}</p>
-            <img src="/img/new_link.png" alt="add new link" class="edit-icon" onclick="addLink(this.closest('.folder-element').querySelector('.folder-body'))">
-            <img src="/img/new_folder.png" alt="add new folder" class="edit-icon" onclick="addFolder(this.closest('.folder-element').querySelector('.folder-body'))">
-            <img src="/img/menu.png" alt="edit" class="edit-icon" onclick="editFolder(this)">
+            <img src="/img/new_link.png" alt="add new link" class="edit-icon add-link-icon">
+            <img src="/img/new_folder.png" alt="add new folder" class="edit-icon add-folder-icon">
+            <img src="/img/menu.png" alt="edit" class="edit-icon folder-menu-icon">
         </div>
         <div class="folder-body" style="display: none;">
         </div>
     `;
+    
+    // Add event listeners
+    const folderHead = folderElement.querySelector('.folder-head');
+    folderHead.addEventListener('click', (e) => {
+        // Only toggle if the click wasn't on one of the action icons
+        if (!e.target.classList.contains('edit-icon')) {
+            folder_toggle(folderHead);
+        }
+    });
+    
+    const addLinkIcon = folderElement.querySelector('.add-link-icon');
+    addLinkIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent folder toggle
+        const folderBody = e.target.closest('.folder-element').querySelector('.folder-body');
+        addLink(folderBody);
+    });
+    
+    const addFolderIcon = folderElement.querySelector('.add-folder-icon');
+    addFolderIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent folder toggle
+        const folderBody = e.target.closest('.folder-element').querySelector('.folder-body');
+        addFolder(folderBody);
+    });
+    
+    const menuIcon = folderElement.querySelector('.folder-menu-icon');
+    menuIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent folder toggle
+        editFolder(menuIcon);
+    });
     
     const folderBody = folderElement.querySelector('.folder-body');
     if (folder.items && Array.isArray(folder.items)) {
@@ -467,6 +503,126 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 openModal(folderModal, true, e.target.closest('.folder'));
+            }
+        }
+    });
+});
+
+// Group title editing
+const groupTitleModal = document.getElementById('groupTitleModal');
+const groupTitleForm = document.getElementById('groupTitleForm');
+const groupTitleInput = document.getElementById('groupTitle');
+
+function editGroupTitle(titleElement) {
+    currentGroupTitleElement = titleElement;
+    const currentTitle = titleElement.querySelector('h3').textContent;
+    groupTitleInput.value = currentTitle;
+    groupTitleModal.style.display = 'block';
+}
+
+function closeGroupTitleModal() {
+    groupTitleModal.style.display = 'none';
+    currentGroupTitleElement = null;
+}
+
+// Handle group title form submission
+groupTitleForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    if (currentGroupTitleElement) {
+        const newTitle = groupTitleInput.value.trim();
+        if (newTitle) {
+            currentGroupTitleElement.querySelector('h3').textContent = newTitle;
+            // Save to localStorage if needed
+            saveGroupTitles();
+        }
+    }
+    closeGroupTitleModal();
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    if (event.target === groupTitleModal) {
+        closeGroupTitleModal();
+    }
+});
+
+// Save group titles to localStorage
+function saveGroupTitles() {
+    const titles = {};
+    document.querySelectorAll('.group-title').forEach((element, index) => {
+        const title = element.querySelector('h3').textContent;
+        titles[`group${index + 1}`] = title;
+    });
+    localStorage.setItem('groupTitles', JSON.stringify(titles));
+}
+
+// Load group titles from localStorage
+function loadGroupTitles() {
+    const titles = JSON.parse(localStorage.getItem('groupTitles')) || {};
+    document.querySelectorAll('.group-title').forEach((element, index) => {
+        const savedTitle = titles[`group${index + 1}`];
+        if (savedTitle) {
+            element.querySelector('h3').textContent = savedTitle;
+        }
+    });
+}
+
+// Load saved titles when page loads
+document.addEventListener('DOMContentLoaded', loadGroupTitles);
+
+// Add event listeners once DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // File import handler
+    const importInput = document.getElementById('importInput');
+    importInput.addEventListener('change', handleImport);
+
+    // Search form handler
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', handleSearch);
+
+    // Group title handlers
+    document.querySelectorAll('.group-title').forEach(titleElement => {
+        titleElement.addEventListener('click', () => editGroupTitle(titleElement));
+    });
+
+    // Add link handlers
+    document.querySelectorAll('.add-link').forEach(linkElement => {
+        linkElement.addEventListener('click', () => {
+            addLink(linkElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
+        });
+    });
+
+    // Add folder handlers
+    document.querySelectorAll('.add-folder').forEach(folderElement => {
+        folderElement.addEventListener('click', () => {
+            addFolder(folderElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
+        });
+    });
+
+    // Action buttons handlers
+    const actionButtons = document.querySelectorAll('.data-buttons button');
+    actionButtons[0].addEventListener('click', exportBookmarks);
+    actionButtons[1].addEventListener('click', importBookmarks);
+    actionButtons[2].addEventListener('click', clearAllBookmarks);
+
+    // Modal close buttons
+    document.querySelectorAll('.modal .close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal.id === 'groupTitleModal') {
+                closeGroupTitleModal();
+            } else {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+            if (event.target.id === 'groupTitleModal') {
+                currentGroupTitleElement = null;
             }
         }
     });
