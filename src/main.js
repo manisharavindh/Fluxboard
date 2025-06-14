@@ -64,7 +64,7 @@ function saveBookmarks() {
     sections.forEach(section => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            const groupTitle = sectionElement.querySelector('.group-title 5').textContent;
+            const groupTitle = sectionElement.querySelector('.group-title h5').textContent;
             bookmarks[section] = {
                 title: groupTitle,
                 items: serializeSection(sectionElement)
