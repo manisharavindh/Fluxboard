@@ -541,6 +541,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    
+    // Initialize todo manager
+    todoManager = new TodoManager();
 });
 
 // Group title editing
@@ -607,6 +610,7 @@ document.addEventListener('DOMContentLoaded', loadGroupTitles);
 
 // Add event listeners once DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    loadSidebarState();
     // File import handler
     const importInput = document.getElementById('importInput');
     importInput.addEventListener('change', handleImport);
@@ -681,4 +685,247 @@ menu.addEventListener('click', () => {
     sidebar.classList.toggle('active');
     menu.classList.toggle('active');
     home.classList.toggle('active');
+    saveSidebarState();
 });
+
+// Save sidebar state to localStorage
+function saveSidebarState() {
+    const isActive = sidebar.classList.contains('active');
+    localStorage.setItem('fluxboard_sidebar_open', JSON.stringify(isActive));
+}
+
+// Load sidebar state from localStorage
+function loadSidebarState() {
+    const savedState = localStorage.getItem('fluxboard_sidebar_open');
+    if (savedState !== null) {
+        const isOpen = JSON.parse(savedState);
+        if (isOpen) {
+            // Temporarily disable transitions
+            sidebar.classList.add('no-transition');
+            menu.classList.add('no-transition');
+            home.classList.add('no-transition');
+            
+            // Apply active classes
+            sidebar.classList.add('active');
+            menu.classList.add('active');
+            home.classList.add('active');
+            
+            // Re-enable transitions after a brief delay
+            setTimeout(() => {
+                sidebar.classList.remove('no-transition');
+                menu.classList.remove('no-transition');
+                home.classList.remove('no-transition');
+            }, 50);
+        }
+    }
+}
+
+
+// Todo functionality
+class TodoManager {
+    constructor() {
+        this.todos = JSON.parse(localStorage.getItem('fluxboard_todos')) || [];
+        this.history = JSON.parse(localStorage.getItem('fluxboard_todo_history')) || [];
+        this.completedTimers = new Map();
+        this.init();
+    }
+
+    init() {
+        this.renderTodos();
+        this.bindEvents();
+        // Check for any completed todos that should be moved to history
+        this.checkCompletedTodos();
+    }
+
+    bindEvents() {
+        const addBtn = document.getElementById('addTodoBtn');
+        const todoInput = document.getElementById('todoInput');
+        const historyBtn = document.getElementById('historyBtn');
+        const historyModal = document.getElementById('historyModal');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        addBtn.addEventListener('click', () => this.addTodo());
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTodo();
+        });
+
+        historyBtn.addEventListener('click', () => this.showHistory());
+        clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+
+        // Close history modal
+        const closeBtn = historyModal.querySelector('.close');
+        closeBtn.addEventListener('click', () => {
+            historyModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.style.display = 'none';
+            }
+        });
+    }
+
+    addTodo() {
+        const input = document.getElementById('todoInput');
+        const text = input.value.trim();
+        
+        if (text) {
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            this.todos.push(todo);
+            this.saveTodos();
+            this.renderTodos();
+            input.value = '';
+        }
+    }
+
+    toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            todo.completedAt = todo.completed ? new Date().toISOString() : null;
+            
+            if (todo.completed) {
+                // Set timer to move to history after 1 minute
+                const timer = setTimeout(() => {
+                    this.moveToHistory(id);
+                }, 7000);
+                this.completedTimers.set(id, timer);
+            } else {
+                // Clear timer if unchecked
+                if (this.completedTimers.has(id)) {
+                    clearTimeout(this.completedTimers.get(id));
+                    this.completedTimers.delete(id);
+                }
+            }
+            
+            this.saveTodos();
+            this.renderTodos();
+        }
+    }
+
+    deleteTodo(id) {
+        // Clear timer if exists
+        if (this.completedTimers.has(id)) {
+            clearTimeout(this.completedTimers.get(id));
+            this.completedTimers.delete(id);
+        }
+        
+        this.todos = this.todos.filter(t => t.id !== id);
+        this.saveTodos();
+        this.renderTodos();
+    }
+
+    moveToHistory(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo && todo.completed) {
+            // Add to history
+            this.history.unshift({
+                ...todo,
+                movedToHistoryAt: new Date().toISOString()
+            });
+            
+            // Remove from todos
+            this.todos = this.todos.filter(t => t.id !== id);
+            
+            // Clear timer
+            if (this.completedTimers.has(id)) {
+                clearTimeout(this.completedTimers.get(id));
+                this.completedTimers.delete(id);
+            }
+            
+            this.saveTodos();
+            this.saveHistory();
+            this.renderTodos();
+        }
+    }
+
+    checkCompletedTodos() {
+        const now = new Date();
+        this.todos.forEach(todo => {
+            if (todo.completed && todo.completedAt) {
+                const completedTime = new Date(todo.completedAt);
+                const timeDiff = now - completedTime;
+                
+                if (timeDiff >= 7000) { // 1 minute
+                    this.moveToHistory(todo.id);
+                } else {
+                    // Set timer for remaining time
+                    const remainingTime = 7000 - timeDiff;
+                    const timer = setTimeout(() => {
+                        this.moveToHistory(todo.id);
+                    }, remainingTime);
+                    this.completedTimers.set(todo.id, timer);
+                }
+            }
+        });
+    }
+
+    renderTodos() {
+        const todoList = document.getElementById('todoList');
+        todoList.innerHTML = '';
+        
+        // Sort todos: incomplete first, then completed
+        const sortedTodos = [...this.todos].sort((a, b) => {
+            if (a.completed === b.completed) return 0;
+            return a.completed ? 1 : -1;
+        });
+        
+        sortedTodos.forEach(todo => {
+            const todoItem = document.createElement('div');
+            todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            todoItem.innerHTML = `
+                <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                       onchange="todoManager.toggleTodo(${todo.id})">
+                <span>${todo.text}</span>
+                <button onclick="todoManager.deleteTodo(${todo.id})">✕</button>
+            `;
+            todoList.appendChild(todoItem);
+        });
+    }
+
+    showHistory() {
+        const historyModal = document.getElementById('historyModal');
+        const historyList = document.getElementById('historyList');
+        
+        if (this.history.length === 0) {
+            historyList.innerHTML = '<div class="empty-history">No completed todos in history</div>';
+        } else {
+            historyList.innerHTML = this.history.map(item => `
+                <div class="history-item">
+                    <div class="history-item-text">${item.text}</div>
+                    <div class="history-item-date">
+                        Completed: ${new Date(item.completedAt).toLocaleDateString()} 
+                        ${new Date(item.completedAt).toLocaleTimeString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        historyModal.style.display = 'block';
+    }
+
+    clearHistory() {
+        if (confirm('Are you sure you want to clear all todo history?')) {
+            this.history = [];
+            this.saveHistory();
+            this.showHistory(); // Refresh the modal
+        }
+    }
+
+    saveTodos() {
+        localStorage.setItem('fluxboard_todos', JSON.stringify(this.todos));
+    }
+
+    saveHistory() {
+        localStorage.setItem('fluxboard_todo_history', JSON.stringify(this.history));
+    }
+}
+
+// Initialize todo manager
+let todoManager;

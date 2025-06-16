@@ -80,7 +80,15 @@
         </div>
         <div class="sidebar">
             <div class="todo">
-                <p>✅ Todo</p>
+                <div class="todo-header">
+                    <p>✅ Todo</p>
+                     <img src="/img/history.png" alt="history" class="history-btn" id="historyBtn">
+                </div>
+                <div class="todo-input">
+                    <input type="text" id="todoInput" placeholder="Add a new todo..." maxlength="100">
+                    <img src="/img/plus.png" alt="add" id="addTodoBtn">
+                </div>
+                <div class="todo-list" id="todoList"></div>
             </div>
             <div class="notes">
                 <p>📝 Quick Notes</p>
@@ -89,7 +97,7 @@
             <div class="more">
                 <p>⚙️ More</p>
                 <div class="data-buttons">
-                    <button class="action-btn">Custom Theme</button>
+                    <button class="action-btn">Color Themes</button>
                     <button class="action-btn">Export Data</button>
                     <button class="action-btn">Import Data</button>
                     <button class="action-btn action-btn-danger">Delete All</button>
@@ -153,6 +161,20 @@
                     <button type="submit">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="history-modal-content">
+            <div class="history-modal-header">
+                <h2>Todo History</h2>
+                <div>
+                    <span class="close" style="margin-left: 1rem;">&times;</span>
+                </div>
+            </div>
+            <div id="historyList"></div>
+            <button class="clear-history-btn" id="clearHistoryBtn">Clear History</button>
         </div>
     </div>
 
