@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fluxboard</title>
     <link rel="stylesheet" href="style.css">
+
+    <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="wrapper">
         <div class="home">
             <div class="logo">
-                <p>📋 Fluxboard</p>
+                <p><img src="/img/pinboard.png" alt="📋" class="logo-icon">Fluxboard</p>
                 <div class="storage-actions">
                     <input type="file" id="importInput" accept=".json" style="display: none;">
                 </div>
@@ -81,7 +83,7 @@
         <div class="sidebar">
             <div class="todo">
                 <div class="todo-header">
-                    <p>✅ Todo</p>
+                    <p><img src="/img/todo.png" alt="✅"> Todo</p>
                      <img src="/img/history.png" alt="history" class="history-btn" id="historyBtn">
                 </div>
                 <div class="todo-input">
@@ -91,11 +93,11 @@
                 <div class="todo-list" id="todoList"></div>
             </div>
             <div class="notes">
-                <p>📝 Quick Notes</p>
+                <p><img src="/img/notes.png" alt="📝"> Quick Notes</p>
                 <textarea placeholder="..."></textarea>
             </div>
             <div class="more">
-                <p>⚙️ More</p>
+                <p><img src="/img/more.png" alt="⚙️"> More</p>
                 <div class="data-buttons">
                     <button class="action-btn">Color Themes</button>
                     <button class="action-btn">Export Data</button>
@@ -119,9 +121,9 @@
             </div>
             <form id="bookmarkForm">
                 <h4>Title</h4>
-                <input type="text" id="bookmarkName" placeholder="Enter name" required>
+                <input type="text" id="bookmarkName" placeholder="Enter name" required autocomplete="off">
                 <h4>URL</h4>
-                <input type="url" id="bookmarkUrl" placeholder="Enter URL" required>
+                <input id="bookmarkUrl" placeholder="Enter URL" required autocomplete="off">
                 <div class="modal-buttons">
                     <button type="button" id="deleteBookmark" class="delete-btn" style="display: none;">Delete</button>
                     <button type="submit">Save</button>
@@ -138,7 +140,7 @@
                 <span class="close">&times;</span>
             </div>
             <form id="folderForm">
-                <input type="text" id="folderName" placeholder="Enter folder name" required>
+                <input type="text" id="folderName" placeholder="Enter folder name" required autocomplete="off">
                 <div class="modal-buttons">
                     <button type="button" id="deleteFolder" class="delete-btn" style="display: none;">Delete</button>
                     <button type="submit">Save</button>
@@ -156,7 +158,7 @@
             </div>
             <form id="groupTitleForm" class="folderForm">
                 <h4>Title</h4>
-                <input type="text" id="groupTitle" placeholder="Enter group title" required>
+                <input type="text" id="groupTitle" placeholder="Enter group title" required autocomplete="off">
                 <div class="modal-buttons">
                     <button type="submit">Save</button>
                 </div>

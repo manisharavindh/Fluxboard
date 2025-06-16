@@ -30,6 +30,21 @@ function handleSearch(event) {
     }
 }
 
+// Function to normalize URL - automatically add https:// if missing
+function normalizeUrl(url) {
+    if (!url) return '';
+    
+    // Remove any leading/trailing whitespace
+    url = url.trim();
+    
+    // If URL doesn't start with protocol, add https://
+    if (!url.match(/^https?:\/\//)) {
+        url = 'https://' + url;
+    }
+    
+    return url;
+}
+
 // Initialize modal elements
 const bookmarkModal = document.getElementById('bookmarkModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -114,7 +129,11 @@ function editLink(element) {
     
     modalTitle.textContent = "Edit Bookmark";
     document.getElementById('bookmarkName').value = paragraph.textContent;
-    document.getElementById('bookmarkUrl').value = paragraph.getAttribute('data-url') || '';
+    // Get the raw URL (might not have https://) for editing
+    const rawUrl = paragraph.getAttribute('data-url') || '';
+    // Remove https:// prefix for display in edit mode for better UX
+    const displayUrl = rawUrl.replace(/^https?:\/\//, '');
+    document.getElementById('bookmarkUrl').value = displayUrl;
     document.getElementById('deleteBookmark').style.display = 'block'; // Show delete button
     bookmarkModal.style.display = "block";
 }
@@ -166,9 +185,11 @@ function serializeSection(section) {
 function createBookmarkElement(bookmark, container) {
     const linkElement = document.createElement('div');
     linkElement.className = 'link-element';
+    // Normalize URL to ensure it has proper protocol
+    const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
         <img src="/img/link.png" alt="link" class="link-icon">
-        <p data-url="${bookmark.url}">${bookmark.name}</p>
+        <p data-url="${normalizedUrl}">${bookmark.name}</p>
         <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
     
@@ -177,7 +198,8 @@ function createBookmarkElement(bookmark, container) {
     editIcon.addEventListener('click', () => editLink(editIcon));
     
     const linkText = linkElement.querySelector('p');
-    linkText.addEventListener('click', () => window.open(bookmark.url, '_blank'));
+    // Changed from window.open to window.location.href to open in same tab
+    linkText.addEventListener('click', () => window.location.href = normalizedUrl);
     
     // Simply append the element to the container
     container.appendChild(linkElement);
@@ -276,14 +298,18 @@ document.getElementById('deleteFolder').onclick = () => {
 bookmarkForm.onsubmit = (e) => {
     e.preventDefault();
     const name = document.getElementById('bookmarkName').value;
-    const url = document.getElementById('bookmarkUrl').value;
+    const userUrl = document.getElementById('bookmarkUrl').value;
+    
+    // Normalize the URL to ensure it has proper protocol
+    const url = normalizeUrl(userUrl);
     
     if (currentEditElement) {
         // Edit existing bookmark
         const paragraph = currentEditElement.querySelector('p');
         paragraph.textContent = name;
         paragraph.setAttribute('data-url', url);
-        paragraph.onclick = () => window.open(url, '_blank');
+        // Changed from window.open to window.location.href to open in same tab
+        paragraph.onclick = () => window.location.href = url;
     } else {
         // Create new bookmark
         createBookmarkElement({ name, url }, currentContainer);

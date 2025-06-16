@@ -71,6 +71,18 @@ body{
     width: 100%;
 }
 
+.logo p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.logo-icon{
+    height: 38px;
+    aspect-ratio: 1;
+}
+
 /*  */
 /** Search **/
 /*  */
@@ -639,10 +651,36 @@ body{
     padding: 0.5rem;
 }
 
+.notes p {
+    margin-bottom: 0.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 0.1rem;
+}
+
+.notes p img{
+    height: 19px;
+    width: 19px;
+}
+
 .more{
     height: 25%;
     width: 100%;
     padding: 0.5rem;
+}
+
+.more p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 0.1rem;
+}
+
+.more p img{
+    height: 16px;
+    width: 16px;
 }
 
 .notes textarea{
@@ -676,6 +714,14 @@ body{
 
 .todo-header p {
     margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.todo-header p img{
+    height: 22px;
+    width: 22px;
 }
 
 .todo-header img{
