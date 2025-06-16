@@ -8,14 +8,14 @@
 </head>
 <body>
     <div class="wrapper">
-        <div class="div1">
-            <div class="sub-div1">
+        <div class="home">
+            <div class="logo">
                 <p>📋 Fluxboard</p>
                 <div class="storage-actions">
                     <input type="file" id="importInput" accept=".json" style="display: none;">
                 </div>
             </div>
-            <div class="sub-div2">
+            <div class="search">
                 <form class="search-box" id="searchForm" autocomplete="off">
                     <div class="icon">
                         <img src="/img/google.webp" alt="none">
@@ -23,72 +23,77 @@
                     <input type="text" id="searchInput" placeholder="Search with Google or type URL" />
                 </form>
             </div>
-            <div class="sub-div3">
-                <div class="group-title">
-                    <h5>1</h5>
-                    <div class="new-link">
-                        <div class="add-link">
-                            <img src="/img/new_link.png" alt="add new link" id="add-link">
-                        </div>
-                        <div class="add-folder">
-                            <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="sub-div4">
-                <div class="group-title">
-                    <h5>2</h5>
-                    <div class="new-link">
-                        <div class="add-link">
-                            <img src="/img/new_link.png" alt="add new link">
-                        </div>
-                        <div class="add-folder">
-                            <img src="/img/new_folder.png" alt="add new folder">
+            <div class="bookmarks">
+                <div class="column col1">
+                    <div class="group-title">
+                        <h5>1</h5>
+                        <div class="new-link">
+                            <div class="add-link">
+                                <img src="/img/new_link.png" alt="add new link" id="add-link">
+                            </div>
+                            <div class="add-folder">
+                                <img src="/img/new_folder.png" alt="add new folder" id="add-folder">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="sub-div5">
-                <div class="group-title">
-                    <h5>3</h5>
-                    <div class="new-link">
-                        <div class="add-link">
-                            <img src="/img/new_link.png" alt="add new link">
-                        </div>
-                        <div class="add-folder">
-                            <img src="/img/new_folder.png" alt="add new folder">
+                <div class="column col2">
+                    <div class="group-title">
+                        <h5>2</h5>
+                        <div class="new-link">
+                            <div class="add-link">
+                                <img src="/img/new_link.png" alt="add new link">
+                            </div>
+                            <div class="add-folder">
+                                <img src="/img/new_folder.png" alt="add new folder">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="sub-div6">
-                <div class="group-title">
-                    <h5>4</h5>
-                    <div class="new-link">
-                        <div class="add-link">
-                            <img src="/img/new_link.png" alt="add new link">
+                <div class="column col3">
+                    <div class="group-title">
+                        <h5>3</h5>
+                        <div class="new-link">
+                            <div class="add-link">
+                                <img src="/img/new_link.png" alt="add new link">
+                            </div>
+                            <div class="add-folder">
+                                <img src="/img/new_folder.png" alt="add new folder">
+                            </div>
                         </div>
-                        <div class="add-folder">
-                            <img src="/img/new_folder.png" alt="add new folder">
+                    </div>
+                </div>
+                <div class="column col4">
+                    <div class="group-title">
+                        <h5>4</h5>
+                        <div class="new-link">
+                            <div class="add-link">
+                                <img src="/img/new_link.png" alt="add new link">
+                            </div>
+                            <div class="add-folder">
+                                <img src="/img/new_folder.png" alt="add new folder">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="div2">
-            <p>✅ Todo</p>
-        </div>
-        <div class="div3">
-            <p>📝 Quick Notes</p>
-            <textarea placeholder="..."></textarea>
-        </div>
-        <div class="div4">
-            <p>⚙️ More</p>
-            <div class="data-buttons">
-                <button class="action-btn">Export Data</button>
-                <button class="action-btn">Import Data</button>
-                <button class="action-btn action-btn-danger">Delete All</button>
+        <div class="sidebar">
+            <div class="todo">
+                <p>✅ Todo</p>
+            </div>
+            <div class="notes">
+                <p>📝 Quick Notes</p>
+                <textarea placeholder="..."></textarea>
+            </div>
+            <div class="more">
+                <p>⚙️ More</p>
+                <div class="data-buttons">
+                    <button class="action-btn">Custom Theme</button>
+                    <button class="action-btn">Export Data</button>
+                    <button class="action-btn">Import Data</button>
+                    <button class="action-btn action-btn-danger">Delete All</button>
+                </div>
             </div>
         </div>
 

@@ -58,7 +58,7 @@ window.onclick = (event) => {
 
 // Save bookmarks to localStorage
 function saveBookmarks() {
-    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    const sections = ['col1', 'col2', 'col3', 'col4'];
     const bookmarks = {};
     
     sections.forEach(section => {
@@ -79,8 +79,8 @@ function saveBookmarks() {
 // Function to add new link
 function addLink(container) {
     // If we're adding to a main section, we need to identify the actual container for items
-    if (container.classList.contains('sub-div3') || container.classList.contains('sub-div4') || 
-        container.classList.contains('sub-div5') || container.classList.contains('sub-div6')) {
+    if (container.classList.contains('col1') || container.classList.contains('col2') || 
+        container.classList.contains('col3') || container.classList.contains('col4')) {
         container = container; // The container is now correct since we append directly
     }
     currentContainer = container;
@@ -94,8 +94,8 @@ function addLink(container) {
 // Function to add new folder
 function addFolder(container) {
     // If we're adding to a main section, we need to identify the actual container for items
-    if (container.classList.contains('sub-div3') || container.classList.contains('sub-div4') || 
-        container.classList.contains('sub-div5') || container.classList.contains('sub-div6')) {
+    if (container.classList.contains('col1') || container.classList.contains('col2') || 
+        container.classList.contains('col3') || container.classList.contains('col4')) {
         container = container; // The container is now correct since we append directly
     }
     currentFolderContainer = container;
@@ -357,7 +357,7 @@ function handleImport(event) {
 
 // Get all bookmarks
 function getAllBookmarks() {
-    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    const sections = ['col1', 'col2', 'col3', 'col4'];
     const bookmarks = {};
     
     sections.forEach(section => {
@@ -411,7 +411,7 @@ function clearAllBookmarks() {
         return;
     }
     
-    const sections = ['sub-div3', 'sub-div4', 'sub-div5', 'sub-div6'];
+    const sections = ['col1', 'col2', 'col3', 'col4'];
     sections.forEach((section, index) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
@@ -458,11 +458,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add click handlers for buttons
     document.querySelectorAll('.add-link img').forEach(button => {
-        button.onclick = () => addLink(button.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6, .folder-body'));
+        button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
     
     document.querySelectorAll('.add-folder img').forEach(button => {
-        button.onclick = () => addFolder(button.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6, .folder-body'));
+        button.onclick = () => addFolder(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
     
     let currentEditingElement = null;
@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-link').forEach(linkElement => {
         linkElement.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent event from bubbling up to group-title
-            addLink(linkElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
+            addLink(linkElement.closest('.col1, .col2, .col3, .col4'));
         });
     });
 
@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-folder').forEach(folderElement => {
         folderElement.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent event from bubbling up to group-title
-            addFolder(folderElement.closest('.sub-div3, .sub-div4, .sub-div5, .sub-div6'));
+            addFolder(folderElement.closest('.col1, .col2, .col3, .col4'));
         });
     });
 
@@ -669,4 +669,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+});
+
+
+// sidebar
+const sidebar = document.querySelector('.sidebar');
+const menu = document.querySelector('.menu');
+const home = document.querySelector('.home');
+
+menu.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+    menu.classList.toggle('active');
+    home.classList.toggle('active');
 });
