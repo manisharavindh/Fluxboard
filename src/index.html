@@ -124,6 +124,8 @@
                 <input type="text" id="bookmarkName" placeholder="Enter name" required autocomplete="off">
                 <h4>URL</h4>
                 <input id="bookmarkUrl" placeholder="Enter URL" required autocomplete="off">
+                <h4>Notes</h4>
+                <textarea id="bookmarkNotes" placeholder="Add notes (optional)..." rows="3" autocomplete="off"></textarea>
                 <div class="modal-buttons">
                     <button type="button" id="deleteBookmark" class="delete-btn" style="display: none;">Delete</button>
                     <button type="submit">Save</button>
@@ -140,7 +142,10 @@
                 <span class="close">&times;</span>
             </div>
             <form id="folderForm">
+                <h4>Folder Name</h4>
                 <input type="text" id="folderName" placeholder="Enter folder name" required autocomplete="off">
+                <h4>Notes</h4>
+                <textarea id="folderNotes" placeholder="Add notes..." rows="3" autocomplete="off"></textarea>
                 <div class="modal-buttons">
                     <button type="button" id="deleteFolder" class="delete-btn" style="display: none;">Delete</button>
                     <button type="submit">Save</button>

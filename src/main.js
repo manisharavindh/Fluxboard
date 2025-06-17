@@ -103,6 +103,8 @@ function addLink(container) {
     modalTitle.textContent = "Add Bookmark";
     document.getElementById('bookmarkName').value = '';
     document.getElementById('bookmarkUrl').value = '';
+    document.getElementById('bookmarkNotes').value = '';
+    document.getElementById('deleteBookmark').style.display = 'none';
     bookmarkModal.style.display = "block";
 }
 
@@ -117,6 +119,8 @@ function addFolder(container) {
     currentFolderElement = null;
     folderModalTitle.textContent = "Add Folder";
     document.getElementById('folderName').value = '';
+    document.getElementById('folderNotes').value = '';
+    document.getElementById('deleteFolder').style.display = 'none';
     folderModal.style.display = "block";
 }
 
@@ -134,6 +138,9 @@ function editLink(element) {
     // Remove https:// prefix for display in edit mode for better UX
     const displayUrl = rawUrl.replace(/^https?:\/\//, '');
     document.getElementById('bookmarkUrl').value = displayUrl;
+    // Load notes from data attribute
+    const notes = paragraph.getAttribute('data-notes') || '';
+    document.getElementById('bookmarkNotes').value = notes;
     document.getElementById('deleteBookmark').style.display = 'block'; // Show delete button
     bookmarkModal.style.display = "block";
 }
@@ -147,6 +154,9 @@ function editFolder(element) {
     
     folderModalTitle.textContent = "Edit Folder";
     document.getElementById('folderName').value = folderName.textContent;
+    // Load notes from data attribute
+    const notes = folderName.getAttribute('data-notes') || '';
+    document.getElementById('folderNotes').value = notes;
     document.getElementById('deleteFolder').style.display = 'block'; // Show delete button
     folderModal.style.display = "block";
 }
@@ -163,16 +173,19 @@ function serializeSection(section) {
                 items.push({
                     type: 'link',
                     name: p.textContent,
-                    url: p.getAttribute('data-url') || ''
+                    url: p.getAttribute('data-url') || '',
+                    notes: p.getAttribute('data-notes') || ''
                 });
             }
         } else if (element.classList.contains('folder-element')) {
             const folderHead = element.querySelector('.folder-head');
             const folderBody = element.querySelector('.folder-body');
             if (folderHead && folderBody) {
+                const folderNameP = folderHead.querySelector('p');
                 items.push({
                     type: 'folder',
-                    name: folderHead.querySelector('p').textContent,
+                    name: folderNameP.textContent,
+                    notes: folderNameP.getAttribute('data-notes') || '',
                     items: serializeSection(folderBody)
                 });
             }
@@ -189,7 +202,7 @@ function createBookmarkElement(bookmark, container) {
     const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
         <img src="/img/link.png" alt="link" class="link-icon">
-        <p data-url="${normalizedUrl}">${bookmark.name}</p>
+        <p data-url="${normalizedUrl}" data-notes="${bookmark.notes || ''}">${bookmark.name}</p>
         <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
     
@@ -214,7 +227,7 @@ function createFolderElement(folder, container) {
         <div class="folder-head">
             <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
             <img src="/img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
-            <p>${folder.name}</p>
+            <p data-notes="${folder.notes || ''}">${folder.name}</p>
             <img src="/img/new_link.png" alt="add new link" class="edit-icon add-link-icon">
             <img src="/img/new_folder.png" alt="add new folder" class="edit-icon add-folder-icon">
             <img src="/img/menu.png" alt="edit" class="edit-icon folder-menu-icon">
@@ -268,7 +281,6 @@ function createFolderElement(folder, container) {
     return folderElement;
 }
 
-// Handle bookmark form submission
 // Handle bookmark deletion
 document.getElementById('deleteBookmark').onclick = () => {
     if (currentEditElement) {
@@ -299,6 +311,7 @@ bookmarkForm.onsubmit = (e) => {
     e.preventDefault();
     const name = document.getElementById('bookmarkName').value;
     const userUrl = document.getElementById('bookmarkUrl').value;
+    const notes = document.getElementById('bookmarkNotes').value;
     
     // Normalize the URL to ensure it has proper protocol
     const url = normalizeUrl(userUrl);
@@ -308,11 +321,12 @@ bookmarkForm.onsubmit = (e) => {
         const paragraph = currentEditElement.querySelector('p');
         paragraph.textContent = name;
         paragraph.setAttribute('data-url', url);
+        paragraph.setAttribute('data-notes', notes);
         // Changed from window.open to window.location.href to open in same tab
         paragraph.onclick = () => window.location.href = url;
     } else {
         // Create new bookmark
-        createBookmarkElement({ name, url }, currentContainer);
+        createBookmarkElement({ name, url, notes }, currentContainer);
     }
     
     bookmarkModal.style.display = "none";
@@ -323,13 +337,16 @@ bookmarkForm.onsubmit = (e) => {
 folderForm.onsubmit = (e) => {
     e.preventDefault();
     const name = document.getElementById('folderName').value;
+    const notes = document.getElementById('folderNotes').value;
     
     if (currentFolderElement) {
         // Edit existing folder
-        currentFolderElement.querySelector('p').textContent = name;
+        const folderNameP = currentFolderElement.querySelector('p');
+        folderNameP.textContent = name;
+        folderNameP.setAttribute('data-notes', notes);
     } else {
         // Create new folder
-        createFolderElement({ name, items: [] }, currentFolderContainer);
+        createFolderElement({ name, notes, items: [] }, currentFolderContainer);
     }
     
     folderModal.style.display = "none";
@@ -508,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteBtn.style.display = 'block';
                 document.getElementById('bookmarkName').value = element.querySelector('span').textContent;
                 document.getElementById('bookmarkUrl').value = element.querySelector('a').href;
+                document.getElementById('bookmarkNotes').value = element.getAttribute('data-notes') || '';
             } else {
                 modalTitle.textContent = 'Add Bookmark';
                 deleteBtn.style.display = 'none';
@@ -521,6 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalTitle.textContent = 'Edit Folder';
                 deleteBtn.style.display = 'block';
                 document.getElementById('folderName').value = element.querySelector('.folder-name').textContent;
+                document.getElementById('folderNotes').value = element.getAttribute('data-notes') || '';
             } else {
                 modalTitle.textContent = 'Add Folder';
                 deleteBtn.style.display = 'none';
