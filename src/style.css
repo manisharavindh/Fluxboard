@@ -1,9 +1,11 @@
 :root {
-    --primary-dark: #1C1B22;
-    --secondary-dark: #2B2A33;
-    --tertiary-dark: #42414D;
+    --primary-dark: rgba(28, 27, 34, 0.5);
+    --secondary-dark: rgba(43, 42, 51, 0.5);
+    --tertiary-dark: rgba(66, 65, 77, 0.5);
     --quaternary-dark: #605F66;
     --quinary-dark: #605F66;
+
+    --primary-dark-layer: rgba(28, 27, 34, 0.9);
 
     --color-dark: #FBFBFE;
 
@@ -30,10 +32,17 @@ body{
     width: 100%;
     overflow: hidden;
     color: var(--color-dark);
-    background-color: var(--primary-dark);
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
+    
+    /* background-color: var(--primary-dark); */
+     /* new */
+    background: 
+        linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)),
+        url('/img/bg/bg001.jpg');
+    background-size: cover;
+    background-position: center;
 }
 
 .home{
@@ -58,6 +67,7 @@ body{
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
+    opacity: 0.9;
 }
 
 .logo-icon{
@@ -604,9 +614,10 @@ body{
 
 .menu.active{
     bottom: 0;
-    right: 0;
-    width: 20%;
+    right: 0.25rem;
+    width: calc(20% - 0.5rem);
     border-radius: 0;
+    border-left: 0.25rem solid var();
 }
 
 .menu.active .menu-img{
@@ -640,6 +651,7 @@ body{
     align-items: center;
     justify-content: start;
     gap: 0.1rem;
+    opacity: 0.8;
 }
 
 .notes p img{
@@ -660,6 +672,7 @@ body{
     align-items: center;
     justify-content: start;
     gap: 0.1rem;
+    opacity: 0.8;
 }
 
 .more p img{
@@ -691,6 +704,7 @@ body{
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 0.75rem;
+    opacity: 0.8;
 }
 
 .action-btn {
@@ -732,11 +746,12 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.8;
 }
 
 .todo-header p img{
-    height: 22px;
-    width: 22px;
+    height: 19px;
+    width: 19px;
 }
 
 .todo-header img{
@@ -861,7 +876,7 @@ body{
 }
 
 .clock-container div{
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .clock-container:hover{
