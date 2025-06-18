@@ -1,31 +1,14 @@
 :root {
-  --primary-dark: #1C1B22;
-  --secondary-dark: #2B2A33;
-  --color-dark: #FBFBFE;
-  
+    --primary-dark: #1C1B22;
+    --secondary-dark: #2B2A33;
+    --tertiary-dark: #42414D;
+    --quaternary-dark: #605F66;
+    --quinary-dark: #605F66;
 
-  --blue: #0DF;
-  --red: #F95657;
+    --color-dark: #FBFBFE;
 
-  --secondary: #F9F9FB;
-  --popup-dark: #42414D;
-  --border-dark: #605F66;
-  
-  --initial-color-1: rgba(0, 221, 255, 0.6);
-  --initial-color-2: rgba(255, 64, 129, 0.6);
-  --initial-color-3: rgba(139, 195, 74, 0.6);
-  --initial-color-4: rgba(255, 193, 7, 0.6);
-  --initial-color-5: rgba(156, 39, 176, 0.6);
-  --nav-active-dark: #3B3A45;
-  --nav-active-hover-dark: #2B2A31;
-  --primary-light: #F9F9FB;
-  --color-light: #1C1B22;
-  
-  --red-error: rgba(255, 68, 68, 0.1);
-  
-  /* Performance optimizations */
-  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-duration: 0.2s;
+    --blue: #0DF;
+    --red: #F95657;
 }
 
 *{
@@ -59,7 +42,6 @@ body{
     padding: 2.5rem !important;
     overflow-x: hidden;
     overflow-y: auto;
-    /* transition: all var(--transition-duration) var(--transition-timing); */
     transform-origin: left top;
     flex-shrink: 0;
     will-change: transform, width;
@@ -326,7 +308,7 @@ body{
 }
 
 .new-link div:hover{
-    background-color: var(--popup-dark);
+    background-color: var(--tertiary-dark);
     opacity: 0.8;
 }
 
@@ -356,7 +338,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--popup-dark);
+    border-bottom: 1px solid var(--tertiary-dark);
 }
 
 .modal-content {
@@ -388,7 +370,7 @@ body{
 #folderForm input,
 .folderForm input {
     padding: 8px;
-    border: 1px solid var(--popup-dark);
+    border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     background-color: var(--secondary-dark);
     color: var(--color-dark);
@@ -422,7 +404,7 @@ body{
     resize: vertical;
     background-color: var(--secondary-dark);
     color: var(--color-dark);
-    border: 1px solid var(--popup-dark);
+    border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     padding: 8px;
     outline: none;
@@ -489,7 +471,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--popup-dark);
+    border-bottom: 1px solid var(--tertiary-dark);
 }
 
 .history-modal-header .close {
@@ -534,7 +516,7 @@ body{
 .history-item {
     padding: 0.5rem;
     margin-bottom: 0.5rem;
-    background-color: var(--popup-dark);
+    background-color: var(--tertiary-dark);
     border-radius: 0.25rem;
     font-size: 0.8rem;
 }
@@ -559,11 +541,6 @@ body{
     padding: 2rem;
 }
 
-
-
-
-
-
 /*  */
 /** Sidebar **/
 /*  */
@@ -578,7 +555,6 @@ body{
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    /* transition: transform var(--transition-duration) var(--transition-timing); */
     will-change: transform;
     border-left: 0.25rem solid var(--secondary-dark);
 }
@@ -604,8 +580,6 @@ body{
     height: 5rem;
     width: 1rem;
     cursor: pointer;
-    /* border-bottom-left-radius: 0.25rem; */
-    /* transition: all var(--transition-duration) var(--transition-timing); */
     background-color: var(--secondary-dark);
 }
 
@@ -621,7 +595,6 @@ body{
 
 .menu.active{
     right: 20%;
-    /* width: 0.75rem; */
 }
 
 .menu.active .menu-img{
@@ -696,7 +669,7 @@ body{
     transition: none !important;
 }
 
-/* .data-buttons{
+.data-buttons{
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -725,7 +698,7 @@ body{
 .action-btn-danger {
     background-color: var(--red) !important;
     color: var(--color-dark) !important;
-} */
+}
 
 /*  */
 /** Todo **/
@@ -855,7 +828,6 @@ body{
     opacity: 1;
 }
 
-
 /*  */
 /** Clock **/
 /*  */
@@ -884,7 +856,8 @@ body{
 
 .option-group:first-child input{
         width: auto;
-        margin-left: 0.5rem;
+        margin-left: 0.25rem;
+        margin-top: -0.01rem;
 }
 
 .option-group {
@@ -893,7 +866,7 @@ body{
 
 .option-group input, .option-group select {
     padding: 8px;
-    border: 1px solid var(--popup-dark);
+    border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     background-color: var(--secondary-dark);
     color: var(--color-dark);
@@ -907,10 +880,6 @@ body{
     max-width: 500px;
 }
 
-.clock-modal-buttons{
-    margin-top: 0.25rem;
-}
-
-.clock-hidden{
-    display: none;
-}
+/*  */
+/*  */
+/*  */

@@ -1,4 +1,4 @@
-// Function to toggle folder visibility
+//* handle folder visibility
 function folder_toggle(element) {
     const folderBody = element.parentElement.querySelector('.folder-body');
     const closedIcon = element.querySelector('.folder-closed-icon');
@@ -15,6 +15,7 @@ function folder_toggle(element) {
     }
 }
 
+//* handle search
 function handleSearch(event) {
     event.preventDefault();
     const input = document.getElementById('searchInput').value.trim();
@@ -30,14 +31,12 @@ function handleSearch(event) {
     }
 }
 
-// Function to normalize URL - automatically add https:// if missing
+//* handle url
 function normalizeUrl(url) {
     if (!url) return '';
-    
-    // Remove any leading/trailing whitespace
+
     url = url.trim();
     
-    // If URL doesn't start with protocol, add https://
     if (!url.match(/^https?:\/\//)) {
         url = 'https://' + url;
     }
@@ -45,7 +44,6 @@ function normalizeUrl(url) {
     return url;
 }
 
-// Initialize modal elements
 const bookmarkModal = document.getElementById('bookmarkModal');
 const modalTitle = document.getElementById('modalTitle');
 const bookmarkForm = document.getElementById('bookmarkForm');
@@ -62,7 +60,7 @@ let currentFolderElement = null;
 let currentFolderContainer = null;
 let currentGroupTitleElement = null;
 
-// Close modal handlers
+//* handle modals closing
 bookmarkCloseBtn.onclick = () => bookmarkModal.style.display = "none";
 folderCloseBtn.onclick = () => folderModal.style.display = "none";
 
@@ -71,7 +69,7 @@ window.onclick = (event) => {
     if (event.target === folderModal) folderModal.style.display = "none";
 };
 
-// Save bookmarks to localStorage
+//* handle bookmarks saving
 function saveBookmarks() {
     const sections = ['col1', 'col2', 'col3', 'col4'];
     const bookmarks = {};
@@ -91,12 +89,11 @@ function saveBookmarks() {
     console.log('Bookmarks saved:', bookmarks);
 }
 
-// Function to add new link
+//* handle bookmarks adding
 function addLink(container) {
-    // If we're adding to a main section, we need to identify the actual container for items
     if (container.classList.contains('col1') || container.classList.contains('col2') || 
         container.classList.contains('col3') || container.classList.contains('col4')) {
-        container = container; // The container is now correct since we append directly
+        container = container;
     }
     currentContainer = container;
     currentEditElement = null;
@@ -108,12 +105,11 @@ function addLink(container) {
     bookmarkModal.style.display = "block";
 }
 
-// Function to add new folder
+//* handle folders adding
 function addFolder(container) {
-    // If we're adding to a main section, we need to identify the actual container for items
     if (container.classList.contains('col1') || container.classList.contains('col2') || 
         container.classList.contains('col3') || container.classList.contains('col4')) {
-        container = container; // The container is now correct since we append directly
+        container = container;
     }
     currentFolderContainer = container;
     currentFolderElement = null;
@@ -124,7 +120,7 @@ function addFolder(container) {
     folderModal.style.display = "block";
 }
 
-// Function to edit link
+//* handle bookmarks editing
 function editLink(element) {
     const linkElement = element.closest('.link-element');
     const paragraph = linkElement.querySelector('p');
@@ -133,19 +129,19 @@ function editLink(element) {
     
     modalTitle.textContent = "Edit Bookmark";
     document.getElementById('bookmarkName').value = paragraph.textContent;
-    // Get the raw URL (might not have https://) for editing
+
     const rawUrl = paragraph.getAttribute('data-url') || '';
-    // Remove https:// prefix for display in edit mode for better UX
+
     const displayUrl = rawUrl.replace(/^https?:\/\//, '');
     document.getElementById('bookmarkUrl').value = displayUrl;
-    // Load notes from data attribute
+
     const notes = paragraph.getAttribute('data-notes') || '';
     document.getElementById('bookmarkNotes').value = notes;
-    document.getElementById('deleteBookmark').style.display = 'block'; // Show delete button
+    document.getElementById('deleteBookmark').style.display = 'block';
     bookmarkModal.style.display = "block";
 }
 
-// Function to edit folder
+//* handle folders editing
 function editFolder(element) {
     const folderHead = element.closest('.folder-head');
     const folderName = folderHead.querySelector('p');
@@ -154,14 +150,14 @@ function editFolder(element) {
     
     folderModalTitle.textContent = "Edit Folder";
     document.getElementById('folderName').value = folderName.textContent;
-    // Load notes from data attribute
+
     const notes = folderName.getAttribute('data-notes') || '';
     document.getElementById('folderNotes').value = notes;
-    document.getElementById('deleteFolder').style.display = 'block'; // Show delete button
+    document.getElementById('deleteFolder').style.display = 'block';
     folderModal.style.display = "block";
 }
 
-// Serialize a section's content
+//* handle serialize section
 function serializeSection(section) {
     const items = [];
     Array.from(section.children).forEach(element => {
@@ -194,11 +190,11 @@ function serializeSection(section) {
     return items;
 }
 
-// Create bookmark element
+//* handle bookmark element creating
 function createBookmarkElement(bookmark, container) {
     const linkElement = document.createElement('div');
     linkElement.className = 'link-element';
-    // Normalize URL to ensure it has proper protocol
+
     const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
         <img src="/img/link.png" alt="link" class="link-icon">
@@ -206,20 +202,18 @@ function createBookmarkElement(bookmark, container) {
         <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
     
-    // Add event listeners
     const editIcon = linkElement.querySelector('.edit-icon');
     editIcon.addEventListener('click', () => editLink(editIcon));
     
     const linkText = linkElement.querySelector('p');
-    // Changed from window.open to window.location.href to open in same tab
+
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
     
-    // Simply append the element to the container
     container.appendChild(linkElement);
     return linkElement;
 }
 
-// Create folder element
+//* handle folder element creating
 function createFolderElement(folder, container) {
     const folderElement = document.createElement('div');
     folderElement.className = 'folder-element';
@@ -236,10 +230,8 @@ function createFolderElement(folder, container) {
         </div>
     `;
     
-    // Add event listeners
     const folderHead = folderElement.querySelector('.folder-head');
     folderHead.addEventListener('click', (e) => {
-        // Only toggle if the click wasn't on one of the action icons
         if (!e.target.classList.contains('edit-icon')) {
             folder_toggle(folderHead);
         }
@@ -247,21 +239,21 @@ function createFolderElement(folder, container) {
     
     const addLinkIcon = folderElement.querySelector('.add-link-icon');
     addLinkIcon.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent folder toggle
+        e.stopPropagation();
         const folderBody = e.target.closest('.folder-element').querySelector('.folder-body');
         addLink(folderBody);
     });
     
     const addFolderIcon = folderElement.querySelector('.add-folder-icon');
     addFolderIcon.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent folder toggle
+        e.stopPropagation();
         const folderBody = e.target.closest('.folder-element').querySelector('.folder-body');
         addFolder(folderBody);
     });
     
     const menuIcon = folderElement.querySelector('.folder-menu-icon');
     menuIcon.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent folder toggle
+        e.stopPropagation();
         editFolder(menuIcon);
     });
     
@@ -276,12 +268,11 @@ function createFolderElement(folder, container) {
         });
     }
     
-    // Simply append the folder element to the container
     container.appendChild(folderElement);
     return folderElement;
 }
 
-// Handle bookmark deletion
+//* handle bookmark deletion
 document.getElementById('deleteBookmark').onclick = () => {
     if (currentEditElement) {
         currentEditElement.remove();
@@ -290,11 +281,10 @@ document.getElementById('deleteBookmark').onclick = () => {
     }
 };
 
-// Handle folder deletion
+//* handle folder deletion
 document.getElementById('deleteFolder').onclick = () => {
     if (currentFolderElement) {
         const folderElement = currentFolderElement.closest('.folder-element');
-        // Check if folder has contents
         const folderBody = folderElement.querySelector('.folder-body');
         if (folderBody && folderBody.children.length > 0) {
             if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
@@ -313,19 +303,15 @@ bookmarkForm.onsubmit = (e) => {
     const userUrl = document.getElementById('bookmarkUrl').value;
     const notes = document.getElementById('bookmarkNotes').value;
     
-    // Normalize the URL to ensure it has proper protocol
     const url = normalizeUrl(userUrl);
     
     if (currentEditElement) {
-        // Edit existing bookmark
         const paragraph = currentEditElement.querySelector('p');
         paragraph.textContent = name;
         paragraph.setAttribute('data-url', url);
         paragraph.setAttribute('data-notes', notes);
-        // Changed from window.open to window.location.href to open in same tab
         paragraph.onclick = () => window.location.href = url;
     } else {
-        // Create new bookmark
         createBookmarkElement({ name, url, notes }, currentContainer);
     }
     
@@ -333,19 +319,17 @@ bookmarkForm.onsubmit = (e) => {
     saveBookmarks();
 }
 
-// Handle folder form submission
+//* handle folder form submission
 folderForm.onsubmit = (e) => {
     e.preventDefault();
     const name = document.getElementById('folderName').value;
     const notes = document.getElementById('folderNotes').value;
     
     if (currentFolderElement) {
-        // Edit existing folder
         const folderNameP = currentFolderElement.querySelector('p');
         folderNameP.textContent = name;
         folderNameP.setAttribute('data-notes', notes);
     } else {
-        // Create new folder
         createFolderElement({ name, notes, items: [] }, currentFolderContainer);
     }
     
@@ -353,7 +337,7 @@ folderForm.onsubmit = (e) => {
     saveBookmarks();
 }
 
-// Export bookmarks
+//* handle exporting
 function exportBookmarks() {
     const bookmarks = getAllBookmarks();
     const exportData = {
@@ -373,12 +357,12 @@ function exportBookmarks() {
     document.body.removeChild(linkElement);
 }
 
-// Import bookmarks
+
+//* handel importing
 function importBookmarks() {
     document.getElementById('importInput').click();
 }
 
-// Handle import
 function handleImport(event) {
     const file = event.target.files[0];
     if (file) {
@@ -386,12 +370,10 @@ function handleImport(event) {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                // Handle both new and old format
                 const bookmarks = data.bookmarks || data;
                 setAllBookmarks(bookmarks);
                 saveBookmarks();
                 
-                // Import clock settings if they exist
                 if (data.clockSettings) {
                     Object.assign(settings, data.clockSettings);
                     saveClockSettings();
@@ -406,7 +388,7 @@ function handleImport(event) {
     }
 }
 
-// Get all bookmarks
+//* handle getting all bookmarks
 function getAllBookmarks() {
     const sections = ['col1', 'col2', 'col3', 'col4'];
     const bookmarks = {};
@@ -425,25 +407,22 @@ function getAllBookmarks() {
     return bookmarks;
 }
 
-// Set all bookmarks
+//* handle setting all bookmarks
 function setAllBookmarks(bookmarks) {
     Object.entries(bookmarks).forEach(([section, data]) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            // Update the group title if it exists in the data
             const titleElement = sectionElement.querySelector('.group-title h5');
             if (data.title !== undefined && titleElement) {
                 titleElement.textContent = data.title;
             }
 
-            // Remove all items except the group-title
             Array.from(sectionElement.children).forEach(child => {
                 if (!child.classList.contains('group-title')) {
                     child.remove();
                 }
             });
             
-            // Add all items
             const items = Array.isArray(data) ? data : (data.items || []);
             items.forEach(item => {
                 if (item.type === 'link') {
@@ -456,7 +435,7 @@ function setAllBookmarks(bookmarks) {
     });
 }
 
-// Clear all bookmarks and data
+//* handle clearing all bookmarks
 function clearAllBookmarks() {
     if (!confirm('Are you sure you want to delete all bookmarks? This action cannot be undone!')) {
         return;
@@ -466,13 +445,11 @@ function clearAllBookmarks() {
     sections.forEach((section, index) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
-            // Reset the title to default
             const titleElement = sectionElement.querySelector('.group-title h5');
             if (titleElement) {
                 titleElement.textContent = String(index + 1);
             }
             
-            // Remove all items except the group-title
             Array.from(sectionElement.children).forEach(child => {
                 if (!child.classList.contains('group-title')) {
                     child.remove();
@@ -481,7 +458,6 @@ function clearAllBookmarks() {
         }
     });
     
-    // Clear bookmarks and reset titles
     const emptyBookmarks = {};
     sections.forEach((section, index) => {
         emptyBookmarks[section] = {
@@ -490,7 +466,6 @@ function clearAllBookmarks() {
         };
     });
     
-    // Clear ALL localStorage data
     localStorage.removeItem('groupTitles');
     localStorage.removeItem('fluxboard_bookmarks');
     localStorage.removeItem('fluxboard_todos');
@@ -498,7 +473,6 @@ function clearAllBookmarks() {
     localStorage.removeItem('clockSettings');
     localStorage.removeItem('fluxboard_sidebar_open');
     
-    // Reset clock to default settings
     Object.assign(settings, {
         timeFormat: '12',
         showSeconds: false,
@@ -507,30 +481,24 @@ function clearAllBookmarks() {
     });
     updateClock();
     
-    // Clear todos if todoManager exists
     if (typeof todoManager !== 'undefined' && todoManager) {
-        // Clear all timers
         todoManager.completedTimers.forEach(timer => clearTimeout(timer));
         todoManager.completedTimers.clear();
         
-        // Reset todo arrays
         todoManager.todos = [];
         todoManager.history = [];
         
-        // Re-render empty todo list
         todoManager.renderTodos();
     }
     
-    // Reset sidebar to closed state
     sidebar.classList.remove('active');
     menu.classList.remove('active');
     home.classList.remove('active');
     
-    // Save the empty bookmarks
     localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
 }
 
-// Load saved bookmarks on page load
+//* handle loading bookmarks
 document.addEventListener('DOMContentLoaded', () => {
     const savedBookmarks = localStorage.getItem('fluxboard_bookmarks');
     if (savedBookmarks) {
@@ -542,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Add click handlers for buttons
     document.querySelectorAll('.add-link img').forEach(button => {
         button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
@@ -591,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add click handlers for delete buttons
     deleteBookmarkBtn.addEventListener('click', function() {
         if (currentEditingElement) {
             currentEditingElement.remove();
@@ -602,7 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteFolderBtn.addEventListener('click', function() {
         if (currentEditingElement) {
-            // Check if folder is empty
             if (currentEditingElement.querySelector('.folder-content').children.length > 0) {
                 if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
                     return;
@@ -614,7 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Update the click handlers for bookmarks and folders to support editing
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('bookmark') || e.target.closest('.bookmark')) {
             const bookmark = e.target.classList.contains('bookmark') ? e.target : e.target.closest('.bookmark');
@@ -630,11 +594,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Initialize todo manager
     todoManager = new TodoManager();
 });
 
-// Group title editing
+//* handle group title
 const groupTitleModal = document.getElementById('groupTitleModal');
 const groupTitleForm = document.getElementById('groupTitleForm');
 const groupTitleInput = document.getElementById('groupTitle');
@@ -651,7 +614,7 @@ function closeGroupTitleModal() {
     currentGroupTitleElement = null;
 }
 
-// Handle group title form submission
+//* handle group title form submission
 groupTitleForm.addEventListener('submit', function(event) {
     event.preventDefault();
     if (currentGroupTitleElement) {
@@ -665,14 +628,14 @@ groupTitleForm.addEventListener('submit', function(event) {
     closeGroupTitleModal();
 });
 
-// Close modal when clicking outside
+//* handel click outside to close
 window.addEventListener('click', function(event) {
     if (event.target === groupTitleModal) {
         closeGroupTitleModal();
     }
 });
 
-// Save group titles to localStorage
+//* handel saving group title
 function saveGroupTitles() {
     const titles = {};
     document.querySelectorAll('.group-title').forEach((element, index) => {
@@ -682,7 +645,7 @@ function saveGroupTitles() {
     localStorage.setItem('groupTitles', JSON.stringify(titles));
 }
 
-// Load group titles from localStorage
+//* handle loading group title
 function loadGroupTitles() {
     const titles = JSON.parse(localStorage.getItem('groupTitles')) || {};
     document.querySelectorAll('.group-title').forEach((element, index) => {
@@ -693,24 +656,19 @@ function loadGroupTitles() {
     });
 }
 
-// Load saved titles when page loads
 document.addEventListener('DOMContentLoaded', loadGroupTitles);
 
-// Add event listeners once DOM is loaded
+//* handle loading bookmarks from local
 document.addEventListener('DOMContentLoaded', function() {
     loadSidebarState();
-    // File import handler
     const importInput = document.getElementById('importInput');
     importInput.addEventListener('change', handleImport);
 
-    // Search form handler
     const searchForm = document.getElementById('searchForm');
     searchForm.addEventListener('submit', handleSearch);
 
-    // Group title handlers
     document.querySelectorAll('.group-title').forEach(titleElement => {
         titleElement.addEventListener('click', (e) => {
-            // Don't trigger if clicking on add-link or add-folder elements or their children
             if (e.target.closest('.add-link') || e.target.closest('.add-folder')) {
                 return;
             }
@@ -718,29 +676,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add link handlers
     document.querySelectorAll('.add-link').forEach(linkElement => {
         linkElement.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up to group-title
+            e.stopPropagation();
             addLink(linkElement.closest('.col1, .col2, .col3, .col4'));
         });
     });
 
-    // Add folder handlers
     document.querySelectorAll('.add-folder').forEach(folderElement => {
         folderElement.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up to group-title
+            e.stopPropagation();
             addFolder(folderElement.closest('.col1, .col2, .col3, .col4'));
         });
     });
 
-    // Action buttons handlers
     const actionButtons = document.querySelectorAll('.data-buttons button');
     actionButtons[0].addEventListener('click', exportBookmarks);
     actionButtons[1].addEventListener('click', importBookmarks);
     actionButtons[2].addEventListener('click', clearAllBookmarks);
 
-    // Modal close buttons
     document.querySelectorAll('.modal .close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
             const modal = this.closest('.modal');
@@ -752,7 +706,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
@@ -764,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// sidebar
+//* sidebar
 const sidebar = document.querySelector('.sidebar');
 const menu = document.querySelector('.menu');
 const home = document.querySelector('.home');
@@ -776,22 +729,22 @@ menu.addEventListener('click', () => {
     saveSidebarState();
 });
 
-// Save sidebar state to localStorage
+//* handle saving sidebar state
 function saveSidebarState() {
     const isActive = sidebar.classList.contains('active');
     localStorage.setItem('fluxboard_sidebar_open', JSON.stringify(isActive));
 }
 
-// Load sidebar state from localStorage
+//* handle loading sidebar state
 function loadSidebarState() {
     const savedState = localStorage.getItem('fluxboard_sidebar_open');
     if (savedState !== null) {
         const isOpen = JSON.parse(savedState);
         if (isOpen) {
             // Temporarily disable transitions
-            sidebar.classList.add('no-transition');
-            menu.classList.add('no-transition');
-            home.classList.add('no-transition');
+            // sidebar.classList.add('no-transition');
+            // menu.classList.add('no-transition');
+            // home.classList.add('no-transition');
             
             // Apply active classes
             sidebar.classList.add('active');
@@ -799,17 +752,17 @@ function loadSidebarState() {
             home.classList.add('active');
             
             // Re-enable transitions after a brief delay
-            setTimeout(() => {
-                sidebar.classList.remove('no-transition');
-                menu.classList.remove('no-transition');
-                home.classList.remove('no-transition');
-            }, 50);
+            // setTimeout(() => {
+            //     sidebar.classList.remove('no-transition');
+            //     menu.classList.remove('no-transition');
+            //     home.classList.remove('no-transition');
+            // }, 50);
         }
     }
 }
 
 
-// Todo functionality
+//* todo functionality
 class TodoManager {
     constructor() {
         this.todos = JSON.parse(localStorage.getItem('fluxboard_todos')) || [];
@@ -821,7 +774,6 @@ class TodoManager {
     init() {
         this.renderTodos();
         this.bindEvents();
-        // Check for any completed todos that should be moved to history
         this.checkCompletedTodos();
     }
 
@@ -840,7 +792,6 @@ class TodoManager {
         historyBtn.addEventListener('click', () => this.showHistory());
         clearHistoryBtn.addEventListener('click', () => this.clearHistory());
 
-        // Close history modal
         const closeBtn = historyModal.querySelector('.close');
         closeBtn.addEventListener('click', () => {
             historyModal.style.display = 'none';
@@ -879,13 +830,11 @@ class TodoManager {
             todo.completedAt = todo.completed ? new Date().toISOString() : null;
             
             if (todo.completed) {
-                // Set timer to move to history after 1 minute
                 const timer = setTimeout(() => {
                     this.moveToHistory(id);
                 }, 7000);
                 this.completedTimers.set(id, timer);
             } else {
-                // Clear timer if unchecked
                 if (this.completedTimers.has(id)) {
                     clearTimeout(this.completedTimers.get(id));
                     this.completedTimers.delete(id);
@@ -898,7 +847,6 @@ class TodoManager {
     }
 
     deleteTodo(id) {
-        // Clear timer if exists
         if (this.completedTimers.has(id)) {
             clearTimeout(this.completedTimers.get(id));
             this.completedTimers.delete(id);
@@ -912,16 +860,13 @@ class TodoManager {
     moveToHistory(id) {
         const todo = this.todos.find(t => t.id === id);
         if (todo && todo.completed) {
-            // Add to history
             this.history.unshift({
                 ...todo,
                 movedToHistoryAt: new Date().toISOString()
             });
             
-            // Remove from todos
             this.todos = this.todos.filter(t => t.id !== id);
             
-            // Clear timer
             if (this.completedTimers.has(id)) {
                 clearTimeout(this.completedTimers.get(id));
                 this.completedTimers.delete(id);
@@ -940,10 +885,9 @@ class TodoManager {
                 const completedTime = new Date(todo.completedAt);
                 const timeDiff = now - completedTime;
                 
-                if (timeDiff >= 7000) { // 1 minute
+                if (timeDiff >= 7000) {
                     this.moveToHistory(todo.id);
                 } else {
-                    // Set timer for remaining time
                     const remainingTime = 7000 - timeDiff;
                     const timer = setTimeout(() => {
                         this.moveToHistory(todo.id);
@@ -958,7 +902,6 @@ class TodoManager {
         const todoList = document.getElementById('todoList');
         todoList.innerHTML = '';
         
-        // Sort todos: incomplete first, then completed
         const sortedTodos = [...this.todos].sort((a, b) => {
             if (a.completed === b.completed) return 0;
             return a.completed ? 1 : -1;
@@ -1002,7 +945,7 @@ class TodoManager {
         if (confirm('Are you sure you want to clear all todo history?')) {
             this.history = [];
             this.saveHistory();
-            this.showHistory(); // Refresh the modal
+            this.showHistory();
         }
     }
 
@@ -1015,26 +958,20 @@ class TodoManager {
     }
 }
 
-// Initialize todo manager
 let todoManager;
 
-// Initialize clock functionality
+//* clock functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Load saved settings
     loadClockSettings();
     
-    // Start the clock
     updateClock();
     setInterval(updateClock, 1000);
     
-    // Initialize click handlers
     document.getElementById('edit-clock').addEventListener('click', clockModal);
     document.getElementById('popup').querySelector('.close').addEventListener('click', closePopup);
     document.getElementById('applyClockEdit').addEventListener('click', applyClockEdit);
 });
 
-
-// Clock settings
 const settings = {
     timeFormat: '12',
     showSeconds: false,
@@ -1042,7 +979,6 @@ const settings = {
     showClock: true
 };
 
-// Load settings from local storage
 function loadClockSettings() {
     const savedSettings = localStorage.getItem('clockSettings');
     if (savedSettings) {
@@ -1050,11 +986,9 @@ function loadClockSettings() {
     }
 }
 
-// Save settings to local storage
 function saveClockSettings() {
     localStorage.setItem('clockSettings', JSON.stringify(settings));
 }
-    // yearDisplay: false
 
 function updateClock() {
     const clockContainer = document.querySelector('.clock-container');
@@ -1067,7 +1001,6 @@ function updateClock() {
 
     const now = new Date();
     
-    // Format time based on settings
     let timeString = '';
     let hours = now.getHours();
     const minutes = now.getMinutes().toString().padStart(2, '0');
@@ -1076,7 +1009,7 @@ function updateClock() {
     if (settings.timeFormat === '12') {
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
-        hours = hours ? hours : 12; // 0 should be 12
+        hours = hours ? hours : 12;
         timeString = `${hours}:${minutes}`;
         if (settings.showSeconds) {
             timeString += `:${seconds}`;
@@ -1088,14 +1021,12 @@ function updateClock() {
             timeString += `:${seconds}`;
         }
     }
-    
-    // Format date based on settings
+
     let dateString = '';
     const day = now.getDate().toString().padStart(2, '0');
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const year = now.getFullYear();
     
-    // Build date string based on format
     switch (settings.dateFormat) {
             case 'full':
                 // Monday, January 1
@@ -1117,30 +1048,27 @@ function updateClock() {
                 break;
             case 'custom':
                 // 1 January 2025
-                const customOptions = { day: 'numeric', month: 'long', year: 'numeric' };
-                dateString = now.toLocaleDateString(undefined, customOptions);
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+                dateString = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
                 break;
             default:
                 dateString = now.toLocaleDateString();
         }
     
-    // Update display
     document.getElementById('time').textContent = timeString;
     document.getElementById('date').textContent = dateString;
     
-    // Save settings after each update
     saveClockSettings();
 }
 
 document.getElementById('edit-clock').addEventListener('click', clockModal);
 
 function clockModal() {
-    // Show the popup
     document.getElementById('popup').style.display = 'block';
 
     document.getElementById('showClock').checked = settings.showClock;
     
-    // Set current values
     document.getElementById('timeFormat').value = settings.timeFormat;
     document.getElementById('showSeconds').value = settings.showSeconds.toString();
     document.getElementById('dateFormat').value = settings.dateFormat;
@@ -1160,17 +1088,13 @@ function applyClockEdit() {
     settings.showSeconds = document.getElementById('showSeconds').value === 'true';
     settings.dateFormat = document.getElementById('dateFormat').value;
 
-    // Save settings and update the clock
     saveClockSettings();
     updateClock();
     closePopup();
 }
 
-// Initialize clock
 document.addEventListener('DOMContentLoaded', function() {
-    // Load saved settings
     loadClockSettings();
-    // Start the clock
     updateClock();
     setInterval(updateClock, 1000);
 });
