@@ -1063,6 +1063,7 @@ function updateClock() {
 }
 
 document.getElementById('edit-clock').addEventListener('click', clockModal);
+document.querySelector('.clock-container').addEventListener('click', clockModal);
 
 function clockModal() {
     document.getElementById('popup').style.display = 'block';

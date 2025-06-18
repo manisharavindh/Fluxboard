@@ -838,9 +838,15 @@ body{
     justify-content: center;
     flex-direction: column;
     position: absolute;
-    top: 2.5rem;
-    left: 2.5rem;
-    opacity: 0.8;
+    top: 1.5rem;
+    left: 1.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+}
+
+.clock-container:hover{
+    background-color: var(--secondary-dark);
 }
 
 .option-group:first-child{
