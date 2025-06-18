@@ -854,3 +854,44 @@ body{
 .todo-item button:hover {
     opacity: 1;
 }
+
+
+/*  */
+/** Clock **/
+/*  */
+
+.clock-container{
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    top: 2.5rem;
+    left: 2.5rem;
+    /* padding: 0 2rem; */
+    opacity: 0.8;
+}
+
+.option-group {
+    margin-bottom: 0.2rem;
+}
+
+.option-group input, .option-group select {
+    padding: 8px;
+    border: 1px solid var(--popup-dark);
+    border-radius: 4px;
+    background-color: var(--secondary-dark);
+    color: var(--color-dark);
+    outline: none;
+    width: 100%;
+    margin-top: 0.1rem;
+    font-size: 0.8rem;
+}
+
+.clock-modal-content{
+    max-width: 500px;
+}
+
+.clock-modal-buttons{
+    margin-top: 0.25rem;
+}

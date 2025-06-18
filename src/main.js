@@ -974,3 +974,146 @@ class TodoManager {
 
 // Initialize todo manager
 let todoManager;
+
+
+// Settings object to store current preferences
+let settings = {
+    timeFormat: '12',
+    showSeconds: false,
+    dateFormat: 'full',
+    dayDisplay: 'full',
+    monthDisplay: 'full',
+    yearDisplay: false
+};
+
+function updateClock() {
+    const now = new Date();
+    
+    // Format time based on settings
+    let timeString = '';
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    
+    if (settings.timeFormat === '12') {
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        timeString = `${hours}:${minutes}`;
+        if (settings.showSeconds) {
+            timeString += `:${seconds}`;
+        }
+        timeString += ` ${ampm}`;
+    } else {
+        timeString = `${hours.toString().padStart(2, '0')}:${minutes}`;
+        if (settings.showSeconds) {
+            timeString += `:${seconds}`;
+        }
+    }
+    
+    // Format date based on settings
+    let dateString = '';
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = settings.dayDisplay === 'full' ? days[now.getDay()] : 
+                    settings.dayDisplay === 'short' ? daysShort[now.getDay()] : '';
+    const day = now.getDate();
+    const year = now.getFullYear();
+    
+    let monthName = '';
+    if (settings.monthDisplay === 'full') {
+        monthName = months[now.getMonth()];
+    } else if (settings.monthDisplay === 'short') {
+        monthName = monthsShort[now.getMonth()];
+    } else {
+        monthName = (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+    
+    // Build date string based on format
+    switch (settings.dateFormat) {
+        case 'full':
+            dateString = dayName ? `${dayName}, ${monthName} ${day}` : `${monthName} ${day}`;
+            break;
+        case 'short':
+            dateString = dayName ? `${dayName}, ${monthName} ${day}` : `${monthName} ${day}`;
+            break;
+        case 'numeric':
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dayNum = day.toString().padStart(2, '0');
+            dateString = `${month}/${dayNum}/${year}`;
+            break;
+        case 'iso':
+            const monthISO = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dayISO = day.toString().padStart(2, '0');
+            dateString = `${year}-${monthISO}-${dayISO}`;
+            break;
+        case 'custom':
+            dateString = dayName ? `${dayName}, ${day} ${monthName} ${year}` : `${day} ${monthName} ${year}`;
+            break;
+    }
+    
+    // Add year if enabled and not already included
+    if (settings.yearDisplay && !['numeric', 'iso', 'custom'].includes(settings.dateFormat)) {
+        dateString += `, ${year}`;
+    }
+    
+    // Handle case where day is hidden
+    if (settings.dayDisplay === 'none' && settings.dateFormat === 'full') {
+        dateString = `${monthName} ${day}`;
+        if (settings.yearDisplay) {
+            dateString += `, ${year}`;
+        }
+    }
+    
+    // Update display
+    document.getElementById('time').textContent = timeString;
+    document.getElementById('date').textContent = dateString;
+}
+
+document.getElementById('edit-clock').addEventListener('click', clockModal);
+
+function clockModal() {
+    document.getElementById('timeFormat').value = settings.timeFormat;
+    document.getElementById('showSeconds').value = settings.showSeconds.toString();
+    document.getElementById('dateFormat').value = settings.dateFormat;
+    // document.getElementById('dayDisplay').value = settings.dayDisplay;
+    // document.getElementById('monthDisplay').value = settings.monthDisplay;
+    // document.getElementById('yearDisplay').value = settings.yearDisplay.toString();
+    
+    document.getElementById('popup').style.display = 'block';
+}
+
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+}
+
+document.getElementById('applyClockEdit').addEventListener('click', applyClockEdit);
+
+function applyClockEdit() {
+    settings.timeFormat = document.getElementById('timeFormat').value;
+    settings.showSeconds = document.getElementById('showSeconds').value === 'true';
+    settings.dateFormat = document.getElementById('dateFormat').value;
+    // settings.dayDisplay = document.getElementById('dayDisplay').value;
+    // settings.monthDisplay = document.getElementById('monthDisplay').value;
+    // settings.yearDisplay = document.getElementById('yearDisplay').value === 'true';
+    
+    // Update the clock immediately
+    updateClock();
+    
+    closePopup();
+}
+
+// Initialize clock
+updateClock();
+setInterval(updateClock, 1000);
+
+// Set initial customization values
+document.addEventListener('DOMContentLoaded', function() {
+    // Load any saved preferences or set defaults
+    updateClock();
+});
