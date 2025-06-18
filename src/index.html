@@ -198,63 +198,38 @@
                 <h2>Clock Customizations</h2>
                 <span class="close">&times;</span>
             </div>
-
             <div id="folderForm">
                 <div class="option-group">
-                <h4 for="timeFormat">Time Format</h4>
-                <select id="timeFormat">
-                    <option value="12">12 hour</option>
-                    <option value="24">24 hour</option>
-                </select>
-            </div>
-            
-            <div class="option-group">
-                <h4 for="showSeconds">Show Seconds</h4>
-                <select id="showSeconds">
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                </select>
-            </div>
-            
-            <div class="option-group">
-                <h4 for="dateFormat">Date Format</h4>
-                <select id="dateFormat">
-                    <option value="full">Monday, January 1</option>
-                    <option value="short">Mon, Jan 1</option>
-                    <option value="numeric">01/01/2025</option>
-                    <option value="iso">2025-01-01</option>
-                    <option value="custom">1 January 2025</option>
-                </select>
-            </div>
-            
-            <!-- <div class="option-group">
-                <h4 for="dayDisplay">Day Display</h4>
-                <select id="dayDisplay">
-                    <option value="full">Full (Monday)</option>
-                    <option value="short">Short (Mon)</option>
-                    <option value="none">Hide Day</option>
-                </select>
-            </div>
-            
-            <div class="option-group">
-                <h4 for="monthDisplay">Month Display</h4>
-                <select id="monthDisplay">
-                    <option value="full">Full (January)</option>
-                    <option value="short">Short (Jan)</option>
-                    <option value="numeric">Numeric (01)</option>
-                </select>
-            </div>
-            
-            <div class="option-group">
-                <h4 for="yearDisplay">Show Year</h4>
-                <select id="yearDisplay">
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
-                </select>
-            </div> -->
-            <div class="modal-buttons clock-modal-buttons">
-                <button type="submit" id="applyClockEdit">Save</button>
-            </div>
+                    <h4 for="showClock">Show Clock:</h4>
+                    <input type="checkbox" id="showClock" checked>
+                </div>
+                <div class="option-group">
+                    <h4 for="timeFormat">Time Format</h4>
+                    <select id="timeFormat">
+                        <option value="12">12 hour</option>
+                        <option value="24">24 hour</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <h4 for="showSeconds">Show Seconds</h4>
+                    <select id="showSeconds">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <h4 for="dateFormat">Date Format</h4>
+                    <select id="dateFormat">
+                        <option value="short">Mon Jan 1</option>
+                        <option value="full">Monday January 1</option>
+                        <option value="numeric">01/01/2025</option>
+                        <option value="iso">2025-01-01</option>
+                        <option value="custom">1 January 2025</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" id="applyClockEdit">Save</button>
+                </div>
             </div>
         </div>
     </div>

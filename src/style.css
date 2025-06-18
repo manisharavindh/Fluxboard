@@ -868,8 +868,23 @@ body{
     position: absolute;
     top: 2.5rem;
     left: 2.5rem;
-    /* padding: 0 2rem; */
     opacity: 0.8;
+}
+
+.option-group:first-child{
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    width: 100%;
+}
+
+.option-group:first-child h4{
+    width: auto;
+}
+
+.option-group:first-child input{
+        width: auto;
+        margin-left: 0.5rem;
 }
 
 .option-group {
@@ -894,4 +909,8 @@ body{
 
 .clock-modal-buttons{
     margin-top: 0.25rem;
+}
+
+.clock-hidden{
+    display: none;
 }

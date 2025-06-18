@@ -359,7 +359,8 @@ function exportBookmarks() {
     const exportData = {
         version: '1.0',
         timestamp: new Date().toISOString(),
-        bookmarks: bookmarks
+        bookmarks: bookmarks,
+        clockSettings: settings
     };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -389,6 +390,13 @@ function handleImport(event) {
                 const bookmarks = data.bookmarks || data;
                 setAllBookmarks(bookmarks);
                 saveBookmarks();
+                
+                // Import clock settings if they exist
+                if (data.clockSettings) {
+                    Object.assign(settings, data.clockSettings);
+                    saveClockSettings();
+                    updateClock();
+                }
             } catch (error) {
                 console.error('Error importing bookmarks:', error);
                 alert('Error importing bookmarks: Invalid file format');
@@ -448,7 +456,7 @@ function setAllBookmarks(bookmarks) {
     });
 }
 
-// Clear all bookmarks
+// Clear all bookmarks and data
 function clearAllBookmarks() {
     if (!confirm('Are you sure you want to delete all bookmarks? This action cannot be undone!')) {
         return;
@@ -482,8 +490,43 @@ function clearAllBookmarks() {
         };
     });
     
-    // Clear both bookmarks and titles from localStorage
+    // Clear ALL localStorage data
     localStorage.removeItem('groupTitles');
+    localStorage.removeItem('fluxboard_bookmarks');
+    localStorage.removeItem('fluxboard_todos');
+    localStorage.removeItem('fluxboard_todo_history');
+    localStorage.removeItem('clockSettings');
+    localStorage.removeItem('fluxboard_sidebar_open');
+    
+    // Reset clock to default settings
+    Object.assign(settings, {
+        timeFormat: '12',
+        showSeconds: false,
+        dateFormat: 'short',
+        showClock: true
+    });
+    updateClock();
+    
+    // Clear todos if todoManager exists
+    if (typeof todoManager !== 'undefined' && todoManager) {
+        // Clear all timers
+        todoManager.completedTimers.forEach(timer => clearTimeout(timer));
+        todoManager.completedTimers.clear();
+        
+        // Reset todo arrays
+        todoManager.todos = [];
+        todoManager.history = [];
+        
+        // Re-render empty todo list
+        todoManager.renderTodos();
+    }
+    
+    // Reset sidebar to closed state
+    sidebar.classList.remove('active');
+    menu.classList.remove('active');
+    home.classList.remove('active');
+    
+    // Save the empty bookmarks
     localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
 }
 
@@ -975,18 +1018,53 @@ class TodoManager {
 // Initialize todo manager
 let todoManager;
 
+// Initialize clock functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved settings
+    loadClockSettings();
+    
+    // Start the clock
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Initialize click handlers
+    document.getElementById('edit-clock').addEventListener('click', clockModal);
+    document.getElementById('popup').querySelector('.close').addEventListener('click', closePopup);
+    document.getElementById('applyClockEdit').addEventListener('click', applyClockEdit);
+});
 
-// Settings object to store current preferences
-let settings = {
+
+// Clock settings
+const settings = {
     timeFormat: '12',
     showSeconds: false,
-    dateFormat: 'full',
-    dayDisplay: 'full',
-    monthDisplay: 'full',
-    yearDisplay: false
+    dateFormat: 'short',
+    showClock: true
 };
 
+// Load settings from local storage
+function loadClockSettings() {
+    const savedSettings = localStorage.getItem('clockSettings');
+    if (savedSettings) {
+        Object.assign(settings, JSON.parse(savedSettings));
+    }
+}
+
+// Save settings to local storage
+function saveClockSettings() {
+    localStorage.setItem('clockSettings', JSON.stringify(settings));
+}
+    // yearDisplay: false
+
 function updateClock() {
+    const clockContainer = document.querySelector('.clock-container');
+    if (!settings.showClock) {
+        clockContainer.style.display = 'none';
+        return;
+    } else {
+        clockContainer.style.display = 'block';
+    }
+
     const now = new Date();
     
     // Format time based on settings
@@ -1013,77 +1091,59 @@ function updateClock() {
     
     // Format date based on settings
     let dateString = '';
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    const dayName = settings.dayDisplay === 'full' ? days[now.getDay()] : 
-                    settings.dayDisplay === 'short' ? daysShort[now.getDay()] : '';
-    const day = now.getDate();
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const year = now.getFullYear();
-    
-    let monthName = '';
-    if (settings.monthDisplay === 'full') {
-        monthName = months[now.getMonth()];
-    } else if (settings.monthDisplay === 'short') {
-        monthName = monthsShort[now.getMonth()];
-    } else {
-        monthName = (now.getMonth() + 1).toString().padStart(2, '0');
-    }
     
     // Build date string based on format
     switch (settings.dateFormat) {
-        case 'full':
-            dateString = dayName ? `${dayName}, ${monthName} ${day}` : `${monthName} ${day}`;
-            break;
-        case 'short':
-            dateString = dayName ? `${dayName}, ${monthName} ${day}` : `${monthName} ${day}`;
-            break;
-        case 'numeric':
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const dayNum = day.toString().padStart(2, '0');
-            dateString = `${month}/${dayNum}/${year}`;
-            break;
-        case 'iso':
-            const monthISO = (now.getMonth() + 1).toString().padStart(2, '0');
-            const dayISO = day.toString().padStart(2, '0');
-            dateString = `${year}-${monthISO}-${dayISO}`;
-            break;
-        case 'custom':
-            dateString = dayName ? `${dayName}, ${day} ${monthName} ${year}` : `${day} ${monthName} ${year}`;
-            break;
-    }
-    
-    // Add year if enabled and not already included
-    if (settings.yearDisplay && !['numeric', 'iso', 'custom'].includes(settings.dateFormat)) {
-        dateString += `, ${year}`;
-    }
-    
-    // Handle case where day is hidden
-    if (settings.dayDisplay === 'none' && settings.dateFormat === 'full') {
-        dateString = `${monthName} ${day}`;
-        if (settings.yearDisplay) {
-            dateString += `, ${year}`;
+            case 'full':
+                // Monday, January 1
+                const fullOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+                dateString = now.toLocaleDateString(undefined, fullOptions).replace(',', '');
+                break;
+            case 'short':
+                // Mon, Jan 1
+                const shortOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+                dateString = now.toLocaleDateString(undefined, shortOptions).replace(',', '');
+                break;
+            case 'numeric':
+                // 01/01/2025
+                dateString = `${month}/${day}/${year}`;
+                break;
+            case 'iso':
+                // 2025-01-01
+                dateString = `${year}-${month}-${day}`;
+                break;
+            case 'custom':
+                // 1 January 2025
+                const customOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+                dateString = now.toLocaleDateString(undefined, customOptions);
+                break;
+            default:
+                dateString = now.toLocaleDateString();
         }
-    }
     
     // Update display
     document.getElementById('time').textContent = timeString;
     document.getElementById('date').textContent = dateString;
+    
+    // Save settings after each update
+    saveClockSettings();
 }
 
 document.getElementById('edit-clock').addEventListener('click', clockModal);
 
 function clockModal() {
+    // Show the popup
+    document.getElementById('popup').style.display = 'block';
+
+    document.getElementById('showClock').checked = settings.showClock;
+    
+    // Set current values
     document.getElementById('timeFormat').value = settings.timeFormat;
     document.getElementById('showSeconds').value = settings.showSeconds.toString();
     document.getElementById('dateFormat').value = settings.dateFormat;
-    // document.getElementById('dayDisplay').value = settings.dayDisplay;
-    // document.getElementById('monthDisplay').value = settings.monthDisplay;
-    // document.getElementById('yearDisplay').value = settings.yearDisplay.toString();
     
     document.getElementById('popup').style.display = 'block';
 }
@@ -1095,25 +1155,22 @@ function closePopup() {
 document.getElementById('applyClockEdit').addEventListener('click', applyClockEdit);
 
 function applyClockEdit() {
+    settings.showClock = document.getElementById('showClock').checked;
     settings.timeFormat = document.getElementById('timeFormat').value;
     settings.showSeconds = document.getElementById('showSeconds').value === 'true';
     settings.dateFormat = document.getElementById('dateFormat').value;
-    // settings.dayDisplay = document.getElementById('dayDisplay').value;
-    // settings.monthDisplay = document.getElementById('monthDisplay').value;
-    // settings.yearDisplay = document.getElementById('yearDisplay').value === 'true';
-    
-    // Update the clock immediately
+
+    // Save settings and update the clock
+    saveClockSettings();
     updateClock();
-    
     closePopup();
 }
 
 // Initialize clock
-updateClock();
-setInterval(updateClock, 1000);
-
-// Set initial customization values
 document.addEventListener('DOMContentLoaded', function() {
-    // Load any saved preferences or set defaults
+    // Load saved settings
+    loadClockSettings();
+    // Start the clock
     updateClock();
+    setInterval(updateClock, 1000);
 });
