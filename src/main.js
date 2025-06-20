@@ -716,7 +716,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 //* sidebar
 const sidebar = document.querySelector('.sidebar');
 const menu = document.querySelector('.menu');
@@ -1099,3 +1098,194 @@ document.addEventListener('DOMContentLoaded', function() {
     updateClock();
     setInterval(updateClock, 1000);
 });
+
+// === BACKGROUND & THEME CUSTOMIZATION ===
+const DEFAULT_BG = {
+    type: 'css',
+    value: "linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)), url('/img/bg/bg001.jpg')"
+};
+
+function applyBackground(bg) {
+    const body = document.body;
+    if (!bg || bg.type === 'css') {
+        body.style.background = "linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)), url('/img/bg/bg001.jpg')";
+        body.style.backgroundSize = 'cover';
+        body.style.backgroundPosition = 'center';
+        body.style.backgroundColor = '';
+        body.style.backgroundImage = '';
+    } else if (bg.type === 'color') {
+        body.style.background = '';
+        body.style.backgroundImage = 'none';
+        body.style.backgroundColor = bg.value;
+    } else if (bg.type === 'image') {
+        body.style.background = '';
+        body.style.backgroundImage = `linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)), url('${bg.value}')`;
+        body.style.backgroundColor = '';
+        body.style.backgroundSize = 'cover';
+        body.style.backgroundPosition = 'center';
+    }
+}
+
+function loadBackground() {
+    const bg = JSON.parse(localStorage.getItem('fluxboard_bg'));
+    applyBackground(bg || DEFAULT_BG);
+}
+
+function saveBackground(bg) {
+    localStorage.setItem('fluxboard_bg', JSON.stringify(bg));
+    applyBackground(bg);
+}
+
+function resetBackground() {
+    localStorage.removeItem('fluxboard_bg');
+    applyBackground(DEFAULT_BG);
+}
+
+// Modal logic
+const bgModal = document.getElementById('bgModal');
+const customizeBgBtn = document.getElementById('customize-bg');
+const colorBtns = document.querySelectorAll('.bg-color');
+const customColorBtn = document.querySelector('.bg-color.custom-color');
+const customColorPicker = document.getElementById('customColorPicker');
+const bgImageInput = document.getElementById('bgImageInput');
+const applyBgBtn = document.getElementById('applyBg');
+const resetBgBtn = document.getElementById('resetBg');
+let selectedBg = null;
+
+// Add color preview boxes and fix resetBgBtn reference
+const colorOptions = document.querySelector('.color-options');
+
+// Add preview boxes for each color button
+colorBtns.forEach(btn => {
+    if (!btn.classList.contains('custom-color')) {
+        let preview = document.createElement('span');
+        preview.className = 'color-preview-box';
+        preview.style.display = 'inline-block';
+        preview.style.width = '18px';
+        preview.style.height = '18px';
+        preview.style.borderRadius = '4px';
+        preview.style.border = '1px solid #ccc';
+        preview.style.margin = '0 4px';
+        preview.style.background = btn.dataset.color;
+        btn.innerHTML = '';
+        btn.appendChild(preview);
+    } else {
+        // For custom color, add a preview box that updates on input
+        let preview = document.createElement('span');
+        preview.className = 'color-preview-box custom';
+        preview.style.display = 'inline-block';
+        preview.style.width = '18px';
+        preview.style.height = '18px';
+        preview.style.borderRadius = '4px';
+        preview.style.border = '1px solid #ccc';
+        preview.style.margin = '0 4px';
+        preview.style.background = '#fff';
+        btn.innerHTML = 'Custom';
+        btn.appendChild(preview);
+    }
+});
+
+// Add preview for custom image
+let customImgPreview = document.createElement('span');
+customImgPreview.className = 'img-preview-box';
+customImgPreview.style.display = 'inline-block';
+customImgPreview.style.width = '32px';
+customImgPreview.style.height = '32px';
+customImgPreview.style.borderRadius = '4px';
+customImgPreview.style.border = '1px solid #ccc';
+customImgPreview.style.margin = '0 4px';
+customImgPreview.style.background = '#eee';
+customImgPreview.style.backgroundSize = 'cover';
+customImgPreview.style.backgroundPosition = 'center';
+customImgPreview.style.verticalAlign = 'middle';
+// Insert after bgImageInput
+bgImageInput.parentNode.insertBefore(customImgPreview, bgImageInput.nextSibling);
+
+bgImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            selectedBg = { type: 'image', value: ev.target.result };
+            // Show preview
+            customImgPreview.style.background = `url('${ev.target.result}')`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Mutual exclusivity: when picking a custom color, clear custom image selection and preview
+customColorPicker.addEventListener('input', (e) => {
+    selectedBg = { type: 'color', value: e.target.value };
+    // Update custom color preview
+    const customPreview = document.querySelector('.color-preview-box.custom');
+    if (customPreview) customPreview.style.background = e.target.value;
+    // Clear image input and preview
+    bgImageInput.value = '';
+    customImgPreview.style.background = '#eee';
+});
+
+bgImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            selectedBg = { type: 'image', value: ev.target.result };
+            // Show preview
+            customImgPreview.style.background = `url('${ev.target.result}')`;
+            // Clear custom color selection and preview
+            customColorPicker.value = '';
+            const customPreview = document.querySelector('.color-preview-box.custom');
+            if (customPreview) customPreview.style.background = '#fff';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+colorBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const color = btn.dataset.color;
+        if (color) {
+            selectedBg = { type: 'color', value: color };
+            applyBackground(selectedBg);
+            // Reset custom color picker
+            customColorPicker.value = '';
+            const customPreview = document.querySelector('.color-preview-box.custom');
+            if (customPreview) customPreview.style.background = '#fff';
+        } else {
+            // For custom color button, open color picker
+            customColorPicker.click();
+        }
+    });
+});
+
+applyBgBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (selectedBg) {
+        saveBackground(selectedBg);
+        closeModal(bgModal);
+    }
+});
+
+resetBgBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetBackground();
+    closeModal(bgModal);
+});
+
+//* handle opening background modal
+customizeBgBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    loadBackground();
+    bgModal.style.display = 'block';
+});
+
+//* handle closing modals
+window.addEventListener('click', function(event) {
+    if (event.target === bgModal) {
+        bgModal.style.display = 'none';
+    }
+});
+
+//* handle loading background on startup
+document.addEventListener('DOMContentLoaded', loadBackground);

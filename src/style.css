@@ -25,6 +25,19 @@ body{
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+     background: 
+        linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)),
+        url('/img/bg/bg001.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+body.dark .wrapper{
+    /* background-color: red; */
+}
+
+body.light .wrapper{
+    /* background-color: red; */
 }
 
 .wrapper {
@@ -38,11 +51,11 @@ body{
     
     /* background-color: var(--primary-dark); */
      /* new */
-    background: 
+    /* background: 
         linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)),
         url('/img/bg/bg001.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: center; */
 }
 
 .home{
