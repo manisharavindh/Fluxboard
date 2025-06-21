@@ -1,13 +1,14 @@
 :root {
-    --primary-dark: rgba(28, 27, 34, 0.5);
-    --secondary-dark: rgba(43, 42, 51, 0.5);
-    --tertiary-dark: rgba(66, 65, 77, 0.5);
+    --primary-dark: #1c1b22;
+    --secondary-dark: #2b2a33;
+    --tertiary-dark: #42414d;
     --quaternary-dark: #605F66;
     --quinary-dark: #605F66;
 
-    --primary-dark-layer: rgba(28, 27, 34, 0.9);
+    --primary-dark-layer: #1c1b22;
 
     --color-dark: #FBFBFE;
+    --color-light: #181820;
 
     --blue: #0DF;
     --red: #F95657;
@@ -25,37 +26,27 @@ body{
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-     background: 
-        linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)),
-        url('/img/bg/bg001.jpg');
-    background-size: cover;
-    background-position: center;
+    background: var(--primary-dark-layer);
 }
 
-body.dark .wrapper{
-    /* background-color: red; */
+body[data-bgmode="dark"] .wrapper,
+body[data-bgmode="dark"] {
+    color: var(--color-dark) !important;
+    background: var(--primary-dark) !important;
 }
-
-body.light .wrapper{
-    /* background-color: red; */
+body[data-bgmode="light"] .wrapper,
+body[data-bgmode="light"] {
+    color: var(--color-light) !important;
+    background: #fff !important;
 }
 
 .wrapper {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    color: var(--color-dark);
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
-    
-    /* background-color: var(--primary-dark); */
-     /* new */
-    /* background: 
-        linear-gradient(var(--primary-dark-layer), var(--primary-dark-layer)),
-        url('/img/bg/bg001.jpg');
-    background-size: cover;
-    background-position: center; */
 }
 
 .home{
@@ -129,7 +120,7 @@ body.light .wrapper{
     width: 100%;
     height: 100%;
     background-color: transparent;
-    color: var(--color-dark);
+    color: inherit;
     border: none;
     outline: none;
     padding-right: 1rem;
@@ -366,7 +357,7 @@ body.light .wrapper{
 
 .modal-content {
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     margin: 3% auto;
     border-radius: 8px;
     width: 80%;
@@ -396,7 +387,7 @@ body.light .wrapper{
     border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     outline: none;
 }
 
@@ -426,7 +417,7 @@ body.light .wrapper{
     font-size: 0.9rem;
     resize: vertical;
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     padding: 8px;
@@ -471,7 +462,7 @@ body.light .wrapper{
 .history-modal-content {
     position: relative;
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     margin: 3% auto;
     border-radius: 8px;
     width: 80%;
@@ -506,7 +497,7 @@ body.light .wrapper{
 
 #historyList{
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     margin: 5% auto;
     border-radius: 8px;
     width: 80%;
@@ -701,7 +692,7 @@ body.light .wrapper{
     background-color: transparent;
     outline: none;
     border: none;
-    color: var(--color-dark);
+    color: inherit;
     opacity: 0.8;
     padding-top: 0.15rem;
 }
@@ -723,7 +714,7 @@ body.light .wrapper{
 .action-btn {
     width: 95%;
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     border: 0;
     cursor: pointer;
     display: grid;
@@ -796,7 +787,7 @@ body.light .wrapper{
     outline: none;
     padding: 0.25rem 0.4rem;
     border-radius: 0.25rem;
-    color: var(--color-dark);
+    color: inherit;
     background-color: var(--secondary-dark);
 }
 
@@ -922,7 +913,7 @@ body.light .wrapper{
     border: 1px solid var(--tertiary-dark);
     border-radius: 4px;
     background-color: var(--secondary-dark);
-    color: var(--color-dark);
+    color: inherit;
     outline: none;
     width: 100%;
     margin-top: 0.1rem;
