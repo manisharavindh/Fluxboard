@@ -8,7 +8,13 @@
     --primary-dark-layer: #1c1b22;
 
     --color-dark: #FBFBFE;
-    --color-light: #181820;
+    --color-light: #20123A;
+
+
+    /*  */
+
+    --primary-light: #EAEAED;
+    --secondary-light: #FFF;
 
     --blue: #0DF;
     --red: #F95657;
@@ -37,8 +43,14 @@ body[data-bgmode="dark"] {
 body[data-bgmode="light"] .wrapper,
 body[data-bgmode="light"] {
     color: var(--color-light) !important;
-    background: #fff !important;
+    background: var(--primary-light) !important;
 }
+
+body[data-bgmode="light"] .sidebar,
+body[data-bgmode="light"] .sidebar *{
+    border-color: var(--secondary-light);
+}
+
 
 .wrapper {
     height: 100%;
@@ -103,6 +115,10 @@ body[data-bgmode="light"] {
     box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.1);
 }
 
+body[data-bgmode="light"] .search-box {
+    background-color: var(--secondary-light);
+}
+
 .search-box .icon{
     display: grid;
     place-items: center;
@@ -143,6 +159,10 @@ body[data-bgmode="light"] {
 
 .link-element:hover{
     background-color: var(--secondary-dark);
+}
+
+body[data-bgmode="light"] .link-element:hover {
+    background-color: var(--secondary-light);
 }
 
 .link-element .link-icon{
@@ -207,6 +227,10 @@ body[data-bgmode="light"] {
 
 .folder-head:hover{
     background-color: var(--secondary-dark);
+}
+
+body[data-bgmode="light"] .folder-head:hover {
+    background-color: var(--secondary-light);
 }
 
 .folder-head img{
@@ -297,6 +321,10 @@ body[data-bgmode="light"] {
     cursor: pointer;
 }
 
+body[data-bgmode="light"] .group-title {
+    background-color: var(--secondary-light);
+}
+
 .group-title h5 {
     width: 75%;
     text-overflow: ellipsis;
@@ -319,6 +347,10 @@ body[data-bgmode="light"] {
     cursor: pointer;
     opacity: 0.8;
     border-radius: 0.25rem;
+}
+
+body[data-bgmode="light"] .group-title {
+    background-color: var(--secondary-light);
 }
 
 .new-link div:hover{
