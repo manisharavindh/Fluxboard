@@ -170,7 +170,7 @@ body[data-bgmode="light"] .search-box {
 
 body[data-bgmode="light"] .link-element:hover {
     background-color: var(--secondary-light);
-    box-shadow: 0 0 25px 1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .link-element .link-icon{
@@ -196,7 +196,7 @@ body[data-bgmode="light"] .link-element img{
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .link-element .edit-icon{
@@ -244,13 +244,14 @@ body[data-bgmode="light"] .link-element img{
 
 body[data-bgmode="light"] .folder-head:hover {
     background-color: var(--secondary-light);
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .folder-head img{
     width: 16px;
     height: 16px;
     transform: scale(1.1);
-    opacity: 0.9;
+    opacity: 0.8;
     display: grid;
     place-items: center;
     aspect-ratio: 1;
@@ -266,7 +267,7 @@ body[data-bgmode="light"] .folder-head img{
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    opacity: 0.7;
+    opacity: 0.8;
     margin-top: -0.05rem;
 }
 
@@ -339,6 +340,7 @@ body[data-bgmode="light"] .folder-head img{
 
 body[data-bgmode="light"] .group-title {
     background-color: var(--secondary-light);
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .group-title h5 {
@@ -346,7 +348,7 @@ body[data-bgmode="light"] .group-title {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 body[data-bgmode="light"] .group-title h5 {
@@ -374,7 +376,7 @@ body[data-bgmode="light"] .new-link div{
 }
 
 .new-link div:hover{
-    /* background-color: var(--tertiary-dark); */
+    background-color: var(--tertiary-dark);
     opacity: 0.8;
 }
 
@@ -389,7 +391,7 @@ body[data-bgmode="light"] .new-link div:hover{
 }
 
 body[data-bgmode="light"] .new-link div img{
-    filter: brightness(0.063) contrast(1.2) saturate(0);
+    filter: invert(1);
 }
 
 /*  */
@@ -677,13 +679,13 @@ body[data-bgmode="light"] .history-item {
 }
 
 .history-item-date {
-    opacity: 0.7;
-    font-size: 0.7rem;
+    opacity: 0.75;
+    font-size: 0.6rem;
 }
 
 .empty-history {
     text-align: center;
-    opacity: 0.7;
+    opacity: 0.75;
     padding: 2rem;
 }
 
@@ -737,6 +739,7 @@ body[data-bgmode="light"] .sidebar{
 
 body[data-bgmode="light"] .menu{
     background-color: var(--secondary-light);
+    box-shadow: 0 0 15px 2px rgba(0, 0, 0, 0.05);
 }
 
 .menu:hover{
@@ -763,7 +766,7 @@ body[data-bgmode="light"] .menu:hover{
 
 body[data-bgmode="light"] .menu .menu-img{
     opacity: 1;
-    filter: brightness(0.063) contrast(1.2) saturate(0);
+    filter: invert(1);
 }
 
 .menu.active{
@@ -772,6 +775,7 @@ body[data-bgmode="light"] .menu .menu-img{
     width: calc(20% - 0.5rem);
     border-radius: 0;
     border-left: 0.25rem solid var();
+    box-shadow: none !important;
 }
 
 .menu.active .menu-img{
@@ -813,7 +817,7 @@ body[data-bgmode="light"] .notes{
     align-items: center;
     justify-content: start;
     gap: 0.1rem;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .notes p img{
@@ -838,7 +842,7 @@ body[data-bgmode="light"] .notes p img{
     align-items: center;
     justify-content: start;
     gap: 0.1rem;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .more p img{
@@ -892,6 +896,7 @@ body[data-bgmode="light"] .more p img{
 
 body[data-bgmode="light"] .action-btn {
     background-color: var(--secondary-light);
+    box-shadow: 0 0 7px 1px rgba(0, 0, 0, 0.05);
 }
 
 .action-btn:hover {
@@ -929,7 +934,7 @@ body[data-bgmode="light"] .action-btn-danger {
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .todo-header p img{
@@ -938,7 +943,6 @@ body[data-bgmode="light"] .action-btn-danger {
 }
 
 body[data-bgmode="light"] .todo-header p img{
-    /* filter: brightness(0.063) contrast(1.2) saturate(0); */
     filter: invert(1);
 }
 
@@ -980,6 +984,10 @@ body[data-bgmode="light"] .history-btn:hover {
     display: flex;
     gap: 0.25rem;
     margin-bottom: 0.5rem;
+}
+
+body[data-bgmode="light"] .todo-input {
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .todo-input input {
@@ -1049,6 +1057,7 @@ body[data-bgmode="light"] .todo-input .todo-add-btn img{
 
 body[data-bgmode="light"] .todo-item {
     background-color: var(--secondary-light);
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .todo-item.completed {
@@ -1118,6 +1127,7 @@ body[data-bgmode="light"] .todo-item button {
 
 body[data-bgmode="light"] .clock-container:hover{
     background-color: var(--secondary-light);
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .option-group:first-child{
