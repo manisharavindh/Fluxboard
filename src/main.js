@@ -983,9 +983,15 @@ function initializeDragAndDrop() {
         setupDragHandlers(element);
     });
     
-    // Add drop zones - include all column classes specifically
-    document.querySelectorAll('.col1, .col2, .col3, .col4, .folder-body, .folder-head').forEach(container => {
+    // Add drop zones - include all column classes specifically  
+    document.querySelectorAll('.col1, .col2, .col3, .col4, .folder-body').forEach(container => {
         setupDropHandlers(container);
+    });
+
+    // Separate handling for folder heads (for opening folders)
+    // Setup drop handlers for folder heads to redirect to folder body
+    document.querySelectorAll('.folder-head').forEach(folderHead => {
+        setupDropHandlers(folderHead);
     });
 }
 
@@ -1050,16 +1056,36 @@ function handleDragOver(e) {
     // Add drop indicator
     const indicator = document.createElement('div');
     indicator.className = 'drop-indicator';
-    
+    indicator.style.cssText = 'height: 2px; background-color: #007bff; margin: 2px 0; border-radius: 1px; opacity: 0.8;';
+
     if (afterElement == null) {
-        container.appendChild(indicator);
+        // Find the last draggable element to insert after
+        const draggableElements = Array.from(container.children).filter(child => 
+            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+            !child.classList.contains('group-title') &&
+            !child.classList.contains('new-link')
+        );
+        
+        if (draggableElements.length > 0) {
+            const lastElement = draggableElements[draggableElements.length - 1];
+            lastElement.insertAdjacentElement('afterend', indicator);
+        } else {
+            container.appendChild(indicator);
+        }
     } else {
         container.insertBefore(indicator, afterElement);
     }
 }
 
 function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.link-element:not(.dragging), .folder-element:not(.dragging)')];
+    // Only get direct children, not nested elements
+    const draggableElements = [...container.children].filter(child => 
+        (child.classList.contains('link-element') || child.classList.contains('folder-element')) && 
+        !child.classList.contains('dragging') &&
+        !child.classList.contains('group-title') &&
+        !child.classList.contains('new-link') &&
+        !child.classList.contains('drop-indicator')
+    );
     
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
@@ -1114,23 +1140,65 @@ function handleDrop(e) {
         // Open the folder if it's closed
         const folderBody = targetContainer;
         const folderHead = this;
-        if (folderBody.style.display === 'none') {
+        if (folderBody.style.display === 'none' || folderBody.style.display === '') {
             folder_toggle(folderHead);
+            // Small delay to ensure folder is open before dropping
+            setTimeout(() => {
+                // Re-trigger the drop after folder opens
+                const event = new DragEvent('drop', {
+                    dataTransfer: e.dataTransfer,
+                    clientY: e.clientY
+                });
+                folderBody.dispatchEvent(event);
+            }, 100);
+            return;
         }
+        afterElement = null; // Append to end of folder
     } else {
-        // For regular containers, get the position
-        afterElement = getDragAfterElement(this, e.clientY);
+        // For regular containers, get the position based on mouse Y
+        const rect = targetContainer.getBoundingClientRect();
+        const relativeY = e.clientY - rect.top;
+        afterElement = getDragAfterElement(targetContainer, e.clientY);
+    }
+
+    // Don't allow dropping a folder into itself
+    if (draggedElement.classList.contains('folder-element') && 
+        draggedElement.contains(this)) {
+        return;
+    }
+
+    // Add this new check:
+    // Ensure we're not trying to drop an element into its current position
+    if (draggedElement.parentElement === targetContainer) {
+        // Get only draggable elements for proper indexing
+        const draggableElements = Array.from(targetContainer.children).filter(child => 
+            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+            !child.classList.contains('group-title') &&
+            !child.classList.contains('new-link')
+        );
+        
+        const currentIndex = draggableElements.indexOf(draggedElement);
+        const afterIndex = afterElement ? draggableElements.indexOf(afterElement) : draggableElements.length;
+        
+        // If dropping in the same position, do nothing
+        if (currentIndex === afterIndex || (afterElement === null && currentIndex === draggableElements.length - 1)) {
+            return;
+        }
     }
     
-    // Create new element
+    // Create new element in a temporary container first
+    const tempContainer = document.createElement('div');
     let newElement;
     if (draggedData.type === 'link') {
-        newElement = createBookmarkElement(draggedData, document.createElement('div')); // temporary container
+        newElement = createBookmarkElement(draggedData, tempContainer);
     } else if (draggedData.type === 'folder') {
-        newElement = createFolderElement(draggedData, document.createElement('div')); // temporary container
+        newElement = createFolderElement(draggedData, tempContainer);
     }
     
-    // Insert at the correct position
+    // Remove from temp container
+    newElement.remove();
+    
+    // Insert at the correct position in target container
     if (afterElement == null) {
         targetContainer.appendChild(newElement);
     } else {

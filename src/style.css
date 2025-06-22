@@ -1202,7 +1202,7 @@ body[data-bgmode="light"] .option-group input, .option-group select {
 }
 
 .column, .folder-body {
-    min-height: 100px;
+    min-height: 69px;
 }
 
 /* .drop-indicator {
@@ -1232,4 +1232,35 @@ body[data-bgmode="light"] .option-group input, .option-group select {
 .drag-over {
     background-color: rgba(0, 123, 255, 0.1);
     border: 1px dashed #007bff;
+}
+
+.drop-indicator {
+    height: 2px;
+    background: #007bff;
+    margin: 2px 0;
+    border-radius: 1px;
+    opacity: 0.8;
+}
+
+.drag-over {
+    background-color: rgba(0, 123, 255, 0.1);
+    border: 1px dashed #007bff;
+}
+
+.drop-indicator {
+    height: 2px;
+    background-color: #007bff;
+    margin: 2px 0;
+    border-radius: 1px;
+    opacity: 0.8;
+}
+
+.drag-over {
+    background-color: rgba(0, 123, 255, 0.1);
+    border-radius: 4px;
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
 }
