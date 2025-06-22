@@ -1175,3 +1175,32 @@ body[data-bgmode="light"] .option-group input, .option-group select {
 /*  */
 /*  */
 /*  */
+
+/* Drag and Drop Styles */
+.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.drag-over {
+    background-color: rgba(64, 139, 255, 0.1);
+    border: 2px dashed rgba(64, 139, 255, 0.5);
+    border-radius: 8px;
+}
+
+.link-element, .folder-element {
+    cursor: grab;
+}
+
+.link-element:active, .folder-element:active {
+    cursor: grabbing;
+}
+
+.drop-zone {
+    min-height: 40px;
+    transition: all 0.2s ease;
+}
+
+.column, .folder-body {
+    min-height: 100px;
+}

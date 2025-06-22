@@ -201,6 +201,7 @@ function createBookmarkElement(bookmark, container) {
         <p data-url="${normalizedUrl}" data-notes="${bookmark.notes || ''}">${bookmark.name}</p>
         <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
+    linkElement.setAttribute('draggable', 'true');
     
     const editIcon = linkElement.querySelector('.edit-icon');
     editIcon.addEventListener('click', () => editLink(editIcon));
@@ -210,6 +211,7 @@ function createBookmarkElement(bookmark, container) {
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
     
     container.appendChild(linkElement);
+    setupDragHandlers(linkElement);
     return linkElement;
 }
 
@@ -229,6 +231,7 @@ function createFolderElement(folder, container) {
         <div class="folder-body" style="display: none;">
         </div>
     `;
+    folderElement.setAttribute('draggable', 'true');
     
     const folderHead = folderElement.querySelector('.folder-head');
     folderHead.addEventListener('click', (e) => {
@@ -269,6 +272,8 @@ function createFolderElement(folder, container) {
     }
     
     container.appendChild(folderElement);
+    setupDragHandlers(folderElement);
+    setupDropHandlers(folderBody);
     return folderElement;
 }
 
@@ -510,6 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // Initialize drag and drop
+    initializeDragAndDrop();
+    
     document.querySelectorAll('.add-link img').forEach(button => {
         button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
@@ -661,6 +669,7 @@ document.addEventListener('DOMContentLoaded', loadGroupTitles);
 //* handle loading bookmarks from local
 document.addEventListener('DOMContentLoaded', function() {
     loadSidebarState();
+    initializeDragAndDrop();
     const importInput = document.getElementById('importInput');
     importInput.addEventListener('change', handleImport);
 
@@ -958,6 +967,119 @@ class TodoManager {
 }
 
 let todoManager;
+
+//* Drag and Drop functionality
+let draggedElement = null;
+let draggedData = null;
+
+function initializeDragAndDrop() {
+    // Add drag and drop to existing elements
+    document.querySelectorAll('.link-element, .folder-element').forEach(element => {
+        setupDragHandlers(element);
+    });
+    
+    // Add drop zones
+    document.querySelectorAll('.column, .folder-body').forEach(container => {
+        setupDropHandlers(container);
+    });
+}
+
+function setupDragHandlers(element) {
+    element.addEventListener('dragstart', handleDragStart);
+    element.addEventListener('dragend', handleDragEnd);
+}
+
+function setupDropHandlers(container) {
+    container.addEventListener('dragover', handleDragOver);
+    container.addEventListener('dragenter', handleDragEnter);
+    container.addEventListener('dragleave', handleDragLeave);
+    container.addEventListener('drop', handleDrop);
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    
+    // Extract data from the element
+    if (this.classList.contains('link-element')) {
+        const p = this.querySelector('p');
+        draggedData = {
+            type: 'link',
+            name: p.textContent,
+            url: p.getAttribute('data-url') || '',
+            notes: p.getAttribute('data-notes') || ''
+        };
+    } else if (this.classList.contains('folder-element')) {
+        const folderHead = this.querySelector('.folder-head');
+        const folderBody = this.querySelector('.folder-body');
+        const folderNameP = folderHead.querySelector('p');
+        draggedData = {
+            type: 'folder',
+            name: folderNameP.textContent,
+            notes: folderNameP.getAttribute('data-notes') || '',
+            items: serializeSection(folderBody)
+        };
+    }
+    
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    if (this !== draggedElement && !this.contains(draggedElement)) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    if (!this.contains(e.relatedTarget)) {
+        this.classList.remove('drag-over');
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    
+    if (this === draggedElement || this.contains(draggedElement)) {
+        return;
+    }
+    
+    // Don't allow dropping a folder into itself
+    if (draggedElement.classList.contains('folder-element') && 
+        draggedElement.contains(this)) {
+        return;
+    }
+    
+    // Create new element in the drop target
+    if (draggedData.type === 'link') {
+        createBookmarkElement(draggedData, this);
+    } else if (draggedData.type === 'folder') {
+        createFolderElement(draggedData, this);
+    }
+    
+    // Remove the original element
+    draggedElement.remove();
+    
+    // Save changes
+    saveBookmarks();
+    
+    // Clean up
+    draggedElement = null;
+    draggedData = null;
+}
 
 //* clock functionality
 document.addEventListener('DOMContentLoaded', function() {
