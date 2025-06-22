@@ -211,6 +211,9 @@ function createBookmarkElement(bookmark, container) {
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
     
     container.appendChild(linkElement);
+    if (container.classList.contains('folder-body')) {
+        setupDropHandlers(container);
+    }
     setupDragHandlers(linkElement);
     return linkElement;
 }
@@ -272,6 +275,8 @@ function createFolderElement(folder, container) {
     }
     
     container.appendChild(folderElement);
+    // const folderHead = folderElement.querySelector('.folder-head');
+    setupDropHandlers(folderHead);
     setupDragHandlers(folderElement);
     setupDropHandlers(folderBody);
     return folderElement;
@@ -978,8 +983,8 @@ function initializeDragAndDrop() {
         setupDragHandlers(element);
     });
     
-    // Add drop zones
-    document.querySelectorAll('.column, .folder-body').forEach(container => {
+    // Add drop zones - include all column classes specifically
+    document.querySelectorAll('.col1, .col2, .col3, .col4, .folder-body, .folder-head').forEach(container => {
         setupDropHandlers(container);
     });
 }
@@ -1034,6 +1039,38 @@ function handleDragEnd(e) {
 function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    
+    // Get the closest droppable element
+    const container = e.currentTarget;
+    const afterElement = getDragAfterElement(container, e.clientY);
+    
+    // Remove existing drop indicators
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    
+    // Add drop indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'drop-indicator';
+    
+    if (afterElement == null) {
+        container.appendChild(indicator);
+    } else {
+        container.insertBefore(indicator, afterElement);
+    }
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.link-element:not(.dragging), .folder-element:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 function handleDragEnter(e) {
@@ -1046,12 +1083,17 @@ function handleDragEnter(e) {
 function handleDragLeave(e) {
     if (!this.contains(e.relatedTarget)) {
         this.classList.remove('drag-over');
+        // Remove drop indicators when leaving
+        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
     }
 }
 
 function handleDrop(e) {
     e.preventDefault();
     this.classList.remove('drag-over');
+    
+    // Remove drop indicators
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
     
     if (this === draggedElement || this.contains(draggedElement)) {
         return;
@@ -1063,11 +1105,36 @@ function handleDrop(e) {
         return;
     }
     
-    // Create new element in the drop target
+    let targetContainer = this;
+    let afterElement = null;
+    
+    // If dropping on a folder head, redirect to folder body
+    if (this.classList.contains('folder-head')) {
+        targetContainer = this.parentElement.querySelector('.folder-body');
+        // Open the folder if it's closed
+        const folderBody = targetContainer;
+        const folderHead = this;
+        if (folderBody.style.display === 'none') {
+            folder_toggle(folderHead);
+        }
+    } else {
+        // For regular containers, get the position
+        afterElement = getDragAfterElement(this, e.clientY);
+    }
+    
+    // Create new element
+    let newElement;
     if (draggedData.type === 'link') {
-        createBookmarkElement(draggedData, this);
+        newElement = createBookmarkElement(draggedData, document.createElement('div')); // temporary container
     } else if (draggedData.type === 'folder') {
-        createFolderElement(draggedData, this);
+        newElement = createFolderElement(draggedData, document.createElement('div')); // temporary container
+    }
+    
+    // Insert at the correct position
+    if (afterElement == null) {
+        targetContainer.appendChild(newElement);
+    } else {
+        targetContainer.insertBefore(newElement, afterElement);
     }
     
     // Remove the original element
