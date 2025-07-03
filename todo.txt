@@ -1,0 +1,2 @@
+
+[] index for links instead of drag and drop

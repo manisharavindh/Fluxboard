@@ -201,7 +201,6 @@ function createBookmarkElement(bookmark, container) {
         <p data-url="${normalizedUrl}" data-notes="${bookmark.notes || ''}">${bookmark.name}</p>
         <img src="/img/menu.png" alt="edit" class="edit-icon">
     `;
-    linkElement.setAttribute('draggable', 'true');
     
     const editIcon = linkElement.querySelector('.edit-icon');
     editIcon.addEventListener('click', () => editLink(editIcon));
@@ -211,10 +210,6 @@ function createBookmarkElement(bookmark, container) {
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
     
     container.appendChild(linkElement);
-    if (container.classList.contains('folder-body')) {
-        setupDropHandlers(container);
-    }
-    setupDragHandlers(linkElement);
     return linkElement;
 }
 
@@ -234,7 +229,6 @@ function createFolderElement(folder, container) {
         <div class="folder-body" style="display: none;">
         </div>
     `;
-    folderElement.setAttribute('draggable', 'true');
     
     const folderHead = folderElement.querySelector('.folder-head');
     folderHead.addEventListener('click', (e) => {
@@ -275,10 +269,6 @@ function createFolderElement(folder, container) {
     }
     
     container.appendChild(folderElement);
-    // const folderHead = folderElement.querySelector('.folder-head');
-    setupDropHandlers(folderHead);
-    setupDragHandlers(folderElement);
-    setupDropHandlers(folderBody);
     return folderElement;
 }
 
@@ -520,9 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Initialize drag and drop
-    initializeDragAndDrop();
-    
     document.querySelectorAll('.add-link img').forEach(button => {
         button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
@@ -674,7 +661,6 @@ document.addEventListener('DOMContentLoaded', loadGroupTitles);
 //* handle loading bookmarks from local
 document.addEventListener('DOMContentLoaded', function() {
     loadSidebarState();
-    initializeDragAndDrop();
     const importInput = document.getElementById('importInput');
     importInput.addEventListener('change', handleImport);
 
@@ -704,10 +690,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    const actionButtons = document.querySelectorAll('.data-buttons button');
-    actionButtons[0].addEventListener('click', exportBookmarks);
-    actionButtons[1].addEventListener('click', importBookmarks);
-    actionButtons[2].addEventListener('click', clearAllBookmarks);
+    // const actionButtons = document.querySelectorAll('.data-buttons button');
+
+    const exportBtn = document.getElementById('export-data');
+    const importBtn = document.getElementById('import-data');
+    const deleteBtn = document.getElementById('delete-all');
+
+    exportBtn.addEventListener('click', exportBookmarks);
+    importBtn.addEventListener('click', importBookmarks);
+    deleteBtn.addEventListener('click', clearAllBookmarks);
 
     document.querySelectorAll('.modal .close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
@@ -973,248 +964,9 @@ class TodoManager {
 
 let todoManager;
 
+//*
 //* Drag and Drop functionality
-let draggedElement = null;
-let draggedData = null;
-
-function initializeDragAndDrop() {
-    // Add drag and drop to existing elements
-    document.querySelectorAll('.link-element, .folder-element').forEach(element => {
-        setupDragHandlers(element);
-    });
-    
-    // Add drop zones - include all column classes specifically  
-    document.querySelectorAll('.col1, .col2, .col3, .col4, .folder-body').forEach(container => {
-        setupDropHandlers(container);
-    });
-
-    // Separate handling for folder heads (for opening folders)
-    // Setup drop handlers for folder heads to redirect to folder body
-    document.querySelectorAll('.folder-head').forEach(folderHead => {
-        setupDropHandlers(folderHead);
-    });
-}
-
-function setupDragHandlers(element) {
-    element.addEventListener('dragstart', handleDragStart);
-    element.addEventListener('dragend', handleDragEnd);
-}
-
-function setupDropHandlers(container) {
-    container.addEventListener('dragover', handleDragOver);
-    container.addEventListener('dragenter', handleDragEnter);
-    container.addEventListener('dragleave', handleDragLeave);
-    container.addEventListener('drop', handleDrop);
-}
-
-function handleDragStart(e) {
-    draggedElement = this;
-    
-    // Extract data from the element
-    if (this.classList.contains('link-element')) {
-        const p = this.querySelector('p');
-        draggedData = {
-            type: 'link',
-            name: p.textContent,
-            url: p.getAttribute('data-url') || '',
-            notes: p.getAttribute('data-notes') || ''
-        };
-    } else if (this.classList.contains('folder-element')) {
-        const folderHead = this.querySelector('.folder-head');
-        const folderBody = this.querySelector('.folder-body');
-        const folderNameP = folderHead.querySelector('p');
-        draggedData = {
-            type: 'folder',
-            name: folderNameP.textContent,
-            notes: folderNameP.getAttribute('data-notes') || '',
-            items: serializeSection(folderBody)
-        };
-    }
-    
-    this.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-}
-
-function handleDragEnd(e) {
-    this.classList.remove('dragging');
-    document.querySelectorAll('.drag-over').forEach(el => {
-        el.classList.remove('drag-over');
-    });
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    
-    // Get the closest droppable element
-    const container = e.currentTarget;
-    const afterElement = getDragAfterElement(container, e.clientY);
-    
-    // Remove existing drop indicators
-    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-    
-    // Add drop indicator
-    const indicator = document.createElement('div');
-    indicator.className = 'drop-indicator';
-    indicator.style.cssText = 'height: 2px; background-color: #007bff; margin: 2px 0; border-radius: 1px; opacity: 0.8;';
-
-    if (afterElement == null) {
-        // Find the last draggable element to insert after
-        const draggableElements = Array.from(container.children).filter(child => 
-            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
-            !child.classList.contains('group-title') &&
-            !child.classList.contains('new-link')
-        );
-        
-        if (draggableElements.length > 0) {
-            const lastElement = draggableElements[draggableElements.length - 1];
-            lastElement.insertAdjacentElement('afterend', indicator);
-        } else {
-            container.appendChild(indicator);
-        }
-    } else {
-        container.insertBefore(indicator, afterElement);
-    }
-}
-
-function getDragAfterElement(container, y) {
-    // Only get direct children, not nested elements
-    const draggableElements = [...container.children].filter(child => 
-        (child.classList.contains('link-element') || child.classList.contains('folder-element')) && 
-        !child.classList.contains('dragging') &&
-        !child.classList.contains('group-title') &&
-        !child.classList.contains('new-link') &&
-        !child.classList.contains('drop-indicator')
-    );
-    
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
-
-function handleDragEnter(e) {
-    e.preventDefault();
-    if (this !== draggedElement && !this.contains(draggedElement)) {
-        this.classList.add('drag-over');
-    }
-}
-
-function handleDragLeave(e) {
-    if (!this.contains(e.relatedTarget)) {
-        this.classList.remove('drag-over');
-        // Remove drop indicators when leaving
-        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-    }
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    this.classList.remove('drag-over');
-    
-    // Remove drop indicators
-    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-    
-    if (this === draggedElement || this.contains(draggedElement)) {
-        return;
-    }
-    
-    // Don't allow dropping a folder into itself
-    if (draggedElement.classList.contains('folder-element') && 
-        draggedElement.contains(this)) {
-        return;
-    }
-    
-    let targetContainer = this;
-    let afterElement = null;
-    
-    // If dropping on a folder head, redirect to folder body
-    if (this.classList.contains('folder-head')) {
-        targetContainer = this.parentElement.querySelector('.folder-body');
-        // Open the folder if it's closed
-        const folderBody = targetContainer;
-        const folderHead = this;
-        if (folderBody.style.display === 'none' || folderBody.style.display === '') {
-            folder_toggle(folderHead);
-            // Small delay to ensure folder is open before dropping
-            setTimeout(() => {
-                // Re-trigger the drop after folder opens
-                const event = new DragEvent('drop', {
-                    dataTransfer: e.dataTransfer,
-                    clientY: e.clientY
-                });
-                folderBody.dispatchEvent(event);
-            }, 100);
-            return;
-        }
-        afterElement = null; // Append to end of folder
-    } else {
-        // For regular containers, get the position based on mouse Y
-        const rect = targetContainer.getBoundingClientRect();
-        const relativeY = e.clientY - rect.top;
-        afterElement = getDragAfterElement(targetContainer, e.clientY);
-    }
-
-    // Don't allow dropping a folder into itself
-    if (draggedElement.classList.contains('folder-element') && 
-        draggedElement.contains(this)) {
-        return;
-    }
-
-    // Add this new check:
-    // Ensure we're not trying to drop an element into its current position
-    if (draggedElement.parentElement === targetContainer) {
-        // Get only draggable elements for proper indexing
-        const draggableElements = Array.from(targetContainer.children).filter(child => 
-            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
-            !child.classList.contains('group-title') &&
-            !child.classList.contains('new-link')
-        );
-        
-        const currentIndex = draggableElements.indexOf(draggedElement);
-        const afterIndex = afterElement ? draggableElements.indexOf(afterElement) : draggableElements.length;
-        
-        // If dropping in the same position, do nothing
-        if (currentIndex === afterIndex || (afterElement === null && currentIndex === draggableElements.length - 1)) {
-            return;
-        }
-    }
-    
-    // Create new element in a temporary container first
-    const tempContainer = document.createElement('div');
-    let newElement;
-    if (draggedData.type === 'link') {
-        newElement = createBookmarkElement(draggedData, tempContainer);
-    } else if (draggedData.type === 'folder') {
-        newElement = createFolderElement(draggedData, tempContainer);
-    }
-    
-    // Remove from temp container
-    newElement.remove();
-    
-    // Insert at the correct position in target container
-    if (afterElement == null) {
-        targetContainer.appendChild(newElement);
-    } else {
-        targetContainer.insertBefore(newElement, afterElement);
-    }
-    
-    // Remove the original element
-    draggedElement.remove();
-    
-    // Save changes
-    saveBookmarks();
-    
-    // Clean up
-    draggedElement = null;
-    draggedData = null;
-}
+//* 
 
 //* clock functionality
 document.addEventListener('DOMContentLoaded', function() {

@@ -1163,104 +1163,12 @@ body[data-bgmode="light"] .clock-container:hover{
     font-size: 0.8rem;
 }
 
-body[data-bgmode="light"] .option-group input, .option-group select {
+body[data-bgmode="light"] .option-group input, 
+body[data-bgmode="light"] .option-group select {
     background-color: var(--secondary-light);
     border: 1px solid var(--tertiary-light);
 }
 
 .clock-modal-content{
     max-width: 500px;
-}
-
-/*  */
-/*  */
-/*  */
-
-/* Drag and Drop Styles */
-/* .dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
-} */
-
-/* .drag-over {
-    background-color: rgba(64, 139, 255, 0.1);
-    border: 2px dashed rgba(64, 139, 255, 0.5);
-    border-radius: 8px;
-} */
-
-.link-element, .folder-element {
-    cursor: grab;
-}
-
-.link-element:active, .folder-element:active {
-    cursor: grabbing;
-}
-
-.drop-zone {
-    min-height: 40px;
-    transition: all 0.2s ease;
-}
-
-.column, .folder-body {
-    min-height: 69px;
-}
-
-/* .drop-indicator {
-    height: 3px;
-    background: rgba(64, 139, 255, 0.8);
-    border-radius: 2px;
-    margin: 4px 0;
-    transition: all 0.2s ease;
-} */
-
-.folder-head.drag-over {
-    background-color: rgba(64, 139, 255, 0.1);
-    border-radius: 6px;
-}
-
-.drop-indicator {
-    height: 2px;
-    background-color: #007bff;
-    margin: 2px 0;
-    border-radius: 1px;
-}
-
-.dragging {
-    opacity: 0.5;
-}
-
-.drag-over {
-    background-color: rgba(0, 123, 255, 0.1);
-    border: 1px dashed #007bff;
-}
-
-.drop-indicator {
-    height: 2px;
-    background: #007bff;
-    margin: 2px 0;
-    border-radius: 1px;
-    opacity: 0.8;
-}
-
-.drag-over {
-    background-color: rgba(0, 123, 255, 0.1);
-    border: 1px dashed #007bff;
-}
-
-.drop-indicator {
-    height: 2px;
-    background-color: #007bff;
-    margin: 2px 0;
-    border-radius: 1px;
-    opacity: 0.8;
-}
-
-.drag-over {
-    background-color: rgba(0, 123, 255, 0.1);
-    border-radius: 4px;
-}
-
-.dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
 }
