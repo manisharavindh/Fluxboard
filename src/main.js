@@ -280,10 +280,15 @@ function createBookmarkElement(bookmark, container) {
     
     const editIcon = linkElement.querySelector('.edit-icon');
     editIcon.addEventListener('click', () => editLink(editIcon));
-    
+
     const linkText = linkElement.querySelector('p');
 
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
+
+    // Add right-click context menu
+    linkElement.addEventListener('contextmenu', (e) => {
+        contextMenuManager.showContextMenu(e, linkElement);
+});
     
     container.appendChild(linkElement);
     return linkElement;
@@ -331,6 +336,14 @@ function createFolderElement(folder, container) {
     menuIcon.addEventListener('click', (e) => {
         e.stopPropagation();
         editFolder(menuIcon);
+    });
+
+    // Add right-click context menu
+    folderElement.addEventListener('contextmenu', (e) => {
+        // Only show context menu if not clicking on edit icons
+        if (!e.target.classList.contains('edit-icon')) {
+            contextMenuManager.showContextMenu(e, folderElement);
+        }
     });
     
     const folderBody = folderElement.querySelector('.folder-body');
@@ -681,6 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     todoManager = new TodoManager();
+    contextMenuManager = new ContextMenuManager();
 });
 
 //* handle group title
@@ -1050,9 +1064,132 @@ class TodoManager {
 
 let todoManager;
 
-//*
-//* Drag and Drop functionality
-//* 
+//* Context Menu functionality
+class ContextMenuManager {
+    constructor() {
+        this.contextMenu = document.getElementById('contextMenu');
+        this.currentElement = null;
+        this.init();
+    }
+
+    init() {
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            if (!this.contextMenu.contains(e.target)) {
+                this.hideContextMenu();
+            }
+        });
+
+        // Handle context menu item clicks
+        this.contextMenu.addEventListener('click', (e) => {
+            const item = e.target.closest('.context-menu-item');
+            if (item) {
+                const action = item.dataset.action;
+                const target = item.dataset.target;
+                
+                if (action === 'move' && this.currentElement) {
+                    this.moveElement(this.currentElement, target);
+                }
+                
+                this.hideContextMenu();
+            }
+        });
+    }
+
+    showContextMenu(e, element) {
+        e.preventDefault();
+        this.currentElement = element;
+        
+        // Get current column to disable it in menu
+        const currentColumn = this.getCurrentColumn(element);
+        
+        // Update menu items
+        this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+            const target = item.dataset.target;
+            if (target === currentColumn) {
+                item.style.opacity = '0.5';
+                item.style.pointerEvents = 'none';
+            } else {
+                item.style.opacity = '1';
+                item.style.pointerEvents = 'auto';
+            }
+        });
+
+        // Position and show menu
+        this.contextMenu.style.left = e.pageX + 'px';
+        this.contextMenu.style.top = e.pageY + 'px';
+        this.contextMenu.style.display = 'block';
+        
+        // Adjust position if menu goes off screen
+        const rect = this.contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            this.contextMenu.style.left = (e.pageX - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            this.contextMenu.style.top = (e.pageY - rect.height) + 'px';
+        }
+    }
+
+    hideContextMenu() {
+        this.contextMenu.style.display = 'none';
+        this.currentElement = null;
+    }
+
+    getCurrentColumn(element) {
+        const column = element.closest('.col1, .col2, .col3, .col4');
+        if (column.classList.contains('col1')) return 'col1';
+        if (column.classList.contains('col2')) return 'col2';
+        if (column.classList.contains('col3')) return 'col3';
+        if (column.classList.contains('col4')) return 'col4';
+        return null;
+    }
+
+    moveElement(element, targetColumnClass) {
+        const targetColumn = document.querySelector('.' + targetColumnClass);
+        if (!targetColumn) return;
+
+        // Clone the element data
+        let elementData;
+        if (element.classList.contains('link-element')) {
+            const p = element.querySelector('p');
+            elementData = {
+                type: 'link',
+                name: p.textContent,
+                url: p.getAttribute('data-url') || '',
+                notes: p.getAttribute('data-notes') || ''
+            };
+        } else if (element.classList.contains('folder-element')) {
+            const folderHead = element.querySelector('.folder-head');
+            const folderBody = element.querySelector('.folder-body');
+            const folderNameP = folderHead.querySelector('p');
+            elementData = {
+                type: 'folder',
+                name: folderNameP.textContent,
+                notes: folderNameP.getAttribute('data-notes') || '',
+                items: serializeSection(folderBody)
+            };
+        }
+
+        // Remove original element
+        element.remove();
+
+        // Create new element in target column
+        if (elementData.type === 'link') {
+            createBookmarkElement(elementData, targetColumn);
+        } else if (elementData.type === 'folder') {
+            createFolderElement(elementData, targetColumn);
+        }
+
+        // Resort both columns
+        resortContainer(targetColumn);
+
+        // Save changes
+        saveBookmarks();
+    }
+}
+
+// Initialize context menu manager
+let contextMenuManager;
 
 //* clock functionality
 document.addEventListener('DOMContentLoaded', function() {
