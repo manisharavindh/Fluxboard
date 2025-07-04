@@ -1,3 +1,5 @@
 
 [] readme documentation
-[] index for links instead of drag and drop
+[*] index for links instead of drag and drop
+
+[] right click menu option to move lins and folder to other groupos

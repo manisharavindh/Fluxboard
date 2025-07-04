@@ -190,6 +190,82 @@ function serializeSection(section) {
     return items;
 }
 
+//* handle sorting items
+function sortItems(items) {
+    return items.sort((a, b) => {
+        const aName = a.name || '';
+        const bName = b.name || '';
+        
+        // Extract [xx] pattern from names
+        const aMatch = aName.match(/^\[(\d+)\]/);
+        const bMatch = bName.match(/^\[(\d+)\]/);
+        
+        // Both have numbers
+        if (aMatch && bMatch) {
+            const aNum = parseInt(aMatch[1]);
+            const bNum = parseInt(bMatch[1]);
+            return aNum - bNum;
+        }
+        
+        // Only a has number - a comes first
+        if (aMatch && !bMatch) {
+            return -1;
+        }
+        
+        // Only b has number - b comes first
+        if (!aMatch && bMatch) {
+            return 1;
+        }
+        
+        // Neither has number - alphabetical sort
+        return aName.localeCompare(bName);
+    });
+}
+
+//* handle resorting container after adding items
+function resortContainer(container) {
+    const items = [];
+    
+    // Collect all items (excluding group-title)
+    Array.from(container.children).forEach(child => {
+        if (!child.classList.contains('group-title')) {
+            if (child.classList.contains('link-element')) {
+                const p = child.querySelector('p');
+                items.push({
+                    type: 'link',
+                    name: p.textContent,
+                    url: p.getAttribute('data-url') || '',
+                    notes: p.getAttribute('data-notes') || '',
+                    element: child
+                });
+            } else if (child.classList.contains('folder-element')) {
+                const folderNameP = child.querySelector('.folder-head p');
+                items.push({
+                    type: 'folder',
+                    name: folderNameP.textContent,
+                    notes: folderNameP.getAttribute('data-notes') || '',
+                    element: child
+                });
+            }
+        }
+    });
+    
+    // Sort items
+    const sortedItems = sortItems(items);
+    
+    // Remove all non-group-title elements
+    Array.from(container.children).forEach(child => {
+        if (!child.classList.contains('group-title')) {
+            child.remove();
+        }
+    });
+    
+    // Re-append in sorted order
+    sortedItems.forEach(item => {
+        container.appendChild(item.element);
+    });
+}
+
 //* handle bookmark element creating
 function createBookmarkElement(bookmark, container) {
     const linkElement = document.createElement('div');
@@ -259,7 +335,8 @@ function createFolderElement(folder, container) {
     
     const folderBody = folderElement.querySelector('.folder-body');
     if (folder.items && Array.isArray(folder.items)) {
-        folder.items.forEach(item => {
+        const sortedItems = sortItems(folder.items);
+        sortedItems.forEach(item => {
             if (item.type === 'link') {
                 createBookmarkElement(item, folderBody);
             } else if (item.type === 'folder') {
@@ -311,10 +388,14 @@ bookmarkForm.onsubmit = (e) => {
         paragraph.setAttribute('data-url', url);
         paragraph.setAttribute('data-notes', notes);
         paragraph.onclick = () => window.location.href = url;
+        // Re-sort after name change
+        resortContainer(currentContainer);
     } else {
-        createBookmarkElement({ name, url, notes }, currentContainer);
+    createBookmarkElement({ name, url, notes }, currentContainer);
+        // Re-sort the container after adding
+        resortContainer(currentContainer);
     }
-    
+
     bookmarkModal.style.display = "none";
     saveBookmarks();
 }
@@ -329,10 +410,14 @@ folderForm.onsubmit = (e) => {
         const folderNameP = currentFolderElement.querySelector('p');
         folderNameP.textContent = name;
         folderNameP.setAttribute('data-notes', notes);
+        // Re-sort after name change
+        resortContainer(currentFolderContainer);
     } else {
         createFolderElement({ name, notes, items: [] }, currentFolderContainer);
+        // Re-sort the container after adding
+        resortContainer(currentFolderContainer);
     }
-    
+
     folderModal.style.display = "none";
     saveBookmarks();
 }
@@ -422,9 +507,10 @@ function setAllBookmarks(bookmarks) {
                     child.remove();
                 }
             });
-            
+
             const items = Array.isArray(data) ? data : (data.items || []);
-            items.forEach(item => {
+            const sortedItems = sortItems(items);
+            sortedItems.forEach(item => {
                 if (item.type === 'link') {
                     createBookmarkElement(item, sectionElement);
                 } else if (item.type === 'folder') {
