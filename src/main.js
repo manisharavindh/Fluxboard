@@ -190,81 +190,81 @@ function serializeSection(section) {
     return items;
 }
 
-//* handle sorting items
-function sortItems(items) {
-    return items.sort((a, b) => {
-        const aName = a.name || '';
-        const bName = b.name || '';
+// //* handle sorting items
+// function sortItems(items) {
+//     return items.sort((a, b) => {
+//         const aName = a.name || '';
+//         const bName = b.name || '';
         
-        // Extract [xx] pattern from names
-        const aMatch = aName.match(/^\[(\d+)\]/);
-        const bMatch = bName.match(/^\[(\d+)\]/);
+//         // Extract [xx] pattern from names
+//         const aMatch = aName.match(/^\[(\d+)\]/);
+//         const bMatch = bName.match(/^\[(\d+)\]/);
         
-        // Both have numbers
-        if (aMatch && bMatch) {
-            const aNum = parseInt(aMatch[1]);
-            const bNum = parseInt(bMatch[1]);
-            return aNum - bNum;
-        }
+//         // Both have numbers
+//         if (aMatch && bMatch) {
+//             const aNum = parseInt(aMatch[1]);
+//             const bNum = parseInt(bMatch[1]);
+//             return aNum - bNum;
+//         }
         
-        // Only a has number - a comes first
-        if (aMatch && !bMatch) {
-            return -1;
-        }
+//         // Only a has number - a comes first
+//         if (aMatch && !bMatch) {
+//             return -1;
+//         }
         
-        // Only b has number - b comes first
-        if (!aMatch && bMatch) {
-            return 1;
-        }
+//         // Only b has number - b comes first
+//         if (!aMatch && bMatch) {
+//             return 1;
+//         }
         
-        // Neither has number - alphabetical sort
-        return aName.localeCompare(bName);
-    });
-}
+//         // Neither has number - alphabetical sort
+//         return aName.localeCompare(bName);
+//     });
+// }
 
 //* handle resorting container after adding items
-function resortContainer(container) {
-    const items = [];
+// function resortContainer(container) {
+//     const items = [];
     
-    // Collect all items (excluding group-title)
-    Array.from(container.children).forEach(child => {
-        if (!child.classList.contains('group-title')) {
-            if (child.classList.contains('link-element')) {
-                const p = child.querySelector('p');
-                items.push({
-                    type: 'link',
-                    name: p.textContent,
-                    url: p.getAttribute('data-url') || '',
-                    notes: p.getAttribute('data-notes') || '',
-                    element: child
-                });
-            } else if (child.classList.contains('folder-element')) {
-                const folderNameP = child.querySelector('.folder-head p');
-                items.push({
-                    type: 'folder',
-                    name: folderNameP.textContent,
-                    notes: folderNameP.getAttribute('data-notes') || '',
-                    element: child
-                });
-            }
-        }
-    });
+//     // Collect all items (excluding group-title)
+//     Array.from(container.children).forEach(child => {
+//         if (!child.classList.contains('group-title')) {
+//             if (child.classList.contains('link-element')) {
+//                 const p = child.querySelector('p');
+//                 items.push({
+//                     type: 'link',
+//                     name: p.textContent,
+//                     url: p.getAttribute('data-url') || '',
+//                     notes: p.getAttribute('data-notes') || '',
+//                     element: child
+//                 });
+//             } else if (child.classList.contains('folder-element')) {
+//                 const folderNameP = child.querySelector('.folder-head p');
+//                 items.push({
+//                     type: 'folder',
+//                     name: folderNameP.textContent,
+//                     notes: folderNameP.getAttribute('data-notes') || '',
+//                     element: child
+//                 });
+//             }
+//         }
+//     });
     
-    // Sort items
-    const sortedItems = sortItems(items);
+//     // Sort items
+//     const sortedItems = sortItems(items);
     
-    // Remove all non-group-title elements
-    Array.from(container.children).forEach(child => {
-        if (!child.classList.contains('group-title')) {
-            child.remove();
-        }
-    });
+//     // Remove all non-group-title elements
+//     Array.from(container.children).forEach(child => {
+//         if (!child.classList.contains('group-title')) {
+//             child.remove();
+//         }
+//     });
     
-    // Re-append in sorted order
-    sortedItems.forEach(item => {
-        container.appendChild(item.element);
-    });
-}
+//     // Re-append in sorted order
+//     sortedItems.forEach(item => {
+//         container.appendChild(item.element);
+//     });
+// }
 
 //* handle bookmark element creating
 function createBookmarkElement(bookmark, container) {
@@ -348,8 +348,7 @@ function createFolderElement(folder, container) {
     
     const folderBody = folderElement.querySelector('.folder-body');
     if (folder.items && Array.isArray(folder.items)) {
-        const sortedItems = sortItems(folder.items);
-        sortedItems.forEach(item => {
+        folder.items.forEach(item => {
             if (item.type === 'link') {
                 createBookmarkElement(item, folderBody);
             } else if (item.type === 'folder') {
@@ -402,11 +401,11 @@ bookmarkForm.onsubmit = (e) => {
         paragraph.setAttribute('data-notes', notes);
         paragraph.onclick = () => window.location.href = url;
         // Re-sort after name change
-        resortContainer(currentContainer);
+        // resortContainer(currentContainer);
     } else {
     createBookmarkElement({ name, url, notes }, currentContainer);
         // Re-sort the container after adding
-        resortContainer(currentContainer);
+        // resortContainer(currentContainer);
     }
 
     bookmarkModal.style.display = "none";
@@ -424,11 +423,11 @@ folderForm.onsubmit = (e) => {
         folderNameP.textContent = name;
         folderNameP.setAttribute('data-notes', notes);
         // Re-sort after name change
-        resortContainer(currentFolderContainer);
+        // resortContainer(currentFolderContainer);
     } else {
         createFolderElement({ name, notes, items: [] }, currentFolderContainer);
         // Re-sort the container after adding
-        resortContainer(currentFolderContainer);
+        // resortContainer(currentFolderContainer);
     }
 
     folderModal.style.display = "none";
@@ -522,8 +521,7 @@ function setAllBookmarks(bookmarks) {
             });
 
             const items = Array.isArray(data) ? data : (data.items || []);
-            const sortedItems = sortItems(items);
-            sortedItems.forEach(item => {
+            items.forEach(item => {
                 if (item.type === 'link') {
                     createBookmarkElement(item, sectionElement);
                 } else if (item.type === 'folder') {
@@ -1073,22 +1071,23 @@ class ContextMenuManager {
     }
 
     init() {
-        // Hide context menu when clicking elsewhere
         document.addEventListener('click', (e) => {
             if (!this.contextMenu.contains(e.target)) {
                 this.hideContextMenu();
             }
         });
 
-        // Handle context menu item clicks
         this.contextMenu.addEventListener('click', (e) => {
             const item = e.target.closest('.context-menu-item');
             if (item) {
                 const action = item.dataset.action;
                 const target = item.dataset.target;
+                const direction = item.dataset.direction;
                 
                 if (action === 'move' && this.currentElement) {
                     this.moveElement(this.currentElement, target);
+                } else if (action === 'move-direction' && this.currentElement) {
+                    this.moveElementDirection(this.currentElement, direction);
                 }
                 
                 this.hideContextMenu();
@@ -1100,33 +1099,58 @@ class ContextMenuManager {
         e.preventDefault();
         this.currentElement = element;
         
-        // Get current column to disable it in menu
         const currentColumn = this.getCurrentColumn(element);
         
-        // Update menu items
         this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
             const target = item.dataset.target;
+            const direction = item.dataset.direction;
+            
             if (target === currentColumn) {
                 item.style.opacity = '0.5';
                 item.style.pointerEvents = 'none';
+            } else if (direction) {
+                // Enable/disable directional moves based on position
+                this.updateDirectionalItemState(item, element, direction);
             } else {
                 item.style.opacity = '1';
                 item.style.pointerEvents = 'auto';
             }
         });
 
-        // Position and show menu
         this.contextMenu.style.left = e.pageX + 'px';
         this.contextMenu.style.top = e.pageY + 'px';
         this.contextMenu.style.display = 'block';
         
-        // Adjust position if menu goes off screen
         const rect = this.contextMenu.getBoundingClientRect();
         if (rect.right > window.innerWidth) {
             this.contextMenu.style.left = (e.pageX - rect.width) + 'px';
         }
         if (rect.bottom > window.innerHeight) {
             this.contextMenu.style.top = (e.pageY - rect.height) + 'px';
+        }
+    }
+
+    updateDirectionalItemState(item, element, direction) {
+        const container = element.closest('.col1, .col2, .col3, .col4');
+        const siblings = Array.from(container.children).filter(child => 
+            !child.classList.contains('group-title') && 
+            (child.classList.contains('link-element') || child.classList.contains('folder-element'))
+        );
+        
+        const currentIndex = siblings.indexOf(element);
+        let canMove = true;
+        
+        if (direction === 'up' && currentIndex <= 0) canMove = false;
+        if (direction === 'down' && currentIndex >= siblings.length - 1) canMove = false;
+        if (direction === 'left' && container.classList.contains('col1')) canMove = false;
+        if (direction === 'right' && container.classList.contains('col4')) canMove = false;
+        
+        if (canMove) {
+            item.style.opacity = '1';
+            item.style.pointerEvents = 'auto';
+        } else {
+            item.style.opacity = '0.5';
+            item.style.pointerEvents = 'none';
         }
     }
 
@@ -1148,7 +1172,6 @@ class ContextMenuManager {
         const targetColumn = document.querySelector('.' + targetColumnClass);
         if (!targetColumn) return;
 
-        // Clone the element data
         let elementData;
         if (element.classList.contains('link-element')) {
             const p = element.querySelector('p');
@@ -1170,21 +1193,59 @@ class ContextMenuManager {
             };
         }
 
-        // Remove original element
         element.remove();
 
-        // Create new element in target column
         if (elementData.type === 'link') {
             createBookmarkElement(elementData, targetColumn);
         } else if (elementData.type === 'folder') {
             createFolderElement(elementData, targetColumn);
         }
 
-        // Resort both columns
-        resortContainer(targetColumn);
-
-        // Save changes
         saveBookmarks();
+    }
+
+    moveElementDirection(element, direction) {
+        const container = element.closest('.col1, .col2, .col3, .col4');
+        
+        if (direction === 'left' || direction === 'right') {
+            const columns = ['col1', 'col2', 'col3', 'col4'];
+            const currentColumnIndex = columns.findIndex(col => container.classList.contains(col));
+            let targetColumnIndex;
+            
+            if (direction === 'left') {
+                targetColumnIndex = currentColumnIndex - 1;
+            } else {
+                targetColumnIndex = currentColumnIndex + 1;
+            }
+            
+            if (targetColumnIndex >= 0 && targetColumnIndex < columns.length) {
+                this.moveElement(element, columns[targetColumnIndex]);
+            }
+        } else if (direction === 'up' || direction === 'down') {
+            const siblings = Array.from(container.children).filter(child => 
+                !child.classList.contains('group-title') && 
+                (child.classList.contains('link-element') || child.classList.contains('folder-element'))
+            );
+            
+            const currentIndex = siblings.indexOf(element);
+            let targetIndex;
+            
+            if (direction === 'up') {
+                targetIndex = currentIndex - 1;
+            } else {
+                targetIndex = currentIndex + 1;
+            }
+            
+            if (targetIndex >= 0 && targetIndex < siblings.length) {
+                const targetElement = siblings[targetIndex];
+                if (direction === 'up') {
+                    container.insertBefore(element, targetElement);
+                } else {
+                    container.insertBefore(element, targetElement.nextSibling);
+                }
+                saveBookmarks();
+            }
+        }
     }
 }
 
