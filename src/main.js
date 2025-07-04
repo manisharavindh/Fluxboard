@@ -190,82 +190,6 @@ function serializeSection(section) {
     return items;
 }
 
-// //* handle sorting items
-// function sortItems(items) {
-//     return items.sort((a, b) => {
-//         const aName = a.name || '';
-//         const bName = b.name || '';
-        
-//         // Extract [xx] pattern from names
-//         const aMatch = aName.match(/^\[(\d+)\]/);
-//         const bMatch = bName.match(/^\[(\d+)\]/);
-        
-//         // Both have numbers
-//         if (aMatch && bMatch) {
-//             const aNum = parseInt(aMatch[1]);
-//             const bNum = parseInt(bMatch[1]);
-//             return aNum - bNum;
-//         }
-        
-//         // Only a has number - a comes first
-//         if (aMatch && !bMatch) {
-//             return -1;
-//         }
-        
-//         // Only b has number - b comes first
-//         if (!aMatch && bMatch) {
-//             return 1;
-//         }
-        
-//         // Neither has number - alphabetical sort
-//         return aName.localeCompare(bName);
-//     });
-// }
-
-//* handle resorting container after adding items
-// function resortContainer(container) {
-//     const items = [];
-    
-//     // Collect all items (excluding group-title)
-//     Array.from(container.children).forEach(child => {
-//         if (!child.classList.contains('group-title')) {
-//             if (child.classList.contains('link-element')) {
-//                 const p = child.querySelector('p');
-//                 items.push({
-//                     type: 'link',
-//                     name: p.textContent,
-//                     url: p.getAttribute('data-url') || '',
-//                     notes: p.getAttribute('data-notes') || '',
-//                     element: child
-//                 });
-//             } else if (child.classList.contains('folder-element')) {
-//                 const folderNameP = child.querySelector('.folder-head p');
-//                 items.push({
-//                     type: 'folder',
-//                     name: folderNameP.textContent,
-//                     notes: folderNameP.getAttribute('data-notes') || '',
-//                     element: child
-//                 });
-//             }
-//         }
-//     });
-    
-//     // Sort items
-//     const sortedItems = sortItems(items);
-    
-//     // Remove all non-group-title elements
-//     Array.from(container.children).forEach(child => {
-//         if (!child.classList.contains('group-title')) {
-//             child.remove();
-//         }
-//     });
-    
-//     // Re-append in sorted order
-//     sortedItems.forEach(item => {
-//         container.appendChild(item.element);
-//     });
-// }
-
 //* handle bookmark element creating
 function createBookmarkElement(bookmark, container) {
     const linkElement = document.createElement('div');
@@ -400,12 +324,8 @@ bookmarkForm.onsubmit = (e) => {
         paragraph.setAttribute('data-url', url);
         paragraph.setAttribute('data-notes', notes);
         paragraph.onclick = () => window.location.href = url;
-        // Re-sort after name change
-        // resortContainer(currentContainer);
     } else {
-    createBookmarkElement({ name, url, notes }, currentContainer);
-        // Re-sort the container after adding
-        // resortContainer(currentContainer);
+        createBookmarkElement({ name, url, notes }, currentContainer);
     }
 
     bookmarkModal.style.display = "none";
@@ -422,12 +342,8 @@ folderForm.onsubmit = (e) => {
         const folderNameP = currentFolderElement.querySelector('p');
         folderNameP.textContent = name;
         folderNameP.setAttribute('data-notes', notes);
-        // Re-sort after name change
-        // resortContainer(currentFolderContainer);
     } else {
         createFolderElement({ name, notes, items: [] }, currentFolderContainer);
-        // Re-sort the container after adding
-        // resortContainer(currentFolderContainer);
     }
 
     folderModal.style.display = "none";
@@ -788,8 +704,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // const actionButtons = document.querySelectorAll('.data-buttons button');
-
     const exportBtn = document.getElementById('export-data');
     const importBtn = document.getElementById('import-data');
     const deleteBtn = document.getElementById('delete-all');
@@ -843,22 +757,9 @@ function loadSidebarState() {
     if (savedState !== null) {
         const isOpen = JSON.parse(savedState);
         if (isOpen) {
-            // Temporarily disable transitions
-            // sidebar.classList.add('no-transition');
-            // menu.classList.add('no-transition');
-            // home.classList.add('no-transition');
-            
-            // Apply active classes
             sidebar.classList.add('active');
             menu.classList.add('active');
             home.classList.add('active');
-            
-            // Re-enable transitions after a brief delay
-            // setTimeout(() => {
-            //     sidebar.classList.remove('no-transition');
-            //     menu.classList.remove('no-transition');
-            //     home.classList.remove('no-transition');
-            // }, 50);
         }
     }
 }
@@ -1196,9 +1097,13 @@ class ContextMenuManager {
         element.remove();
 
         if (elementData.type === 'link') {
-            createBookmarkElement(elementData, targetColumn);
+            const newElement = createBookmarkElement(elementData, targetColumn);
+            newElement.classList.add('moved-element'); 
+            setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
         } else if (elementData.type === 'folder') {
-            createFolderElement(elementData, targetColumn);
+            const newElement = createFolderElement(elementData, targetColumn);
+            newElement.classList.add('moved-element'); 
+            setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
         }
 
         saveBookmarks();
@@ -1243,6 +1148,8 @@ class ContextMenuManager {
                 } else {
                     container.insertBefore(element, targetElement.nextSibling);
                 }
+                element.classList.add('moved-element'); 
+                setTimeout(() => element.classList.remove('moved-element'), 1500); 
                 saveBookmarks();
             }
         }

@@ -228,6 +228,7 @@ body[data-bgmode="light"] .link-element img{
     width: 100%;
     height: auto;
     margin-bottom: 0.1rem;
+    padding-bottom: 0.1rem !important;
 }
 
 .folder-head{
@@ -1224,7 +1225,10 @@ body[data-bgmode="light"] .option-group select {
     }
 }
 
+/*  */
 /** Context Menu Styles */
+/*  */
+
 .context-menu {
     position: absolute;
     background: var(--bg-color);
@@ -1269,12 +1273,15 @@ body[data-bgmode="light"] .context-menu-item:hover {
     margin: 4px 0;
 }
 
-/* .context-menu-separator {
-    height: 1px;
-    background-color: #ccc;
-    margin: 5px 0;
-} */
+.link-element, .folder-element{
+    transition: box-shadow 0.25s ease-in-out;
+    border-radius: 0.25rem;
+}
 
-.border{
-    border: 1px solid red;
+.moved-element {
+    box-shadow: 0 0 0 1.5px var(--blue-dark);
+}
+
+body[data-bgmode="light"] .moved-element {
+    box-shadow: 0 0 0 2px var(--blue-light);
 }
