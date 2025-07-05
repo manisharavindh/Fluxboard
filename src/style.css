@@ -1269,8 +1269,11 @@ body[data-bgmode="light"] .context-menu-item:hover {
 
 .context-menu-separator {
     height: 1px;
-    background: var(--border-color);
-    margin: 4px 0;
+    width: 94%;
+    background: var(--color-dark);
+    margin: 4px;
+    opacity: 0.25;
+    border-radius: 50%;
 }
 
 .link-element, .folder-element{
