@@ -985,9 +985,7 @@ class ContextMenuManager {
                 const target = item.dataset.target;
                 const direction = item.dataset.direction;
                 
-                if (action === 'move' && this.currentElement) {
-                    this.moveElement(this.currentElement, target);
-                } else if (action === 'move-direction' && this.currentElement) {
+                if (action === 'move-direction' && this.currentElement) {
                     this.moveElementDirection(this.currentElement, direction);
                 } else if (action === 'new-tap' && this.currentElement) {
                     this.openInNewTab(this.currentElement);
@@ -1016,7 +1014,6 @@ class ContextMenuManager {
             const target = item.dataset.target;
             const direction = item.dataset.direction;
             
-            // Hide new-tab/new-window options for folders
             if ((action === 'new-tap' || action === 'new-window') && !isLinkElement) {
                 item.style.display = 'none';
                 return;
@@ -1025,7 +1022,6 @@ class ContextMenuManager {
             }
         });
 
-        // Hide/show the first separator based on whether link options are visible
         const firstSeparator = this.contextMenu.querySelector('.context-menu-separator');
         if (firstSeparator) {
             firstSeparator.style.display = isLinkElement ? 'block' : 'none';
@@ -1036,11 +1032,7 @@ class ContextMenuManager {
             const target = item.dataset.target;
             const direction = item.dataset.direction;
             
-            if (target === currentColumn) {
-                item.style.opacity = '0.5';
-                item.style.pointerEvents = 'none';
-            } else if (direction) {
-                // Enable/disable directional moves based on position
+            if (direction) {
                 this.updateDirectionalItemState(item, element, direction);
             } else {
                 item.style.opacity = '1';
@@ -1070,6 +1062,11 @@ class ContextMenuManager {
         
         const currentIndex = siblings.indexOf(element);
         let canMove = true;
+
+        if (['col1', 'col2', 'col3', 'col4'].includes(direction)) {
+            const currentColumn = this.getCurrentColumn(element);
+            if (currentColumn === direction) canMove = false;
+        }
         
         if (direction === 'up' && currentIndex <= 0) canMove = false;
         if (direction === 'down' && currentIndex >= siblings.length - 1) canMove = false;
@@ -1099,48 +1096,49 @@ class ContextMenuManager {
         return null;
     }
 
-    moveElement(element, targetColumnClass) {
-        const targetColumn = document.querySelector('.' + targetColumnClass);
-        if (!targetColumn) return;
-
-        let elementData;
-        if (element.classList.contains('link-element')) {
-            const p = element.querySelector('p');
-            elementData = {
-                type: 'link',
-                name: p.textContent,
-                url: p.getAttribute('data-url') || '',
-                notes: p.getAttribute('data-notes') || ''
-            };
-        } else if (element.classList.contains('folder-element')) {
-            const folderHead = element.querySelector('.folder-head');
-            const folderBody = element.querySelector('.folder-body');
-            const folderNameP = folderHead.querySelector('p');
-            elementData = {
-                type: 'folder',
-                name: folderNameP.textContent,
-                notes: folderNameP.getAttribute('data-notes') || '',
-                items: serializeSection(folderBody)
-            };
-        }
-
-        element.remove();
-
-        if (elementData.type === 'link') {
-            const newElement = createBookmarkElement(elementData, targetColumn);
-            newElement.classList.add('moved-element'); 
-            setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
-        } else if (elementData.type === 'folder') {
-            const newElement = createFolderElement(elementData, targetColumn);
-            newElement.classList.add('moved-element'); 
-            setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
-        }
-
-        saveBookmarks();
-    }
-
     moveElementDirection(element, direction) {
         const container = element.closest('.col1, .col2, .col3, .col4');
+
+        if (['col1', 'col2', 'col3', 'col4'].includes(direction)) {
+            const targetColumn = document.querySelector('.' + direction);
+            if (!targetColumn) return;
+
+            let elementData;
+            if (element.classList.contains('link-element')) {
+                const p = element.querySelector('p');
+                elementData = {
+                    type: 'link',
+                    name: p.textContent,
+                    url: p.getAttribute('data-url') || '',
+                    notes: p.getAttribute('data-notes') || ''
+                };
+            } else if (element.classList.contains('folder-element')) {
+                const folderHead = element.querySelector('.folder-head');
+                const folderBody = element.querySelector('.folder-body');
+                const folderNameP = folderHead.querySelector('p');
+                elementData = {
+                    type: 'folder',
+                    name: folderNameP.textContent,
+                    notes: folderNameP.getAttribute('data-notes') || '',
+                    items: serializeSection(folderBody)
+                };
+            }
+
+            element.remove();
+
+            if (elementData.type === 'link') {
+                const newElement = createBookmarkElement(elementData, targetColumn);
+                newElement.classList.add('moved-element'); 
+                setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
+            } else if (elementData.type === 'folder') {
+                const newElement = createFolderElement(elementData, targetColumn);
+                newElement.classList.add('moved-element'); 
+                setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
+            }
+
+            saveBookmarks();
+            return;
+        }
         
         if (direction === 'left' || direction === 'right') {
             const columns = ['col1', 'col2', 'col3', 'col4'];
@@ -1154,7 +1152,7 @@ class ContextMenuManager {
             }
             
             if (targetColumnIndex >= 0 && targetColumnIndex < columns.length) {
-                this.moveElement(element, columns[targetColumnIndex]);
+                this.moveElementDirection(element, columns[targetColumnIndex]);
             }
         } else if (direction === 'up' || direction === 'down') {
             const siblings = Array.from(container.children).filter(child => 
@@ -1242,7 +1240,6 @@ class ContextMenuManager {
     }
 }
 
-// Initialize context menu manager
 let contextMenuManager;
 
 //* clock functionality
