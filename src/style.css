@@ -802,7 +802,7 @@ body[data-bgmode="light"] .menu:hover{
 
 .menu .menu-img{
     transform: scale(0.8);
-    background-image: url("/img/menu.png");
+    background-image: url("img/menu.png");
     background-size: cover;
     background-position: center;
     width: 1rem;
@@ -961,6 +961,17 @@ body[data-bgmode="light"] .action-btn {
 
 body[data-bgmode="light"] .action-btn-danger {
     background-color: var(--red-light) !important;
+}
+
+.version{
+    text-align: center;
+    color: var(--color-dark);
+    opacity: 0.5;
+    font-size: 0.5rem;
+}
+
+body[data-bgmode="light"] .version{
+    color: var(--color-light);
 }
 
 /*  */

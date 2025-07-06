@@ -197,9 +197,9 @@ function createBookmarkElement(bookmark, container) {
 
     const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
-        <img src="/img/link.png" alt="link" class="link-icon">
+        <img src="img/link.png" alt="link" class="link-icon">
         <p data-url="${normalizedUrl}" data-notes="${bookmark.notes || ''}">${bookmark.name}</p>
-        <img src="/img/menu.png" alt="edit" class="edit-icon">
+        <img src="img/menu.png" alt="edit" class="edit-icon">
     `;
     
     const editIcon = linkElement.querySelector('.edit-icon');
@@ -224,12 +224,12 @@ function createFolderElement(folder, container) {
     folderElement.className = 'folder-element';
     folderElement.innerHTML = `
         <div class="folder-head">
-            <img src="/img/closed.png" alt="folder" class="folder-closed-icon">
-            <img src="/img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
+            <img src="img/closed.png" alt="folder" class="folder-closed-icon">
+            <img src="img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
             <p data-notes="${folder.notes || ''}">${folder.name}</p>
-            <img src="/img/new_link.png" alt="add new link" class="edit-icon add-link-icon">
-            <img src="/img/new_folder.png" alt="add new folder" class="edit-icon add-folder-icon">
-            <img src="/img/menu.png" alt="edit" class="edit-icon folder-menu-icon">
+            <img src="img/new_link.png" alt="add new link" class="edit-icon add-link-icon">
+            <img src="img/new_folder.png" alt="add new folder" class="edit-icon add-folder-icon">
+            <img src="img/menu.png" alt="edit" class="edit-icon folder-menu-icon">
         </div>
         <div class="folder-body" style="display: none;">
         </div>
