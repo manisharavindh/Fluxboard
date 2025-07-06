@@ -989,6 +989,14 @@ class ContextMenuManager {
                     this.moveElement(this.currentElement, target);
                 } else if (action === 'move-direction' && this.currentElement) {
                     this.moveElementDirection(this.currentElement, direction);
+                } else if (action === 'new-tap' && this.currentElement) {
+                    this.openInNewTab(this.currentElement);
+                } else if (action === 'new-window' && this.currentElement) {
+                    this.openInNewWindow(this.currentElement);
+                } else if (action === 'edit' && this.currentElement) {
+                    this.editElement(this.currentElement);
+                } else if (action === 'delete' && this.currentElement) {
+                    this.deleteElement(this.currentElement);
                 }
                 
                 this.hideContextMenu();
@@ -1001,8 +1009,30 @@ class ContextMenuManager {
         this.currentElement = element;
         
         const currentColumn = this.getCurrentColumn(element);
+        const isLinkElement = element.classList.contains('link-element');
         
         this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+            const action = item.dataset.action;
+            const target = item.dataset.target;
+            const direction = item.dataset.direction;
+            
+            // Hide new-tab/new-window options for folders
+            if ((action === 'new-tap' || action === 'new-window') && !isLinkElement) {
+                item.style.display = 'none';
+                return;
+            } else if (action === 'new-tap' || action === 'new-window') {
+                item.style.display = 'block';
+            }
+        });
+
+        // Hide/show the first separator based on whether link options are visible
+        const firstSeparator = this.contextMenu.querySelector('.context-menu-separator');
+        if (firstSeparator) {
+            firstSeparator.style.display = isLinkElement ? 'block' : 'none';
+        }
+
+        this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+            const action = item.dataset.action;
             const target = item.dataset.target;
             const direction = item.dataset.direction;
             
@@ -1152,6 +1182,62 @@ class ContextMenuManager {
                 setTimeout(() => element.classList.remove('moved-element'), 1500); 
                 saveBookmarks();
             }
+        }
+    }
+    openInNewTab(element) {
+    if (element.classList.contains('link-element')) {
+            const p = element.querySelector('p');
+            const url = p.getAttribute('data-url');
+            if (url) {
+                window.open(url, '_blank');
+            }
+        }
+    }
+
+    openInNewWindow(element) {
+        if (element.classList.contains('link-element')) {
+            const p = element.querySelector('p');
+            const url = p.getAttribute('data-url');
+            if (url) {
+                const newWindow = window.open('', '_blank', 'width=1200,height=800,left=200,top=200,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes,status=yes');
+                if (newWindow) {
+                    newWindow.location.href = url;
+                } else {
+                    window.open(url, '_blank');
+                }
+            }
+        }
+    }
+
+    editElement(element) {
+        if (element.classList.contains('link-element')) {
+            const editIcon = element.querySelector('.edit-icon');
+            if (editIcon) {
+                editLink(editIcon);
+            }
+        } else if (element.classList.contains('folder-element')) {
+            const menuIcon = element.querySelector('.folder-menu-icon');
+            if (menuIcon) {
+                editFolder(menuIcon);
+            }
+        }
+    }
+
+    deleteElement(element) {
+        if (element.classList.contains('link-element')) {
+            if (confirm('Are you sure you want to delete this bookmark?')) {
+                element.remove();
+                saveBookmarks();
+            }
+        } else if (element.classList.contains('folder-element')) {
+            const folderBody = element.querySelector('.folder-body');
+            if (folderBody && folderBody.children.length > 0) {
+                if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
+                    return;
+                }
+            }
+            element.remove();
+            saveBookmarks();
         }
     }
 }
