@@ -73,6 +73,8 @@ body[data-bgmode="light"] {
     transform-origin: left top;
     flex-shrink: 0;
     will-change: transform, width;
+    /* border-left: 0.25rem solid var(--secondary-dark); */
+    /* border-bottom: 0.25rem solid var(--secondary-dark); */
 }
 
 .logo{
@@ -716,15 +718,15 @@ body[data-bgmode="light"] .history-item {
     flex-direction: column;
     will-change: transform;
     border-left: 0.25rem solid var(--secondary-dark);
-    border-right: 0.25rem solid var(--secondary-dark);
+    border-top: 0.25rem solid var(--secondary-dark);
+    background-color: var(--secondary-dark);
     padding-bottom: 1.5rem;
-    background-color: var(--primary-dark);
 }
 
 body[data-bgmode="light"] .sidebar{
     border-left: 0.25rem solid var(--secondary-light);
-    border-right: 0.25rem solid var(--secondary-light);
-    background-color: var(--primary-light);
+    border-top: 0.25rem solid var(--secondary-light);
+    background-color: var(--secondary-light);
 }
 
 .sidebar.active{
@@ -839,22 +841,27 @@ body[data-bgmode="light"] .menu .menu-img{
     height: 35%;
     width: 100%;
     border-bottom: 0.25rem solid var(--secondary-dark);
+    background-color: var(--primary-dark);
     padding: 0.5rem;
+    border-top-left-radius: 0.4rem;
 }
 
 body[data-bgmode="light"] .todo{
     border-bottom: 0.25rem solid var(--secondary-light);
+    background-color: var(--primary-light);
 }
 
 .notes{
     height: 40%;
     width: 100%;
     border-bottom: 0.25rem solid var(--secondary-dark);
+    background-color: var(--primary-dark);
     padding: 0.5rem;
 }
 
 body[data-bgmode="light"] .notes{
     border-bottom: 0.25rem solid var(--secondary-light);
+    background-color: var(--primary-light);
 }
 
 .notes p {
@@ -880,6 +887,8 @@ body[data-bgmode="light"] .notes p img{
     width: 100%;
     padding: 0.5rem;
     overflow-y: auto;
+    background-color: var(--primary-dark);
+    border-bottom-left-radius: 0.4rem;
 }
 
 .more p {
@@ -894,6 +903,10 @@ body[data-bgmode="light"] .notes p img{
 .more p img{
     height: 16px;
     width: 16px;
+}
+
+body[data-bgmode="light"] .more{
+    background-color: var(--primary-light);
 }
 
 body[data-bgmode="light"] .more p img{
@@ -1244,10 +1257,10 @@ body[data-bgmode="light"] .option-group select {
     position: absolute;
     background: var(--bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 0.4rem;
     box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    min-width: 150px;
+    min-width: 180px;
     padding: 5px 4px;
     display: none;
     background-color: var(--secondary-dark);
@@ -1263,7 +1276,7 @@ body[data-bgmode="light"] .context-menu {
     cursor: pointer;
     color: var(--text-color);
     font-size: small;
-    border-radius: 6px;
+    border-radius: .3rem;
 }
 
 .context-menu-item p{
@@ -1278,13 +1291,13 @@ body[data-bgmode="light"] .context-menu-item:hover {
     background: var(--tertiary-light);
 }
 
-.context-menu-separator {
-    height: 1px;
-    width: 94%;
-    background: var(--color-dark);
-    margin: 4px;
+hr{
+    height: 1.5px;
+    width: 95%;
+    border-color: var(--quaternary-dark);
+    margin: 4px 2.5%;
     opacity: 0.25;
-    border-radius: 50%;
+    border-radius: 1rem;
 }
 
 .link-element, .folder-element{
