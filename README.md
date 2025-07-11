@@ -9,19 +9,26 @@ Fluxboard is a minimal and fast new tab replacement extension for Firefox. It of
 - Light/Dark mode toggle
 - Import/Export and reset data
 
-## Temporary Installation
+## Installation
+1. Visit the [FluxBoard Firefox Add-on page](https://addons.mozilla.org/en-US/firefox/addon/fluxboard/)
+2. Click "Add to Firefox" and Confirm the installation
+3. After the installation search `about:preferences#home`
+4. Under "Homepage and new windows", select "Custom URLs"
+5. Now select "Use Current Page"
+6. The extension should now run as expected.
+
+## Temporary Installation (Development)
 1. **Clone the repository:**
 ```bash
     git clone https://github.com/manisharavindh/Fluxboard.git
    ```
-2. Open Firefox and search `about:debugging#/runtime/this-firefox`.
+2. Open Firefox and search `about:debugging#/runtime/this-firefox`
 3. Click "Load Temporary Add-on…"
-4. Select `manifest.json` file from the project folder.
+4. Select `manifest.json` file from the project folder
 5. The extension should now appear in your toolbar and run as expected.
 
 ## Notes
-- This is a temporary installation method for testing. The extension will be removed when Firefox restarts.
-- Fluxboard will soon be available on Firefox Add-ons for installation.
+- While installing, select "Use Current Page" with an extra new tap open so that firefox can pick the url.
 
 <!-- ## 📸 Preview
 ![Fluxboard Screenshot](./preview.png) -->
