@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Fluxboard",
-  "version": "1.1",
+  "version": "1.2",
   "description": "A personalized new tab page with bookmarks, todos, and quick notes",
   
   "chrome_url_overrides": {
