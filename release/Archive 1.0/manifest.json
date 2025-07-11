@@ -1,26 +1,18 @@
 {
   "manifest_version": 2,
   "name": "Fluxboard",
-  "version": "1.1",
+  "version": "1.0",
   "description": "A personalized new tab page with bookmarks, todos, and quick notes",
-  
+
   "chrome_url_overrides": {
     "newtab": "src/index.html"
   },
-  
-  "browser_action": {
-    "default_title": "Fluxboard",
-    "default_icon": "icons/icon-16.png"
-  },
-  
+
   "permissions": [
     "tabs",
-    "storage",
-    "bookmarks",
-    "activeTab",
-    "contextMenus"
+    "storage"
   ],
-  
+
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
