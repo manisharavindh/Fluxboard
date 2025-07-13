@@ -1,6 +1,6 @@
 :root {
     /* dark */
-    --primary-dark: #1c1b22;
+    --page-background: #1c1b22;
     --secondary-dark: #2b2a33;
     --tertiary-dark: #42414d;
     --quaternary-dark: #605F66;
@@ -25,7 +25,14 @@
     --red-light: #fa3c3c;
 
     /*  */
-
+    --page-background: #1c1b22;
+    --section-background: #2b2a33;
+    --tab-background: #42414d;
+    --input-background: #1c1b22;
+    --page-text: #ffffff;
+    --input-text: #ffffff;
+    --accent-color: #0061e0;
+    --button-text: #ffffff;
 }
 
 *{
@@ -45,8 +52,8 @@ body{
 
 body[data-bgmode="dark"] .wrapper,
 body[data-bgmode="dark"] {
-    color: var(--color-dark);
-    background: var(--primary-dark);
+    color: var(--page-text);
+    background: var(--page-background);
 }
 
 body[data-bgmode="light"] .wrapper,
@@ -73,8 +80,6 @@ body[data-bgmode="light"] {
     transform-origin: left top;
     flex-shrink: 0;
     will-change: transform, width;
-    /* border-left: 0.25rem solid var(--secondary-dark); */
-    /* border-bottom: 0.25rem solid var(--secondary-dark); */
 }
 
 .logo{
@@ -119,7 +124,7 @@ body[data-bgmode="light"] .logo-icon{
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     border-radius: 0.25rem;
     position: relative;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
@@ -168,7 +173,7 @@ body[data-bgmode="light"] .search-box {
 }
 
 .link-element:hover{
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .link-element:hover {
@@ -243,7 +248,7 @@ body[data-bgmode="light"] .link-element img{
 }
 
 .folder-head:hover{
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .folder-head:hover {
@@ -340,7 +345,7 @@ body[data-bgmode="light"] .folder-head img{
     justify-content: space-between;
     padding: 0.25rem 0.5rem; 
     margin-bottom: 0.5rem;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     border-radius: 0.25rem;
     cursor: pointer;
 }
@@ -383,7 +388,7 @@ body[data-bgmode="light"] .new-link div{
 }
 
 .new-link div:hover{
-    background-color: var(--tertiary-dark);
+    background-color: var(--tab-background);
     opacity: 0.8;
 }
 
@@ -431,7 +436,7 @@ body[data-bgmode="light"] .modal {
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--tertiary-dark);
+    border-bottom: 1px solid var(--tab-background);
 }
 
 body[data-bgmode="light"] .modal-header {
@@ -439,7 +444,7 @@ body[data-bgmode="light"] .modal-header {
 }
 
 .modal-content {
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     margin: 3% auto;
     border-radius: 8px;
@@ -452,7 +457,7 @@ body[data-bgmode="light"] .modal-content {
 }
 
 .close {
-    color: var(--color-dark);
+    color: var(--page-text);
     font-size: 28px;
     cursor: pointer;
     margin-top: -0.25rem;
@@ -475,9 +480,9 @@ body[data-bgmode="light"] .close {
 #folderForm input,
 .folderForm input {
     padding: 8px;
-    border: 1px solid var(--tertiary-dark);
+    border: 1px solid var(--tab-background);
     border-radius: 4px;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     outline: none;
 }
@@ -493,8 +498,8 @@ body[data-bgmode="light"] .folderForm input {
 #folderForm button,
 .folderForm button {
     padding: 8px 16px;
-    background-color: var(--blue-dark);
-    color: var(--primary-dark);
+    background-color: var(--accent-color);
+    color: var(--page-text);
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -504,8 +509,8 @@ body[data-bgmode="light"] .folderForm input {
 body[data-bgmode="light"] #bookmarkForm button,
 body[data-bgmode="light"] #folderForm button,
 body[data-bgmode="light"] .folderForm button {
-    background-color: var(--blue-light);
-    color: var(--secondary-light);
+    background-color: var(--accent-color);
+    color: var(--page-text);
 }
 
 #bookmarkForm button:hover,
@@ -521,9 +526,9 @@ body[data-bgmode="light"] .folderForm button {
     font-family: inherit;
     font-size: 0.9rem;
     resize: vertical;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
-    border: 1px solid var(--tertiary-dark);
+    border: 1px solid var(--tab-background);
     border-radius: 4px;
     padding: 8px;
     outline: none;
@@ -584,7 +589,7 @@ body[data-bgmode="light"] .history-modal {
 
 .history-modal-content {
     position: relative;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     margin: 3% auto;
     border-radius: 8px;
@@ -612,7 +617,7 @@ body[data-bgmode="light"] .history-modal-content {
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--tertiary-dark);
+    border-bottom: 1px solid var(--tab-background);
 }
 
 body[data-bgmode="light"] .history-modal-header {
@@ -631,7 +636,7 @@ body[data-bgmode="light"] .history-modal-header .close {
 }
 
 #historyList{
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     margin: 5% auto;
     border-radius: 8px;
@@ -673,7 +678,7 @@ body[data-bgmode="light"] .clear-history-btn {
 .history-item {
     padding: 0.5rem;
     margin-bottom: 0.5rem;
-    background-color: var(--tertiary-dark);
+    background-color: var(--tab-background);
     border-radius: 0.25rem;
     font-size: 0.8rem;
 }
@@ -717,9 +722,9 @@ body[data-bgmode="light"] .history-item {
     justify-content: center;
     flex-direction: column;
     will-change: transform;
-    border-left: 0.25rem solid var(--secondary-dark);
-    border-top: 0.25rem solid var(--secondary-dark);
-    background-color: var(--secondary-dark);
+    border-left: 0.25rem solid var(--section-background);
+    border-top: 0.25rem solid var(--section-background);
+    background-color: var(--section-background);
     padding-bottom: 1.5rem;
 }
 
@@ -782,7 +787,7 @@ body[data-bgmode="light"] .sidebar{
     border-radius: 0.25rem;
     padding: 0.25rem;
     cursor: pointer;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .menu{
@@ -791,7 +796,7 @@ body[data-bgmode="light"] .menu{
 }
 
 .menu:hover{
-    background-color: var(--tertiary-dark);
+    background-color: var(--tab-background);
 }
 
 body[data-bgmode="light"] .menu:hover{
@@ -840,8 +845,8 @@ body[data-bgmode="light"] .menu .menu-img{
 .todo{
     height: 35%;
     width: 100%;
-    border-bottom: 0.25rem solid var(--secondary-dark);
-    background-color: var(--primary-dark);
+    border-bottom: 0.25rem solid var(--section-background);
+    background-color: var(--page-background);
     padding: 0.5rem;
     border-top-left-radius: 0.4rem;
 }
@@ -854,8 +859,8 @@ body[data-bgmode="light"] .todo{
 .notes{
     height: 40%;
     width: 100%;
-    border-bottom: 0.25rem solid var(--secondary-dark);
-    background-color: var(--primary-dark);
+    border-bottom: 0.25rem solid var(--section-background);
+    background-color: var(--page-background);
     padding: 0.5rem;
 }
 
@@ -887,7 +892,7 @@ body[data-bgmode="light"] .notes p img{
     width: 100%;
     padding: 0.5rem;
     overflow-y: auto;
-    background-color: var(--primary-dark);
+    background-color: var(--page-background);
     border-bottom-left-radius: 0.4rem;
 }
 
@@ -942,7 +947,7 @@ body[data-bgmode="light"] .more p img{
 
 .action-btn {
     width: 95%;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     border: 0;
     cursor: pointer;
@@ -1042,7 +1047,7 @@ body[data-bgmode="light"] .history-btn img{
 }
 
 .history-btn:hover {
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .history-btn:hover {
@@ -1069,7 +1074,7 @@ body[data-bgmode="light"] .todo-input {
     padding: 0.25rem 0.4rem;
     border-radius: 0.25rem;
     color: inherit;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .todo-input input {
@@ -1079,10 +1084,10 @@ body[data-bgmode="light"] .todo-input input {
 .todo-input .todo-add-btn{
     height: 24px;
     width: 24px;
-    border: 0.25rem solid var(--secondary-dark);
+    border: 0.25rem solid var(--section-background);
     border-radius: 0.25rem;
     cursor: pointer;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .todo-input .todo-add-btn{
@@ -1120,7 +1125,7 @@ body[data-bgmode="light"] .todo-input .todo-add-btn img{
     gap: 0.5rem;
     padding: 0.25rem;
     margin-bottom: 0.25rem;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     border-radius: 0.25rem;
     font-size: 0.8rem;
 }
@@ -1192,7 +1197,7 @@ body[data-bgmode="light"] .todo-item button {
 }
 
 .clock-container:hover{
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
 }
 
 body[data-bgmode="light"] .clock-container:hover{
@@ -1223,9 +1228,9 @@ body[data-bgmode="light"] .clock-container:hover{
 
 .option-group input, .option-group select {
     padding: 8px;
-    border: 1px solid var(--tertiary-dark);
+    border: 1px solid var(--tab-background);
     border-radius: 4px;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     color: inherit;
     outline: none;
     width: 100%;
@@ -1263,7 +1268,7 @@ body[data-bgmode="light"] .option-group select {
     min-width: 180px;
     padding: 5px 4px;
     display: none;
-    background-color: var(--secondary-dark);
+    background-color: var(--section-background);
     overflow: hidden;
 }
 
@@ -1284,7 +1289,7 @@ body[data-bgmode="light"] .context-menu {
 }
 
 .context-menu-item:hover {
-    background: var(--tertiary-dark);
+    background: var(--tab-background);
 }
 
 body[data-bgmode="light"] .context-menu-item:hover {
@@ -1294,9 +1299,9 @@ body[data-bgmode="light"] .context-menu-item:hover {
 hr{
     height: 1.5px;
     width: 95%;
-    border-color: var(--quaternary-dark);
+    border-color: var(--tab-background);
     margin: 4px 2.5%;
-    opacity: 0.25;
+    opacity: 0.5;
     border-radius: 1rem;
 }
 
@@ -1306,7 +1311,7 @@ hr{
 }
 
 .moved-element {
-    box-shadow: 0 0 0 1.5px var(--blue-dark);
+    box-shadow: 0 0 0 1.5px var(--accent-color);
 }
 
 body[data-bgmode="light"] .moved-element {

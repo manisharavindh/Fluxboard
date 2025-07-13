@@ -1,3 +1,64 @@
+//* handle page colors
+const defaultThemeValues = {
+    frame: "#1c1b22",
+    toolbar: "#2b2a33",
+    text: "#fbfbfe",
+    tab_background: "#2b2a33",
+    tab_text: "#fbfbfe",
+    toolbar_field: "#1c1b22",
+    toolbar_field_text: "#fbfbfe",
+    bookmark_text: "#fbfbfe",
+    accent: "#0061e0",
+    popup_text: "#fbfbfe",
+    popup_background: "#2b2a33",
+    sidebar: "#2b2a33"
+};
+function updatePageStyle(colors) {
+    document.documentElement.style.setProperty('--page-background', colors.frame);
+    document.documentElement.style.setProperty('--page-text', colors.text);
+    document.documentElement.style.setProperty('--section-background', colors.toolbar);
+    document.documentElement.style.setProperty('--input-background', colors.toolbar_field);
+    document.documentElement.style.setProperty('--input-text', colors.toolbar_field_text);
+    document.documentElement.style.setProperty('--accent-color', colors.accent);
+    document.documentElement.style.setProperty('--button-text', colors.text);
+    document.documentElement.style.setProperty('--tab-background', colors.tab_background);
+}
+
+async function initializeFromBrowser() {
+    try {
+        const theme = await browser.theme.getCurrent();
+        if (theme && theme.colors) {
+            const colors = {
+                frame: theme.colors.frame || defaultThemeValues.frame,
+                toolbar: theme.colors.toolbar || defaultThemeValues.toolbar,
+                text: theme.colors.toolbar_text || defaultThemeValues.text,
+                tab_background: theme.colors.tab_selected || defaultThemeValues.tab_background,
+                tab_text: theme.colors.tab_text || defaultThemeValues.tab_text,
+                toolbar_field: theme.colors.toolbar_field || defaultThemeValues.toolbar_field,
+                toolbar_field_text: theme.colors.toolbar_field_text || defaultThemeValues.toolbar_field_text,
+                bookmark_text: theme.colors.bookmark_text || defaultThemeValues.bookmark_text,
+                accent: theme.colors.button_background_hover || defaultThemeValues.accent,
+                popup_text: theme.colors.popup_text || defaultThemeValues.popup_text,
+                popup_background: theme.colors.popup_background || defaultThemeValues.popup_background,
+                sidebar: theme.colors.sidebar || defaultThemeValues.sidebar
+            };
+            updatePageStyle(colors);
+        }
+    } catch (error) {
+        console.log('Using default theme values');
+        updatePageStyle(defaultThemeValues);
+    }
+}
+
+function initTheme() {
+    initializeFromBrowser();
+    if (typeof browser !== 'undefined' && browser.theme && browser.theme.onUpdated) {
+        browser.theme.onUpdated.addListener((updateInfo) => {
+            initializeFromBrowser();
+        });
+    }
+}
+
 //* handle folder visibility
 function folder_toggle(element) {
     const folderBody = element.parentElement.querySelector('.folder-body');
@@ -674,6 +735,7 @@ document.addEventListener('DOMContentLoaded', loadGroupTitles);
 
 //* handle loading bookmarks from local
 document.addEventListener('DOMContentLoaded', function() {
+    initTheme();
     loadSidebarState();
     const importInput = document.getElementById('importInput');
     importInput.addEventListener('change', handleImport);
@@ -913,12 +975,23 @@ class TodoManager {
         sortedTodos.forEach(todo => {
             const todoItem = document.createElement('div');
             todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-            todoItem.innerHTML = `
-                <input type="checkbox" ${todo.completed ? 'checked' : ''} 
-                       onchange="todoManager.toggleTodo(${todo.id})">
-                <span>${todo.text}</span>
-                <button onclick="todoManager.deleteTodo(${todo.id})">✕</button>
-            `;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = todo.completed;
+            checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
+            
+            const span = document.createElement('span');
+            span.textContent = todo.text;
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '✕';
+            deleteButton.addEventListener('click', () => this.deleteTodo(todo.id));
+            
+            todoItem.appendChild(checkbox);
+            todoItem.appendChild(span);
+            todoItem.appendChild(deleteButton);
+            
             todoList.appendChild(todoItem);
         });
     }
