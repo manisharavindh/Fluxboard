@@ -1474,3 +1474,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-theme');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
 });
+
+//* quick notes text area
+
+const textarea = document.getElementById('notes-textarea');
+
+textarea.value = localStorage.getItem('textareaContent') || '';
+textarea.addEventListener('input', function() {
+    localStorage.setItem('textareaContent', this.value);
+});
