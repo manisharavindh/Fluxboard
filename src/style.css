@@ -1,38 +1,15 @@
 :root {
-    /* dark */
-    --page-background: #1c1b22;
-    --secondary-dark: #2b2a33;
-    --tertiary-dark: #42414d;
-    --quaternary-dark: #605F66;
-    --quinary-dark: #605F66;
-
-    --primary-dark-layer: #1c1b22;
-
-    --color-dark: #FBFBFE;
-
-    --blue-dark: #0DF;
-    --red-dark: #F95657;
-
-    /* light */
-    --primary-light: #F9F9FB;
-    --secondary-light: #FFF;
-    --tertiary-light: #ECECEE;
-
-    
-    --color-light: #100f13;
-
-    --blue-light: #0161E0;
-    --red-light: #fa3c3c;
-
-    /*  */
     --page-background: #1c1b22;
     --section-background: #2b2a33;
     --tab-background: #42414d;
     --input-background: #1c1b22;
     --page-text: #ffffff;
     --input-text: #ffffff;
-    --accent-color: #0061e0;
     --button-text: #ffffff;
+    --accent-color: #0061e0;
+    --destructive-color: #ff5252;
+    --destructive-hover-color: #ff6b6b;
+    --inner-text: #ffffff;
 }
 
 *{
@@ -47,19 +24,7 @@ body{
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    background: var(--primary-dark-layer);
-}
-
-body[data-bgmode="dark"] .wrapper,
-body[data-bgmode="dark"] {
-    color: var(--page-text);
-    background: var(--page-background);
-}
-
-body[data-bgmode="light"] .wrapper,
-body[data-bgmode="light"] {
-    color: var(--color-light);
-    background: var(--primary-light);
+    background: red;
 }
 
 .wrapper {
@@ -69,6 +34,8 @@ body[data-bgmode="light"] {
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
+    color: var(--page-text);
+    background: var(--page-background);
 }
 
 .home{
@@ -126,10 +93,6 @@ body[data-bgmode="light"] {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-body[data-bgmode="light"] .search-box {
-    background-color: var(--secondary-light);
-}
-
 .search-box .icon{
     display: grid;
     place-items: center;
@@ -147,7 +110,7 @@ body[data-bgmode="light"] .search-box {
     width: 100%;
     height: 100%;
     background-color: transparent;
-    color: inherit;
+    color: var(--page-text);
     border: none;
     outline: none;
     padding-right: 1rem;
@@ -172,11 +135,6 @@ body[data-bgmode="light"] .search-box {
     background-color: var(--section-background);
 }
 
-body[data-bgmode="light"] .link-element:hover {
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
-}
-
 .link-element .link-icon{
     display: grid;
     place-items: center;
@@ -189,10 +147,6 @@ body[data-bgmode="light"] .link-element:hover {
     width: 16px;
     height: 16px;
     transform: scale(0.9);
-}
-
-body[data-bgmode="light"] .link-element img{
-    filter: invert(1);
 }
 
 .link-element p{
@@ -247,11 +201,6 @@ body[data-bgmode="light"] .link-element img{
     background-color: var(--section-background);
 }
 
-body[data-bgmode="light"] .folder-head:hover {
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
-}
-
 .folder-head svg{
     width: 16px;
     height: 16px;
@@ -261,10 +210,6 @@ body[data-bgmode="light"] .folder-head:hover {
     place-items: center;
     aspect-ratio: 1;
     margin: 0 0.2rem 0 0.08rem;
-}
-
-body[data-bgmode="light"] .folder-head img{
-    filter: invert(1);
 }
 
 .folder-head p{
@@ -332,7 +277,6 @@ body[data-bgmode="light"] .folder-head img{
 .bookmarks .column {
     width: 100%;
     height: 100%;
-    /* min-height: 250px; */
 }
 
 .group-title {
@@ -346,21 +290,12 @@ body[data-bgmode="light"] .folder-head img{
     cursor: pointer;
 }
 
-body[data-bgmode="light"] .group-title {
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
-}
-
 .group-title h5 {
     width: 75%;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     opacity: 0.8;
-}
-
-body[data-bgmode="light"] .group-title h5 {
-    opacity: 0.9;
 }
 
 .new-link {
@@ -379,27 +314,15 @@ body[data-bgmode="light"] .group-title h5 {
     border-radius: 0.25rem;
 }
 
-body[data-bgmode="light"] .new-link div{
-    opacity: 1;
-}
-
 .new-link div:hover{
     background-color: var(--tab-background);
     opacity: 0.8;
-}
-
-body[data-bgmode="light"] .new-link div:hover{
-    background-color: var(--primary-light);
 }
 
 .new-link div svg{
     width: 20px;
     height: 20px;
     transform: scale(0.7);
-}
-
-body[data-bgmode="light"] .new-link div svg{
-    filter: invert(1);
 }
 
 @media screen and (max-width: 800px){
@@ -423,10 +346,6 @@ body[data-bgmode="light"] .new-link div svg{
     background-color: rgba(18, 17, 22, 0.5);
 }
 
-body[data-bgmode="light"] .modal {
-    background-color: rgba(234, 234, 236, 0.5);
-}
-
 .modal-header {
     display: flex;
     align-items: center;
@@ -435,21 +354,13 @@ body[data-bgmode="light"] .modal {
     border-bottom: 1px solid var(--tab-background);
 }
 
-body[data-bgmode="light"] .modal-header {
-    border-bottom: 1px solid var(--tertiary-light);
-}
-
 .modal-content {
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     margin: 3% auto;
     border-radius: 8px;
     width: 80%;
     max-width: 600px;
-}
-
-body[data-bgmode="light"] .modal-content {
-    background-color: var(--secondary-light);
 }
 
 .close {
@@ -457,10 +368,6 @@ body[data-bgmode="light"] .modal-content {
     font-size: 28px;
     cursor: pointer;
     margin-top: -0.25rem;
-}
-
-body[data-bgmode="light"] .close {
-    color: var(--color-light);
 }
 
 #bookmarkForm,
@@ -479,15 +386,8 @@ body[data-bgmode="light"] .close {
     border: 1px solid var(--tab-background);
     border-radius: 4px;
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     outline: none;
-}
-
-body[data-bgmode="light"] #bookmarkForm input,
-body[data-bgmode="light"] #folderForm input,
-body[data-bgmode="light"] .folderForm input {
-    background-color: var(--secondary-light);
-    border: 1px solid var(--tertiary-light);
 }
 
 #bookmarkForm button,
@@ -495,18 +395,11 @@ body[data-bgmode="light"] .folderForm input {
 .folderForm button {
     padding: 8px 16px;
     background-color: var(--accent-color);
-    color: var(--page-text);
+     color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
-}
-
-body[data-bgmode="light"] #bookmarkForm button,
-body[data-bgmode="light"] #folderForm button,
-body[data-bgmode="light"] .folderForm button {
-    background-color: var(--accent-color);
-    color: var(--page-text);
 }
 
 #bookmarkForm button:hover,
@@ -523,17 +416,11 @@ body[data-bgmode="light"] .folderForm button {
     font-size: 0.9rem;
     resize: vertical;
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     border: 1px solid var(--tab-background);
     border-radius: 4px;
     padding: 8px;
     outline: none;
-}
-
-body[data-bgmode="light"] #bookmarkNotes,
-body[data-bgmode="light"] #folderNotes {
-    background-color: var(--secondary-light);
-    border: 1px solid var(--tertiary-light);
 }
 
 .storage-actions {
@@ -550,22 +437,12 @@ body[data-bgmode="light"] #folderNotes {
 }
 
 .delete-btn {
-    background-color: var(--red-dark) !important;
-    color: var(--color-dark) !important;
-}
-
-body[data-bgmode="light"] .delete-btn {
-    columns: var(--secondary-light) !important;
-    background-color: var(--red-light) !important;
+    background-color: var(--destructive-color) !important;
+    color: var(--inner-text) !important;
 }
 
 .delete-btn:hover {
-    opacity: 0.8;
-    background-color: var(--red-dark) !important;
-}
-
-body[data-bgmode="light"] .delete-btn:hover {
-    background-color: var(--red-light) !important;
+    background-color: var(--destructive-hover-color) !important;
 }
 
 .history-modal {
@@ -579,24 +456,16 @@ body[data-bgmode="light"] .delete-btn:hover {
     background-color: rgba(0,0,0,0.5);
 }
 
-body[data-bgmode="light"] .history-modal {
-    background-color: rgba(234, 234, 236, 0.5);
-}
-
 .history-modal-content {
     position: relative;
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     margin: 3% auto;
     border-radius: 8px;
     width: 80%;
     max-width: 600px;
     max-height: 70vh;
     overflow-y: auto;
-}
-
-body[data-bgmode="light"] .history-modal-content {
-    background-color: var(--secondary-light);
 }
 
 .history-modal-content{
@@ -616,10 +485,6 @@ body[data-bgmode="light"] .history-modal-content {
     border-bottom: 1px solid var(--tab-background);
 }
 
-body[data-bgmode="light"] .history-modal-header {
-    border-bottom: 1px solid var(--tertiary-light);
-}
-
 .history-modal-header .close {
     color: var(--page-text);
     font-size: 28px;
@@ -627,21 +492,13 @@ body[data-bgmode="light"] .history-modal-header {
     padding-top: -0.25rem;
 }
 
-body[data-bgmode="light"] .history-modal-header .close {
-    color: var(--color-light);
-}
-
 #historyList{
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     margin: 5% auto;
     border-radius: 8px;
     width: 80%;
     max-width: 500px;
-}
-
-body[data-bgmode="light"] #historyList{
-    background-color: var(--secondary-light);
 }
 
 .history-modal-header h2 {
@@ -650,8 +507,8 @@ body[data-bgmode="light"] #historyList{
 }
 
 .clear-history-btn {
-    background-color: var(--red-dark);
-    color: var(--color-dark);
+    background-color: var(--destructive-color);
+    color: var(--inner-text);
     border: none;
     padding: 0.75rem 1rem;
     border-radius: 0.25rem;
@@ -662,13 +519,9 @@ body[data-bgmode="light"] #historyList{
     max-width: 500px;;
 }
 
-body[data-bgmode="light"] .clear-history-btn {
-    background-color: var(--red-light);
-    color: var(--secondary-light);
-}
 
 .clear-history-btn:hover {
-    opacity: 0.8;
+    background-color: var(--destructive-hover-color);
 }
 
 .history-item {
@@ -677,10 +530,6 @@ body[data-bgmode="light"] .clear-history-btn {
     background-color: var(--tab-background);
     border-radius: 0.25rem;
     font-size: 0.8rem;
-}
-
-body[data-bgmode="light"] .history-item {
-    background-color: var(--tertiary-light);
 }
 
 .history-item-text {
@@ -722,12 +571,6 @@ body[data-bgmode="light"] .history-item {
     border-top: 0.25rem solid var(--section-background);
     background-color: var(--section-background);
     padding-bottom: 1.5rem;
-}
-
-body[data-bgmode="light"] .sidebar{
-    border-left: 0.25rem solid var(--secondary-light);
-    border-top: 0.25rem solid var(--secondary-light);
-    background-color: var(--secondary-light);
 }
 
 .sidebar.active{
@@ -786,36 +629,19 @@ body[data-bgmode="light"] .sidebar{
     background-color: var(--section-background);
 }
 
-body[data-bgmode="light"] .menu{
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 2px rgba(0, 0, 0, 0.05);
-}
-
 .menu:hover{
     background-color: var(--tab-background);
-}
-
-body[data-bgmode="light"] .menu:hover{
-    opacity: 0.8;
 }
 
 .menu .menu-text{
     display: none;
 }
 
-.menu .menu-img{
+.menu svg{
     transform: scale(0.8);
-    background-image: url("img/menu.png");
-    background-size: cover;
-    background-position: center;
     width: 1rem;
     aspect-ratio: 1;
     opacity: 0.8;
-}
-
-body[data-bgmode="light"] .menu .menu-img{
-    opacity: 1;
-    filter: invert(1);
 }
 
 .menu.active{
@@ -827,7 +653,7 @@ body[data-bgmode="light"] .menu .menu-img{
     box-shadow: none !important;
 }
 
-.menu.active .menu-img{
+.menu.active svg{
     display: none;
 }
 
@@ -847,22 +673,12 @@ body[data-bgmode="light"] .menu .menu-img{
     border-top-left-radius: 0.4rem;
 }
 
-body[data-bgmode="light"] .todo{
-    border-bottom: 0.25rem solid var(--secondary-light);
-    background-color: var(--primary-light);
-}
-
 .notes{
     height: 40%;
     width: 100%;
     border-bottom: 0.25rem solid var(--section-background);
     background-color: var(--page-background);
     padding: 0.5rem;
-}
-
-body[data-bgmode="light"] .notes{
-    border-bottom: 0.25rem solid var(--secondary-light);
-    background-color: var(--primary-light);
 }
 
 .notes p {
@@ -877,10 +693,6 @@ body[data-bgmode="light"] .notes{
 .notes p img{
     height: 19px;
     width: 19px;
-}
-
-body[data-bgmode="light"] .notes p img{
-    filter: invert(1);
 }
 
 .more{
@@ -906,14 +718,6 @@ body[data-bgmode="light"] .notes p img{
     width: 16px;
 }
 
-body[data-bgmode="light"] .more{
-    background-color: var(--primary-light);
-}
-
-body[data-bgmode="light"] .more p img{
-    filter: invert(1);
-}
-
 .notes textarea{
     height: 90%;
     width: 100%;
@@ -922,7 +726,7 @@ body[data-bgmode="light"] .more p img{
     background-color: transparent;
     outline: none;
     border: none;
-    color: inherit;
+    color: var(--page-text);
     opacity: 0.8;
     padding-top: 0.15rem;
 }
@@ -944,7 +748,7 @@ body[data-bgmode="light"] .more p img{
 .action-btn {
     width: 95%;
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     border: 0;
     cursor: pointer;
     display: grid;
@@ -954,27 +758,19 @@ body[data-bgmode="light"] .more p img{
     border-radius: 0.25rem;
 }
 
-body[data-bgmode="light"] .action-btn {
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 7px 1px rgba(0, 0, 0, 0.05);
-}
-
 .action-btn:hover {
     opacity: 0.75;
 }
 
 .action-btn-danger {
-    background-color: var(--red-dark) !important;
-    color: var(--color-dark) !important;
+    background-color: var(--destructive-color) !important;
+    color: var(--inner-text) !important;
     opacity: 1;
 }
 
 .action-btn-danger:hover {
-    opacity: 0.9;
-}
-
-body[data-bgmode="light"] .action-btn-danger {
-    background-color: var(--red-light) !important;
+    opacity: 1 !important;
+    background-color: var(--destructive-hover-color) !important;
 }
 
 .version{
@@ -982,10 +778,6 @@ body[data-bgmode="light"] .action-btn-danger {
     color: var(--page-text);
     opacity: 0.5;
     font-size: 0.5rem;
-}
-
-body[data-bgmode="light"] .version{
-    color: var(--color-light);
 }
 
 /*  */
@@ -1029,27 +821,14 @@ body[data-bgmode="light"] .version{
     height: 70%;
 }
 
-body[data-bgmode="light"] .history-btn img{
-    filter: invert(1);
-}
-
 .history-btn:hover {
     background-color: var(--section-background);
-}
-
-body[data-bgmode="light"] .history-btn:hover {
-    background-color: var(--secondary-light);
-    box-shadow: 0 4px 35px 1px rgba(0, 0, 0, 0.1);
 }
 
 .todo-input {
     display: flex;
     gap: 0.25rem;
     margin-bottom: 0.5rem;
-}
-
-body[data-bgmode="light"] .todo-input {
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .todo-input input {
@@ -1060,12 +839,8 @@ body[data-bgmode="light"] .todo-input {
     outline: none;
     padding: 0.25rem 0.4rem;
     border-radius: 0.25rem;
-    color: inherit;
+    color: var(--page-text);
     background-color: var(--section-background);
-}
-
-body[data-bgmode="light"] .todo-input input {
-    background-color: var(--secondary-light);
 }
 
 .todo-input .todo-add-btn{
@@ -1075,11 +850,6 @@ body[data-bgmode="light"] .todo-input input {
     border-radius: 0.25rem;
     cursor: pointer;
     background-color: var(--section-background);
-}
-
-body[data-bgmode="light"] .todo-input .todo-add-btn{
-    border: 0.25rem solid var(--secondary-light);
-    background-color: var(--secondary-light);
 }
 
 .todo-input .todo-add-btn svg{
@@ -1111,11 +881,6 @@ body[data-bgmode="light"] .todo-input .todo-add-btn{
     background-color: var(--section-background);
     border-radius: 0.25rem;
     font-size: 0.8rem;
-}
-
-body[data-bgmode="light"] .todo-item {
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .todo-item.completed {
@@ -1174,10 +939,6 @@ input[type="checkbox"]:checked::after {
     opacity: 0.5;
 }
 
-body[data-bgmode="light"] .todo-item button {
-    filter: invert(1);
-}
-
 .todo-item button:hover {
     opacity: 1;
 }
@@ -1226,17 +987,8 @@ body[data-bgmode="light"] .todo-item button {
     height: 65%;
 }
 
-body[data-bgmode="light"] .clear-notes-btn img{
-    filter: invert(1);
-}
-
 .clear-notes-btn:hover {
     background-color: var(--section-background);
-}
-
-body[data-bgmode="light"] .clear-notes-btn:hover {
-    background-color: var(--secondary-light);
-    box-shadow: 0 4px 35px 1px rgba(0, 0, 0, 0.1);
 }
 
 /*  */
@@ -1262,11 +1014,6 @@ body[data-bgmode="light"] .clear-notes-btn:hover {
 
 .clock-container:hover{
     background-color: var(--section-background);
-}
-
-body[data-bgmode="light"] .clock-container:hover{
-    background-color: var(--secondary-light);
-    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
 .option-group:first-child{
@@ -1295,17 +1042,11 @@ body[data-bgmode="light"] .clock-container:hover{
     border: 1px solid var(--tab-background);
     border-radius: 4px;
     background-color: var(--section-background);
-    color: inherit;
+    color: var(--page-text);
     outline: none;
     width: 100%;
     margin-top: 0.1rem;
     font-size: 0.8rem;
-}
-
-body[data-bgmode="light"] .option-group input, 
-body[data-bgmode="light"] .option-group select {
-    background-color: var(--secondary-light);
-    border: 1px solid var(--tertiary-light);
 }
 
 .clock-modal-content{
@@ -1336,14 +1077,10 @@ body[data-bgmode="light"] .option-group select {
     overflow: hidden;
 }
 
-body[data-bgmode="light"] .context-menu {
-    background-color: var(--secondary-light);
-}
-
 .context-menu-item {
     padding: 2.5px 7.5px;
     cursor: pointer;
-    color: var(--text-color);
+    color: var(--page-text);
     font-size: small;
     border-radius: .3rem;
 }
@@ -1354,10 +1091,6 @@ body[data-bgmode="light"] .context-menu {
 
 .context-menu-item:hover {
     background: var(--tab-background);
-}
-
-body[data-bgmode="light"] .context-menu-item:hover {
-    background: var(--tertiary-light);
 }
 
 hr{
@@ -1376,8 +1109,4 @@ hr{
 
 .moved-element {
     box-shadow: 0 0 0 1.5px var(--accent-color);
-}
-
-body[data-bgmode="light"] .moved-element {
-    box-shadow: 0 0 0 2px var(--blue-light);
 }

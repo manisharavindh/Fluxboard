@@ -11,7 +11,9 @@ const defaultThemeValues = {
     accent: "#0061e0",
     popup_text: "#fbfbfe",
     popup_background: "#2b2a33",
-    sidebar: "#2b2a33"
+    sidebar: "#2b2a33",
+    destructive: "#ff5252",
+    destructive_hover: "#ff6b6b"
 };
 function updatePageStyle(colors) {
     document.documentElement.style.setProperty('--page-background', colors.frame);
@@ -22,6 +24,8 @@ function updatePageStyle(colors) {
     document.documentElement.style.setProperty('--accent-color', colors.accent);
     document.documentElement.style.setProperty('--button-text', colors.text);
     document.documentElement.style.setProperty('--tab-background', colors.tab_background);
+    document.documentElement.style.setProperty('--destructive-color', colors.destructive_hover);
+    document.documentElement.style.setProperty('--destructive-hover-color', colors.destructive);
 }
 
 async function initializeFromBrowser() {
@@ -40,7 +44,16 @@ async function initializeFromBrowser() {
                 accent: theme.colors.button_background_hover || defaultThemeValues.accent,
                 popup_text: theme.colors.popup_text || defaultThemeValues.popup_text,
                 popup_background: theme.colors.popup_background || defaultThemeValues.popup_background,
-                sidebar: theme.colors.sidebar || defaultThemeValues.sidebar
+                sidebar: theme.colors.sidebar || defaultThemeValues.sidebar,
+                destructive: theme.colors.button_background_active || 
+                           theme.colors.tab_line || 
+                           theme.colors.toolbar_field_border_focus ||
+                           theme.colors.ntp_text ||
+                           defaultThemeValues.destructive_hover,
+                           
+                destructive_hover: theme.colors.button_background_hover || 
+                                 theme.colors.tab_line || 
+                                 defaultThemeValues.destructive
             };
             updatePageStyle(colors);
         }
@@ -1456,24 +1469,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // === DARK/LIGHT MODE TOGGLE ===
-function setTheme(mode) {
-    document.body.setAttribute('data-bgmode', mode);
-    localStorage.setItem('fluxboard_theme', mode);
-}
+// function setTheme(mode) {
+//     document.body.setAttribute('data-bgmode', mode);
+//     localStorage.setItem('fluxboard_theme', mode);
+// }
 
-function toggleTheme() {
-    const current = document.body.getAttribute('data-bgmode') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-}
+// function toggleTheme() {
+//     const current = document.body.getAttribute('data-bgmode') || 'dark';
+//     const next = current === 'dark' ? 'light' : 'dark';
+//     setTheme(next);
+// }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Load theme from localStorage or default to dark
-    const savedTheme = localStorage.getItem('fluxboard_theme') || 'dark';
-    setTheme(savedTheme);
-    const toggleBtn = document.getElementById('toggle-theme');
-    if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
-});
+// document.addEventListener('DOMContentLoaded', function() {
+//     // Load theme from localStorage or default to dark
+//     const savedTheme = localStorage.getItem('fluxboard_theme') || 'dark';
+//     setTheme(savedTheme);
+//     const toggleBtn = document.getElementById('toggle-theme');
+//     if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
+// });
 
 //* quick notes text area
 
