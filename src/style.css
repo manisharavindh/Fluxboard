@@ -96,13 +96,9 @@ body[data-bgmode="light"] {
     opacity: 0.9;
 }
 
-.logo-icon{
+.logo svg{
     height: 38px;
     aspect-ratio: 1;
-}
-
-body[data-bgmode="light"] .logo-icon{
-    filter: invert(1);
 }
 
 /*  */
@@ -189,10 +185,10 @@ body[data-bgmode="light"] .link-element:hover {
     margin-right: 0.2rem;
 }
 
-.link-element img{
+.link-element svg{
     width: 16px;
     height: 16px;
-    transform: scale(0.8);
+    transform: scale(0.9);
 }
 
 body[data-bgmode="light"] .link-element img{
@@ -256,15 +252,15 @@ body[data-bgmode="light"] .folder-head:hover {
     box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.05);
 }
 
-.folder-head img{
+.folder-head svg{
     width: 16px;
     height: 16px;
-    transform: scale(1.1);
+    transform: scale(1.5);
     opacity: 0.8;
     display: grid;
     place-items: center;
     aspect-ratio: 1;
-    margin-right: 0.2rem;
+    margin: 0 0.2rem 0 0.08rem;
 }
 
 body[data-bgmode="light"] .folder-head img{
@@ -281,9 +277,9 @@ body[data-bgmode="light"] .folder-head img{
 }
 
 .folder-head .edit-icon{
-     width: 16px;
+    width: 16px;
     height: 16px;
-    transform: scale(0.8);
+    transform: scale(1.1);
     opacity: 0;
     display: grid;
     place-items: center;
@@ -292,7 +288,7 @@ body[data-bgmode="light"] .folder-head img{
 }
 
 .folder-head .edit-icon:hover{
-    transform: scale(0.95);
+    transform: scale(1.2);
 }
 
 .folder-head:hover > .edit-icon{
@@ -396,13 +392,13 @@ body[data-bgmode="light"] .new-link div:hover{
     background-color: var(--primary-light);
 }
 
-.new-link div img{
+.new-link div svg{
     width: 20px;
     height: 20px;
     transform: scale(0.7);
 }
 
-body[data-bgmode="light"] .new-link div img{
+body[data-bgmode="light"] .new-link div svg{
     filter: invert(1);
 }
 
@@ -625,7 +621,7 @@ body[data-bgmode="light"] .history-modal-header {
 }
 
 .history-modal-header .close {
-    color: var(--color-dark);
+    color: var(--page-text);
     font-size: 28px;
     cursor: pointer;
     padding-top: -0.25rem;
@@ -905,7 +901,7 @@ body[data-bgmode="light"] .notes p img{
     opacity: 0.9;
 }
 
-.more p img{
+.more p svg{
     height: 16px;
     width: 16px;
 }
@@ -983,7 +979,7 @@ body[data-bgmode="light"] .action-btn-danger {
 
 .version{
     text-align: center;
-    color: var(--color-dark);
+    color: var(--page-text);
     opacity: 0.5;
     font-size: 0.5rem;
 }
@@ -1012,18 +1008,9 @@ body[data-bgmode="light"] .version{
     opacity: 0.9;
 }
 
-.todo-header p img{
+.todo-header p svg{
     height: 19px;
     width: 19px;
-}
-
-body[data-bgmode="light"] .todo-header p img{
-    filter: invert(1);
-}
-
-.todo-header img{
-    height: 24px;
-    width: 24px;
 }
 
 .history-btn {
@@ -1037,7 +1024,7 @@ body[data-bgmode="light"] .todo-header p img{
     justify-content: center;
 }
 
-.history-btn img{
+.history-btn svg{
     width: 70%;
     height: 70%;
 }
@@ -1095,13 +1082,9 @@ body[data-bgmode="light"] .todo-input .todo-add-btn{
     background-color: var(--secondary-light);
 }
 
-.todo-input .todo-add-btn img{
+.todo-input .todo-add-btn svg{
     height: 100%;
     width: 100%;
-}
-
-body[data-bgmode="light"] .todo-input .todo-add-btn img{
-    filter: invert(1);
 }
 
 .todo-input img:hover {
@@ -1141,10 +1124,34 @@ body[data-bgmode="light"] .todo-item {
 }
 
 .todo-item input[type="checkbox"] {
-    margin: 0;
-    opacity: 0.3;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    aspect-ratio: 1;
+    border: 1.5px solid var(--page-text);
+    border-radius: 3px;
+    position: relative;
+    opacity: 0.4;
     cursor: pointer;
+    background-color: var(--section-background);
 }
+.todo-item input[type="checkbox"]:hover{
+    opacity: 0.7;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--accent-color);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  color: white;
+}
+
 
 .todo-item span {
     width: 100%;
@@ -1161,7 +1168,7 @@ body[data-bgmode="light"] .todo-item {
 .todo-item button {
     background: none;
     border: none;
-    color: var(--color-dark);
+    color: var(--page-text);
     cursor: pointer;
     padding: 0.2rem;
     opacity: 0.5;
@@ -1173,6 +1180,63 @@ body[data-bgmode="light"] .todo-item button {
 
 .todo-item button:hover {
     opacity: 1;
+}
+
+/*  */
+/** Quick Notes  */
+/*  */
+.notes-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.notes-header p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+.notes-header p svg{
+    height: 19px;
+    width: 19px;
+}
+
+.notes-header img{
+    height: 24px;
+    width: 24px;
+}
+
+.clear-notes-btn {
+    cursor: pointer;
+    border-radius: 0.25rem;
+    position: relative;
+    height: 26px;
+    width: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-notes-btn img{
+    width: 65%;
+    height: 65%;
+}
+
+body[data-bgmode="light"] .clear-notes-btn img{
+    filter: invert(1);
+}
+
+.clear-notes-btn:hover {
+    background-color: var(--section-background);
+}
+
+body[data-bgmode="light"] .clear-notes-btn:hover {
+    background-color: var(--secondary-light);
+    box-shadow: 0 4px 35px 1px rgba(0, 0, 0, 0.1);
 }
 
 /*  */

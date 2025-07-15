@@ -258,9 +258,9 @@ function createBookmarkElement(bookmark, container) {
 
     const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
-        <img src="img/link.png" alt="link" class="link-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="link-icon"><path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-155.5t86-127Q252-817 325-848.5T480-880q83 0 155.5 31.5t127 86q54.5 54.5 86 127T880-480q0 82-31.5 155t-86 127.5q-54.5 54.5-127 86T480-80Zm0-82q26-36 45-75t31-83H404q12 44 31 83t45 75Zm-104-16q-18-33-31.5-68.5T322-320H204q29 50 72.5 87t99.5 55Zm208 0q56-18 99.5-55t72.5-87H638q-9 38-22.5 73.5T584-178ZM170-400h136q-3-20-4.5-39.5T300-480q0-21 1.5-40.5T306-560H170q-5 20-7.5 39.5T160-480q0 21 2.5 40.5T170-400Zm216 0h188q3-20 4.5-39.5T580-480q0-21-1.5-40.5T574-560H386q-3 20-4.5 39.5T380-480q0 21 1.5 40.5T386-400Zm268 0h136q5-20 7.5-39.5T800-480q0-21-2.5-40.5T790-560H654q3 20 4.5 39.5T660-480q0 21-1.5 40.5T654-400Zm-16-240h118q-29-50-72.5-87T584-782q18 33 31.5 68.5T638-640Zm-234 0h152q-12-44-31-83t-45-75q-26 36-45 75t-31 83Zm-200 0h118q9-38 22.5-73.5T376-782q-56 18-99.5 55T204-640Z"/></svg>
         <p data-url="${normalizedUrl}" data-notes="${bookmark.notes || ''}">${bookmark.name}</p>
-        <img src="img/menu.png" alt="edit" class="edit-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="edit-icon"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
     `;
     
     const editIcon = linkElement.querySelector('.edit-icon');
@@ -285,12 +285,12 @@ function createFolderElement(folder, container) {
     folderElement.className = 'folder-element';
     folderElement.innerHTML = `
         <div class="folder-head">
-            <img src="img/closed.png" alt="folder" class="folder-closed-icon">
-            <img src="img/opened.png" alt="folder" class="folder-opened-icon" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="folder-closed-icon"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="folder-opened-icon" style="display: none;"><path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             <p data-notes="${folder.notes || ''}">${folder.name}</p>
-            <img src="img/new_link.png" alt="add new link" class="edit-icon add-link-icon">
-            <img src="img/new_folder.png" alt="add new folder" class="edit-icon add-folder-icon">
-            <img src="img/menu.png" alt="edit" class="edit-icon folder-menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="edit-icon add-link-icon"><path d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="edit-icon add-folder-icon"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="edit-icon folder-menu-icon"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
         </div>
         <div class="folder-body" style="display: none;">
         </div>
@@ -584,11 +584,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    document.querySelectorAll('.add-link img').forEach(button => {
+    document.querySelectorAll('.add-link svg').forEach(button => {
         button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
     
-    document.querySelectorAll('.add-folder img').forEach(button => {
+    document.querySelectorAll('.add-folder svg').forEach(button => {
         button.onclick = () => addFolder(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
     });
     
