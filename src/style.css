@@ -182,6 +182,8 @@ body{
 .folder-body{
     width: 100%;
     height: auto;
+    min-height: 20px;
+    border: 1px solid red;
     margin-bottom: 0.1rem;
     padding-bottom: 0.1rem !important;
 }
@@ -275,6 +277,7 @@ body{
 .bookmarks .column {
     width: 100%;
     height: 100%;
+    padding-bottom: 2.5rem;
 }
 
 .group-title {
@@ -326,6 +329,11 @@ body{
 @media screen and (max-width: 800px){
     .bookmarks{
         flex-direction: column;
+        gap: 0;
+    }
+
+    .bookmarks .column{
+        padding-bottom: 1rem;
     }
 }
 
@@ -1111,44 +1119,59 @@ hr{
 /*  */
 /** Drag & Drop */
 /*  */
+
 .dragging {
     opacity: 0.5;
-    transform: rotate(5deg);
-}
-
-.drag-over {
-    background-color: rgba(var(--accent-color-rgb), 0.1);
-    border: 2px dashed var(--accent-color);
-    border-radius: 8px;
-}
-
-.folder-body.drag-over {
-    background-color: rgba(var(--accent-color-rgb), 0.15);
-    min-height: 40px;
-    border: 2px dashed var(--accent-color);
-    border-radius: 6px;
+    cursor: grabbing !important;
 }
 
 .drop-indicator {
-    height: 3px;
+    position: absolute;
+    display: none;
+    height: 2px;
     background-color: var(--accent-color);
-    border-radius: 2px;
-    margin: 2px 0;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    pointer-events: none;
 }
 
-.drop-indicator.active {
-    opacity: 1;
+/* body.is-dragging .link-element:not(.dragging),
+body.is-dragging .folder-element:not(.dragging) {
+    transition: transform 0.15s ease;
 }
+
+body.is-dragging .link-element:not(.dragging):hover,
+body.is-dragging .folder-element:not(.dragging):hover {
+    transform: translateY(2px);
+} */
+
+.drag-over {
+    position: relative;
+    /* outline: 2px dashed var(--accent-color); */
+    border-radius: 8px;
+    /* display: none; */
+    /* outline-offset: 2px; */
+    /* background-color: rgba(var(--accent-color), 0.05); */
+}
+
+.folder-body.drag-over {
+    /* background-color: rgba(var(--accent-color-rgb), 0.1); */
+    min-height: 40px !important;
+}
+
+
 
 .moved-element {
-    animation: moveHighlight 1.5s ease;
+    animation: moveHighlight 1s ease;
 }
 
 @keyframes moveHighlight {
-    0% { background-color: rgba(var(--accent-color-rgb), 0.3); }
-    100% { background-color: transparent; }
+    0% {
+        background-color: rgba(var(--accent-color-rgb), 0.2);
+        transform: scale(1.02);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
 }
 
 /* Folder body minimum height when empty */

@@ -1315,6 +1315,7 @@ class DragDropManager {
         this.draggedElement = null;
         this.draggedData = null;
         this.dropIndicator = null;
+        this.lastDropTarget = null;
         this.init();
     }
 
@@ -1367,6 +1368,9 @@ class DragDropManager {
 
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/html', element.outerHTML);
+        
+        // Add dragging class to the body to style other elements
+        document.body.classList.add('is-dragging');
     }
 
     handleDragEnd(e) {
@@ -1377,64 +1381,206 @@ class DragDropManager {
         }
         this.hideDropIndicator();
         this.clearDragOverEffects();
+        document.body.classList.remove('is-dragging');
     }
 
     handleDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
-        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+        const target = this.findDropTarget(e);
         if (!target || !this.draggedElement) return;
 
-        // Don't allow dropping on self
-        if (target.contains(this.draggedElement)) return;
+        // Don't allow dropping on self or inside own folder
+        if (this.isInvalidDropTarget(target)) return;
 
+        this.updateDropIndicator(e, target);
+    }
+
+    findDropTarget(e) {
+        // Check for direct element targets first
+        const elementTarget = e.target.closest('.link-element, .folder-element');
+        if (elementTarget) {
+            return elementTarget;
+        }
+
+        // Then check for container targets
+        return e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+    }
+
+    isInvalidDropTarget(target) {
+        // Can't drop on itself
+        if (target === this.draggedElement) return true;
+
+        // Can't drop into own subfolder
+        if (this.draggedElement.classList.contains('folder-element')) {
+            const draggedFolder = this.draggedElement;
+            let parent = target;
+            while (parent) {
+                if (parent === draggedFolder) return true;
+                parent = parent.parentElement.closest('.folder-element');
+            }
+        }
+
+        return false;
+    }
+
+    updateDropIndicator(e, target) {
+        const rect = target.getBoundingClientRect();
+        const isContainer = target.classList.contains('col1') || 
+                          target.classList.contains('col2') || 
+                          target.classList.contains('col3') || 
+                          target.classList.contains('col4') ||
+                          target.classList.contains('folder-body');
+
+        if (isContainer) {
+            // For empty containers or positioning at the end
+            this.showDropIndicator(e, target);
+        } else {
+            // For positioning between elements
+            const mouseY = e.clientY;
+            const threshold = rect.top + (rect.height / 2);
+            const position = mouseY < threshold ? 'before' : 'after';
+            
+            this.dropIndicator.style.display = 'block';
+            this.dropIndicator.style.width = `${rect.width}px`;
+            this.dropIndicator.style.left = `${rect.left}px`;
+            
+            if (position === 'before') {
+                this.dropIndicator.style.top = `${rect.top - 2}px`;
+            } else {
+                this.dropIndicator.style.top = `${rect.bottom - 2}px`;
+            }
+        }
+
+        // Update last drop target
+        if (this.lastDropTarget && this.lastDropTarget !== target) {
+            this.lastDropTarget.classList.remove('drag-over');
+        }
         target.classList.add('drag-over');
-        this.showDropIndicator(e, target);
+        this.lastDropTarget = target;
     }
 
     handleDragLeave(e) {
-        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
-        if (target) {
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body, .link-element, .folder-element');
+        if (target && target === this.lastDropTarget) {
             target.classList.remove('drag-over');
+            this.lastDropTarget = null;
         }
     }
 
-    handleDrop(e) {
-        e.preventDefault();
-        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
-        if (!target || !this.draggedElement || !this.draggedData) return;
-
-        // Don't allow dropping on self
-        if (target.contains(this.draggedElement)) return;
-
-        const dropPosition = this.getDropPosition(e, target);
-        this.moveElement(target, dropPosition);
-        
-        this.clearDragOverEffects();
-        this.hideDropIndicator();
-    }
-
-    getDropPosition(e, container) {
+    showDropIndicator(e, container) {
+        const rect = container.getBoundingClientRect();
         const children = Array.from(container.children).filter(child => 
             (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
             child !== this.draggedElement
         );
 
-        let insertBefore = null;
-        let closestDistance = Infinity;
+        if (children.length === 0) {
+            // Empty container, show indicator in the middle
+            this.dropIndicator.style.display = 'block';
+            this.dropIndicator.style.width = `${rect.width}px`;
+            this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.top = `${rect.top + 10}px`;
+            return;
+        }
 
-        for (let child of children) {
-            const rect = child.getBoundingClientRect();
-            const distance = Math.abs(e.clientY - (rect.top + rect.height / 2));
-            
+        let closestChild = null;
+        let closestDistance = Infinity;
+        let position = 'after';
+
+        for (const child of children) {
+            const childRect = child.getBoundingClientRect();
+            const childCenter = childRect.top + (childRect.height / 2);
+            const distance = Math.abs(e.clientY - childCenter);
+
             if (distance < closestDistance) {
                 closestDistance = distance;
-                insertBefore = e.clientY < rect.top + rect.height / 2 ? child : child.nextSibling;
+                closestChild = child;
+                position = e.clientY < childCenter ? 'before' : 'after';
             }
         }
 
-        return insertBefore;
+        if (closestChild) {
+            const closestRect = closestChild.getBoundingClientRect();
+            this.dropIndicator.style.display = 'block';
+            this.dropIndicator.style.width = `${rect.width}px`;
+            this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.top = position === 'before' 
+                ? `${closestRect.top - 2}px`
+                : `${closestRect.bottom - 2}px`;
+        }
+    }
+
+    hideDropIndicator() {
+        if (this.dropIndicator) {
+            this.dropIndicator.style.display = 'none';
+        }
+        if (this.lastDropTarget) {
+            this.lastDropTarget.classList.remove('drag-over');
+            this.lastDropTarget = null;
+        }
+    }
+
+    clearDragOverEffects() {
+        document.querySelectorAll('.drag-over').forEach(element => {
+            element.classList.remove('drag-over');
+        });
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        if (!this.draggedElement || !this.draggedData) return;
+
+        const dropTarget = this.findDropTarget(e);
+        if (!dropTarget || this.isInvalidDropTarget(dropTarget)) return;
+
+        const container = dropTarget.classList.contains('folder-body') || 
+                         dropTarget.classList.contains('col1') || 
+                         dropTarget.classList.contains('col2') || 
+                         dropTarget.classList.contains('col3') || 
+                         dropTarget.classList.contains('col4')
+            ? dropTarget
+            : dropTarget.parentElement;
+
+        const insertBefore = this.getDropPosition(e, dropTarget);
+        this.moveElement(container, insertBefore);
+        
+        this.clearDragOverEffects();
+        this.hideDropIndicator();
+        saveBookmarks();
+    }
+
+    getDropPosition(e, target) {
+        if (target.classList.contains('folder-body') || 
+            target.classList.contains('col1') || 
+            target.classList.contains('col2') || 
+            target.classList.contains('col3') || 
+            target.classList.contains('col4')) {
+            
+            const children = Array.from(target.children).filter(child => 
+                (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+                child !== this.draggedElement
+            );
+
+            let insertBefore = null;
+            let closestDistance = Infinity;
+
+            for (let child of children) {
+                const rect = child.getBoundingClientRect();
+                const distance = Math.abs(e.clientY - (rect.top + rect.height / 2));
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    insertBefore = e.clientY < rect.top + rect.height / 2 ? child : child.nextSibling;
+                }
+            }
+
+            return insertBefore;
+        } else {
+            const rect = target.getBoundingClientRect();
+            return e.clientY < rect.top + (rect.height / 2) ? target : target.nextSibling;
+        }
     }
 
     moveElement(targetContainer, insertBefore) {
@@ -1449,50 +1595,13 @@ class DragDropManager {
             newElement = createFolderElement(this.draggedData, targetContainer);
         }
 
-        // Insert at correct position
+        // If we have a specific position to insert before
         if (insertBefore) {
             targetContainer.insertBefore(newElement, insertBefore);
+        } else {
+            // Otherwise append to the end
+            targetContainer.appendChild(newElement);
         }
-
-        // Add moved effect
-        newElement.classList.add('moved-element');
-        setTimeout(() => newElement.classList.remove('moved-element'), 1500);
-
-        // Save changes
-        saveBookmarks();
-    }
-
-    showDropIndicator(e, container) {
-        const rect = container.getBoundingClientRect();
-        const children = Array.from(container.children).filter(child => 
-            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
-            child !== this.draggedElement
-        );
-
-        let insertY = rect.top;
-        for (let child of children) {
-            const childRect = child.getBoundingClientRect();
-            if (e.clientY > childRect.top + childRect.height / 2) {
-                insertY = childRect.bottom;
-            } else {
-                break;
-            }
-        }
-
-        this.dropIndicator.style.left = rect.left + 'px';
-        this.dropIndicator.style.top = insertY + 'px';
-        this.dropIndicator.style.width = rect.width + 'px';
-        this.dropIndicator.classList.add('active');
-    }
-
-    hideDropIndicator() {
-        this.dropIndicator.classList.remove('active');
-    }
-
-    clearDragOverEffects() {
-        document.querySelectorAll('.drag-over').forEach(el => {
-            el.classList.remove('drag-over');
-        });
     }
 }
 
