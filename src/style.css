@@ -1,15 +1,14 @@
 :root {
+    --page-text: #ffffff;
     --page-background: #1c1b22;
     --section-background: #2b2a33;
     --tab-background: #42414d;
-    --input-background: #1c1b22;
-    --page-text: #ffffff;
-    --input-text: #ffffff;
-    --button-text: #ffffff;
     --accent-color: #0061e0;
+    --divider-color: #52525e;
+    
+    --button-text: #fbfbfe;
     --destructive-color: #ff5252;
     --destructive-hover-color: #ff6b6b;
-    --inner-text: #ffffff;
 }
 
 *{
@@ -24,7 +23,6 @@ body{
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    background: red;
 }
 
 .wrapper {
@@ -351,7 +349,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--tab-background);
+    border-bottom: 1px solid var(--divider-color);
 }
 
 .modal-content {
@@ -383,7 +381,7 @@ body{
 #folderForm input,
 .folderForm input {
     padding: 8px;
-    border: 1px solid var(--tab-background);
+    border: 1px solid var(--divider-color);
     border-radius: 4px;
     background-color: var(--section-background);
     color: var(--page-text);
@@ -417,7 +415,7 @@ body{
     resize: vertical;
     background-color: var(--section-background);
     color: var(--page-text);
-    border: 1px solid var(--tab-background);
+    border: 1px solid var(--divider-color);
     border-radius: 4px;
     padding: 8px;
     outline: none;
@@ -438,7 +436,7 @@ body{
 
 .delete-btn {
     background-color: var(--destructive-color) !important;
-    color: var(--inner-text) !important;
+    color: var(--button-text) !important;
 }
 
 .delete-btn:hover {
@@ -482,7 +480,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--tab-background);
+    border-bottom: 1px solid var(--divider-color);
 }
 
 .history-modal-header .close {
@@ -508,7 +506,7 @@ body{
 
 .clear-history-btn {
     background-color: var(--destructive-color);
-    color: var(--inner-text);
+    color: var(--button-text);
     border: none;
     padding: 0.75rem 1rem;
     border-radius: 0.25rem;
@@ -764,7 +762,7 @@ body{
 
 .action-btn-danger {
     background-color: var(--destructive-color) !important;
-    color: var(--inner-text) !important;
+    color: var(--button-text) !important;
     opacity: 1;
 }
 
@@ -896,7 +894,7 @@ body{
     border: 1.5px solid var(--page-text);
     border-radius: 3px;
     position: relative;
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: pointer;
     background-color: var(--section-background);
 }
@@ -923,7 +921,6 @@ input[type="checkbox"]:checked::after {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    opacity: 0.7;
 }
 
 .todo-item.completed span {
@@ -936,7 +933,7 @@ input[type="checkbox"]:checked::after {
     color: var(--page-text);
     cursor: pointer;
     padding: 0.2rem;
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 .todo-item button:hover {
@@ -1039,7 +1036,7 @@ input[type="checkbox"]:checked::after {
 
 .option-group input, .option-group select {
     padding: 8px;
-    border: 1px solid var(--tab-background);
+    border: 1px solid var(--divider-color);
     border-radius: 4px;
     background-color: var(--section-background);
     color: var(--page-text);
@@ -1096,7 +1093,7 @@ input[type="checkbox"]:checked::after {
 hr{
     height: 1.5px;
     width: 95%;
-    border-color: var(--tab-background);
+    border-color: var(--divider-color);
     margin: 4px 2.5%;
     opacity: 0.5;
     border-radius: 1rem;

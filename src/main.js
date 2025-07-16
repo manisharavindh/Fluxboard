@@ -1,31 +1,19 @@
 //* handle page colors
 const defaultThemeValues = {
+    text: "#fbfbfe",
     frame: "#1c1b22",
     toolbar: "#2b2a33",
-    text: "#fbfbfe",
     tab_background: "#2b2a33",
-    tab_text: "#fbfbfe",
-    toolbar_field: "#1c1b22",
-    toolbar_field_text: "#fbfbfe",
-    bookmark_text: "#fbfbfe",
     accent: "#0061e0",
-    popup_text: "#fbfbfe",
-    popup_background: "#2b2a33",
-    sidebar: "#2b2a33",
-    destructive: "#ff5252",
-    destructive_hover: "#ff6b6b"
+    divider: "#52525e"
 };
 function updatePageStyle(colors) {
-    document.documentElement.style.setProperty('--page-background', colors.frame);
     document.documentElement.style.setProperty('--page-text', colors.text);
+    document.documentElement.style.setProperty('--page-background', colors.frame);
     document.documentElement.style.setProperty('--section-background', colors.toolbar);
-    document.documentElement.style.setProperty('--input-background', colors.toolbar_field);
-    document.documentElement.style.setProperty('--input-text', colors.toolbar_field_text);
-    document.documentElement.style.setProperty('--accent-color', colors.accent);
-    document.documentElement.style.setProperty('--button-text', colors.text);
     document.documentElement.style.setProperty('--tab-background', colors.tab_background);
-    document.documentElement.style.setProperty('--destructive-color', colors.destructive_hover);
-    document.documentElement.style.setProperty('--destructive-hover-color', colors.destructive);
+    document.documentElement.style.setProperty('--accent-color', colors.accent);
+    document.documentElement.style.setProperty('--divider-color', colors.divider);
 }
 
 async function initializeFromBrowser() {
@@ -33,27 +21,17 @@ async function initializeFromBrowser() {
         const theme = await browser.theme.getCurrent();
         if (theme && theme.colors) {
             const colors = {
+                text: theme.colors.toolbar_text || defaultThemeValues.text,
                 frame: theme.colors.frame || defaultThemeValues.frame,
                 toolbar: theme.colors.toolbar || defaultThemeValues.toolbar,
-                text: theme.colors.toolbar_text || defaultThemeValues.text,
                 tab_background: theme.colors.tab_selected || defaultThemeValues.tab_background,
-                tab_text: theme.colors.tab_text || defaultThemeValues.tab_text,
-                toolbar_field: theme.colors.toolbar_field || defaultThemeValues.toolbar_field,
-                toolbar_field_text: theme.colors.toolbar_field_text || defaultThemeValues.toolbar_field_text,
-                bookmark_text: theme.colors.bookmark_text || defaultThemeValues.bookmark_text,
                 accent: theme.colors.button_background_hover || defaultThemeValues.accent,
-                popup_text: theme.colors.popup_text || defaultThemeValues.popup_text,
-                popup_background: theme.colors.popup_background || defaultThemeValues.popup_background,
-                sidebar: theme.colors.sidebar || defaultThemeValues.sidebar,
-                destructive: theme.colors.button_background_active || 
-                           theme.colors.tab_line || 
-                           theme.colors.toolbar_field_border_focus ||
-                           theme.colors.ntp_text ||
-                           defaultThemeValues.destructive_hover,
-                           
-                destructive_hover: theme.colors.button_background_hover || 
-                                 theme.colors.tab_line || 
-                                 defaultThemeValues.destructive
+                divider: theme.colors.popup_border || 
+                         theme.colors.popup_highlight || 
+                         theme.colors.toolbar_field_border || 
+                         theme.colors.tab_line ||
+                         theme.colors.toolbar_vertical_separator ||
+                         defaultThemeValues.divider
             };
             updatePageStyle(colors);
         }
