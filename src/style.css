@@ -183,7 +183,6 @@ body{
     width: 100%;
     height: auto;
     min-height: 20px;
-    border: 1px solid red;
     margin-bottom: 0.1rem;
     padding-bottom: 0.1rem !important;
 }
@@ -272,11 +271,13 @@ body{
     justify-content: center;
     gap: 1rem;
     margin-top: 2rem;
+    position: relative;
 }
 
 .bookmarks .column {
     width: 100%;
-    height: 100%;
+    min-height: calc(100vh - 14rem);
+    height: auto;
     padding-bottom: 2.5rem;
 }
 
@@ -334,6 +335,7 @@ body{
 
     .bookmarks .column{
         padding-bottom: 1rem;
+        min-height: auto;
     }
 }
 
@@ -1131,50 +1133,4 @@ hr{
     height: 2px;
     background-color: var(--accent-color);
     pointer-events: none;
-}
-
-/* body.is-dragging .link-element:not(.dragging),
-body.is-dragging .folder-element:not(.dragging) {
-    transition: transform 0.15s ease;
-}
-
-body.is-dragging .link-element:not(.dragging):hover,
-body.is-dragging .folder-element:not(.dragging):hover {
-    transform: translateY(2px);
-} */
-
-.drag-over {
-    position: relative;
-    /* outline: 2px dashed var(--accent-color); */
-    border-radius: 8px;
-    /* display: none; */
-    /* outline-offset: 2px; */
-    /* background-color: rgba(var(--accent-color), 0.05); */
-}
-
-.folder-body.drag-over {
-    /* background-color: rgba(var(--accent-color-rgb), 0.1); */
-    min-height: 40px !important;
-}
-
-
-
-.moved-element {
-    animation: moveHighlight 1s ease;
-}
-
-@keyframes moveHighlight {
-    0% {
-        background-color: rgba(var(--accent-color-rgb), 0.2);
-        transform: scale(1.02);
-    }
-    100% {
-        background-color: transparent;
-        transform: scale(1);
-    }
-}
-
-/* Folder body minimum height when empty */
-.folder-body:empty {
-    min-height: 20px;
 }
