@@ -7,6 +7,7 @@ const defaultThemeValues = {
     accent: "#0061e0",
     divider: "#52525e"
 };
+
 function updatePageStyle(colors) {
     document.documentElement.style.setProperty('--page-text', colors.text);
     document.documentElement.style.setProperty('--page-background', colors.frame);
@@ -246,6 +247,7 @@ function serializeSection(section) {
 function createBookmarkElement(bookmark, container) {
     const linkElement = document.createElement('div');
     linkElement.className = 'link-element';
+    linkElement.draggable = true;
 
     const normalizedUrl = normalizeUrl(bookmark.url);
     linkElement.innerHTML = `
@@ -255,16 +257,17 @@ function createBookmarkElement(bookmark, container) {
     `;
     
     const editIcon = linkElement.querySelector('.edit-icon');
-    editIcon.addEventListener('click', () => editLink(editIcon));
+    editIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editLink(editIcon);
+    });
 
     const linkText = linkElement.querySelector('p');
-
     linkText.addEventListener('click', () => window.location.href = normalizedUrl);
 
-    // Add right-click context menu
     linkElement.addEventListener('contextmenu', (e) => {
         contextMenuManager.showContextMenu(e, linkElement);
-});
+    });
     
     container.appendChild(linkElement);
     return linkElement;
@@ -274,6 +277,7 @@ function createBookmarkElement(bookmark, container) {
 function createFolderElement(folder, container) {
     const folderElement = document.createElement('div');
     folderElement.className = 'folder-element';
+    folderElement.draggable = true;
     folderElement.innerHTML = `
         <div class="folder-head">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="folder-closed-icon"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>
@@ -314,9 +318,7 @@ function createFolderElement(folder, container) {
         editFolder(menuIcon);
     });
 
-    // Add right-click context menu
     folderElement.addEventListener('contextmenu', (e) => {
-        // Only show context menu if not clicking on edit icons
         if (!e.target.classList.contains('edit-icon')) {
             contextMenuManager.showContextMenu(e, folderElement);
         }
@@ -661,6 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     todoManager = new TodoManager();
     contextMenuManager = new ContextMenuManager();
+    dragDropManager = new DragDropManager();
 });
 
 //* handle group title
@@ -1161,8 +1164,8 @@ class ContextMenuManager {
     }
 
     moveElementDirection(element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4');
-
+        const container = element.closest('.col1, .col2, .col3, .col4, .folder-body');
+        
         if (['col1', 'col2', 'col3', 'col4'].includes(direction)) {
             const targetColumn = document.querySelector('.' + direction);
             if (!targetColumn) return;
@@ -1192,12 +1195,12 @@ class ContextMenuManager {
 
             if (elementData.type === 'link') {
                 const newElement = createBookmarkElement(elementData, targetColumn);
-                newElement.classList.add('moved-element'); 
-                setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
+                newElement.classList.add('moved-element');
+                setTimeout(() => newElement.classList.remove('moved-element'), 1500);
             } else if (elementData.type === 'folder') {
                 const newElement = createFolderElement(elementData, targetColumn);
-                newElement.classList.add('moved-element'); 
-                setTimeout(() => newElement.classList.remove('moved-element'), 1500); 
+                newElement.classList.add('moved-element');
+                setTimeout(() => newElement.classList.remove('moved-element'), 1500);
             }
 
             saveBookmarks();
@@ -1305,6 +1308,195 @@ class ContextMenuManager {
 }
 
 let contextMenuManager;
+
+//* handle drag and drop
+class DragDropManager {
+    constructor() {
+        this.draggedElement = null;
+        this.draggedData = null;
+        this.dropIndicator = null;
+        this.init();
+    }
+
+    init() {
+        this.createDropIndicator();
+        this.bindEvents();
+    }
+
+    createDropIndicator() {
+        this.dropIndicator = document.createElement('div');
+        this.dropIndicator.className = 'drop-indicator';
+        document.body.appendChild(this.dropIndicator);
+    }
+
+    bindEvents() {
+        document.addEventListener('dragstart', this.handleDragStart.bind(this));
+        document.addEventListener('dragend', this.handleDragEnd.bind(this));
+        document.addEventListener('dragover', this.handleDragOver.bind(this));
+        document.addEventListener('drop', this.handleDrop.bind(this));
+        document.addEventListener('dragleave', this.handleDragLeave.bind(this));
+    }
+
+    handleDragStart(e) {
+        const element = e.target.closest('.link-element, .folder-element');
+        if (!element) return;
+
+        this.draggedElement = element;
+        element.classList.add('dragging');
+
+        // Store element data
+        if (element.classList.contains('link-element')) {
+            const p = element.querySelector('p');
+            this.draggedData = {
+                type: 'link',
+                name: p.textContent,
+                url: p.getAttribute('data-url') || '',
+                notes: p.getAttribute('data-notes') || ''
+            };
+        } else if (element.classList.contains('folder-element')) {
+            const folderHead = element.querySelector('.folder-head');
+            const folderBody = element.querySelector('.folder-body');
+            const folderNameP = folderHead.querySelector('p');
+            this.draggedData = {
+                type: 'folder',
+                name: folderNameP.textContent,
+                notes: folderNameP.getAttribute('data-notes') || '',
+                items: serializeSection(folderBody)
+            };
+        }
+
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', element.outerHTML);
+    }
+
+    handleDragEnd(e) {
+        if (this.draggedElement) {
+            this.draggedElement.classList.remove('dragging');
+            this.draggedElement = null;
+            this.draggedData = null;
+        }
+        this.hideDropIndicator();
+        this.clearDragOverEffects();
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+        if (!target || !this.draggedElement) return;
+
+        // Don't allow dropping on self
+        if (target.contains(this.draggedElement)) return;
+
+        target.classList.add('drag-over');
+        this.showDropIndicator(e, target);
+    }
+
+    handleDragLeave(e) {
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+        if (target) {
+            target.classList.remove('drag-over');
+        }
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+        if (!target || !this.draggedElement || !this.draggedData) return;
+
+        // Don't allow dropping on self
+        if (target.contains(this.draggedElement)) return;
+
+        const dropPosition = this.getDropPosition(e, target);
+        this.moveElement(target, dropPosition);
+        
+        this.clearDragOverEffects();
+        this.hideDropIndicator();
+    }
+
+    getDropPosition(e, container) {
+        const children = Array.from(container.children).filter(child => 
+            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+            child !== this.draggedElement
+        );
+
+        let insertBefore = null;
+        let closestDistance = Infinity;
+
+        for (let child of children) {
+            const rect = child.getBoundingClientRect();
+            const distance = Math.abs(e.clientY - (rect.top + rect.height / 2));
+            
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                insertBefore = e.clientY < rect.top + rect.height / 2 ? child : child.nextSibling;
+            }
+        }
+
+        return insertBefore;
+    }
+
+    moveElement(targetContainer, insertBefore) {
+        // Remove original element
+        this.draggedElement.remove();
+
+        // Create new element in target container
+        let newElement;
+        if (this.draggedData.type === 'link') {
+            newElement = createBookmarkElement(this.draggedData, targetContainer);
+        } else if (this.draggedData.type === 'folder') {
+            newElement = createFolderElement(this.draggedData, targetContainer);
+        }
+
+        // Insert at correct position
+        if (insertBefore) {
+            targetContainer.insertBefore(newElement, insertBefore);
+        }
+
+        // Add moved effect
+        newElement.classList.add('moved-element');
+        setTimeout(() => newElement.classList.remove('moved-element'), 1500);
+
+        // Save changes
+        saveBookmarks();
+    }
+
+    showDropIndicator(e, container) {
+        const rect = container.getBoundingClientRect();
+        const children = Array.from(container.children).filter(child => 
+            (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+            child !== this.draggedElement
+        );
+
+        let insertY = rect.top;
+        for (let child of children) {
+            const childRect = child.getBoundingClientRect();
+            if (e.clientY > childRect.top + childRect.height / 2) {
+                insertY = childRect.bottom;
+            } else {
+                break;
+            }
+        }
+
+        this.dropIndicator.style.left = rect.left + 'px';
+        this.dropIndicator.style.top = insertY + 'px';
+        this.dropIndicator.style.width = rect.width + 'px';
+        this.dropIndicator.classList.add('active');
+    }
+
+    hideDropIndicator() {
+        this.dropIndicator.classList.remove('active');
+    }
+
+    clearDragOverEffects() {
+        document.querySelectorAll('.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+        });
+    }
+}
+
+let dragDropManager;
 
 //* clock functionality
 document.addEventListener('DOMContentLoaded', function() {

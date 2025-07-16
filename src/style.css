@@ -1107,3 +1107,51 @@ hr{
 .moved-element {
     box-shadow: 0 0 0 1.5px var(--accent-color);
 }
+
+/*  */
+/** Drag & Drop */
+/*  */
+.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.drag-over {
+    background-color: rgba(var(--accent-color-rgb), 0.1);
+    border: 2px dashed var(--accent-color);
+    border-radius: 8px;
+}
+
+.folder-body.drag-over {
+    background-color: rgba(var(--accent-color-rgb), 0.15);
+    min-height: 40px;
+    border: 2px dashed var(--accent-color);
+    border-radius: 6px;
+}
+
+.drop-indicator {
+    height: 3px;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+    margin: 2px 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.drop-indicator.active {
+    opacity: 1;
+}
+
+.moved-element {
+    animation: moveHighlight 1.5s ease;
+}
+
+@keyframes moveHighlight {
+    0% { background-color: rgba(var(--accent-color-rgb), 0.3); }
+    100% { background-color: transparent; }
+}
+
+/* Folder body minimum height when empty */
+.folder-body:empty {
+    min-height: 20px;
+}
