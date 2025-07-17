@@ -9,6 +9,7 @@
     --button-text: #fbfbfe;
     --destructive-color: #ff5252;
     --destructive-hover-color: #ff6b6b;
+    --divider-color-processed: color-mix(in srgb, var(--divider-color) 65%, transparent);
 }
 
 *{
@@ -359,7 +360,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--divider-color);
+    border-bottom: 1px solid var(--divider-color-processed);
 }
 
 .modal-content {
@@ -391,7 +392,7 @@ body{
 #folderForm input,
 .folderForm input {
     padding: 8px;
-    border: 1px solid var(--divider-color);
+    border: 1.5px solid var(--divider-color-processed);
     border-radius: 4px;
     background-color: var(--section-background);
     color: var(--page-text);
@@ -425,7 +426,7 @@ body{
     resize: vertical;
     background-color: var(--section-background);
     color: var(--page-text);
-    border: 1px solid var(--divider-color);
+    border: 1px solid var(--divider-color-processed);
     border-radius: 4px;
     padding: 8px;
     outline: none;
@@ -490,7 +491,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-bottom: 1px solid var(--divider-color);
+    border-bottom: 1px solid var(--divider-color-processed);
 }
 
 .history-modal-header .close {
@@ -1047,7 +1048,7 @@ input[type="checkbox"]:checked::after {
 
 .option-group input, .option-group select {
     padding: 8px;
-    border: 1px solid var(--divider-color);
+    border: 1px solid var(--divider-color-processed);
     border-radius: 4px;
     background-color: var(--section-background);
     color: var(--page-text);
@@ -1104,7 +1105,7 @@ input[type="checkbox"]:checked::after {
 hr{
     height: 1.5px;
     width: 95%;
-    border-color: var(--divider-color);
+    border-color: var(--divider-color-processed);
     margin: 4px 2.5%;
     opacity: 0.5;
     border-radius: 1rem;
