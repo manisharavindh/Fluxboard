@@ -953,6 +953,7 @@ input[type="checkbox"]:checked::after {
 /*  */
 /** Quick Notes  */
 /*  */
+
 .notes-header {
     width: 100%;
     display: flex;

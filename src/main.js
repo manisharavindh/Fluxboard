@@ -8,6 +8,8 @@ const defaultThemeValues = {
     divider: "#52525e"
 };
 
+let isFluxThemeEnabled = JSON.parse(localStorage.getItem('fluxboard_theme_enabled') || 'false');
+
 function updatePageStyle(colors) {
     document.documentElement.style.setProperty('--page-text', colors.text);
     document.documentElement.style.setProperty('--page-background', colors.frame);
@@ -18,6 +20,11 @@ function updatePageStyle(colors) {
 }
 
 async function initializeFromBrowser() {
+    if (!isFluxThemeEnabled) {
+        updatePageStyle(defaultThemeValues);
+        return;
+    }
+
     try {
         const theme = await browser.theme.getCurrent();
         if (theme && theme.colors) {
@@ -42,11 +49,26 @@ async function initializeFromBrowser() {
     }
 }
 
+function toggleFluxTheme() {
+    isFluxThemeEnabled = !isFluxThemeEnabled;
+    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
+    initializeFromBrowser();
+    
+    const toggleButton = document.getElementById('toggle-fluxtheme');
+    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+}
+
 function initTheme() {
+    const toggleButton = document.getElementById('toggle-fluxtheme');
+    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+    toggleButton.addEventListener('click', toggleFluxTheme);
+    
     initializeFromBrowser();
     if (typeof browser !== 'undefined' && browser.theme && browser.theme.onUpdated) {
         browser.theme.onUpdated.addListener((updateInfo) => {
-            initializeFromBrowser();
+            if (isFluxThemeEnabled) {
+                initializeFromBrowser();
+            }
         });
     }
 }
@@ -416,7 +438,8 @@ function exportBookmarks() {
         version: '1.0',
         timestamp: new Date().toISOString(),
         bookmarks: bookmarks,
-        clockSettings: settings
+        clockSettings: settings,
+        fluxThemeEnabled: isFluxThemeEnabled
     };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -450,6 +473,16 @@ function handleImport(event) {
                     Object.assign(settings, data.clockSettings);
                     saveClockSettings();
                     updateClock();
+                }
+
+                if (data.fluxThemeEnabled !== undefined) {
+                    isFluxThemeEnabled = data.fluxThemeEnabled;
+                    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
+                    const toggleButton = document.getElementById('toggle-fluxtheme');
+                    if (toggleButton) {
+                        toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+                    }
+                    initializeFromBrowser();
                 }
             } catch (error) {
                 console.error('Error importing bookmarks:', error);
@@ -1733,26 +1766,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateClock();
     setInterval(updateClock, 1000);
 });
-
-// === DARK/LIGHT MODE TOGGLE ===
-// function setTheme(mode) {
-//     document.body.setAttribute('data-bgmode', mode);
-//     localStorage.setItem('fluxboard_theme', mode);
-// }
-
-// function toggleTheme() {
-//     const current = document.body.getAttribute('data-bgmode') || 'dark';
-//     const next = current === 'dark' ? 'light' : 'dark';
-//     setTheme(next);
-// }
-
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Load theme from localStorage or default to dark
-//     const savedTheme = localStorage.getItem('fluxboard_theme') || 'dark';
-//     setTheme(savedTheme);
-//     const toggleBtn = document.getElementById('toggle-theme');
-//     if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
-// });
 
 //* quick notes text area
 
