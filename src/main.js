@@ -1354,6 +1354,10 @@ class DragDropManager {
         this.draggedData = null;
         this.dropIndicator = null;
         this.lastDropTarget = null;
+        this.folderOpenTimeout = null;
+        this.lastHoveredFolder = null;
+        this.lastClientX = 0;
+        this.lastClientY = 0;
         this.init();
     }
 
@@ -1416,11 +1420,105 @@ class DragDropManager {
         }
         this.hideDropIndicator();
         this.clearDragOverEffects();
+        this.closeFolders();
+    }
+    
+    handleFolderAutoOpen(target) {
+        if (!target) return;
+
+        const folderHead = target.classList.contains('folder-head') ? target : target.closest('.folder-head');
+        if (!folderHead) return;
+        
+        const folderElement = folderHead.closest('.folder-element');
+        if (!folderElement || folderElement === this.draggedElement) return;
+
+        // Get folder body and icon references
+        const folderBody = folderElement.querySelector('.folder-body');
+        const closedIcon = folderHead.querySelector('.folder-closed-icon');
+        const openedIcon = folderHead.querySelector('.folder-opened-icon');
+        if (!folderBody || !closedIcon || !openedIcon) return;
+
+        // If folder is already open and we're still hovering over it, do nothing
+        if (folderElement === this.lastHoveredFolder) {
+            if (folderBody.style.display === 'block') {
+                return;
+            }
+        }
+
+        // Close any previously opened folder
+        if (this.lastHoveredFolder && this.lastHoveredFolder !== folderElement) {
+            this.closeFolder(this.lastHoveredFolder);
+        }
+
+        // Clear any pending open timeout
+        if (this.folderOpenTimeout) {
+            clearTimeout(this.folderOpenTimeout);
+        }
+
+        const openFolder = () => {
+            if (!document.contains(folderElement)) return;
+            
+            this.lastHoveredFolder = folderElement;
+            folderBody.style.display = 'block';
+            closedIcon.style.display = 'none';
+            openedIcon.style.display = 'block';
+            
+            // Update drop indicator position
+            if (this.lastClientX && this.lastClientY) {
+                const rect = folderBody.getBoundingClientRect();
+                if (this.lastClientY >= rect.top && this.lastClientY <= rect.bottom) {
+                    this.showDropIndicator({
+                        clientX: this.lastClientX,
+                        clientY: this.lastClientY
+                    }, folderBody);
+                }
+            }
+        };
+
+        // Immediately open if dragging over folder head, otherwise delay
+        if (target === folderHead || target.parentNode === folderHead) {
+            openFolder();
+        } else {
+            this.folderOpenTimeout = setTimeout(openFolder, 300);
+        }
+    }
+
+    closeFolders() {
+        // Clear any pending open timeouts
+        if (this.folderOpenTimeout) {
+            clearTimeout(this.folderOpenTimeout);
+            this.folderOpenTimeout = null;
+        }
+
+        // Close the last hovered folder
+        if (this.lastHoveredFolder) {
+            const folderBody = this.lastHoveredFolder.querySelector('.folder-body');
+            const img = this.lastHoveredFolder.querySelector('.folder-head img');
+            if (folderBody && img) {
+                folderBody.style.display = 'none';
+                img.src = 'img/closed.png';
+            }
+            this.lastHoveredFolder = null;
+        }
     }
 
     handleDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
+
+        // Store the current mouse position
+        this.lastClientX = e.clientX;
+        this.lastClientY = e.clientY;
+
+        // Check if hovering over folder head first
+        const folderHead = e.target.closest('.folder-head');
+        if (folderHead) {
+            const folderElement = folderHead.closest('.folder-element');
+            if (folderElement && folderElement !== this.draggedElement) {
+                this.handleFolderAutoOpen(folderHead);
+                return; // Don't process further while hovering over folder head
+            }
+        }
 
         const target = this.findDropTarget(e);
         if (!target || !this.draggedElement) return;
@@ -1428,18 +1526,50 @@ class DragDropManager {
         // Don't allow dropping on self or inside own folder
         if (this.isInvalidDropTarget(target)) return;
 
+        // Handle folder auto-open for non-header areas
+        this.handleFolderAutoOpen(target);
+
         this.updateDropIndicator(e, target);
     }
 
     findDropTarget(e) {
-        // Check for direct element targets first
-        const elementTarget = e.target.closest('.link-element, .folder-element');
-        if (elementTarget) {
-            return elementTarget;
+        // First check if we're hovering over a folder body
+        const folderBody = e.target.closest('.folder-body');
+        if (folderBody) {
+            return folderBody;
         }
 
-        // Then check for container targets
-        return e.target.closest('.col1, .col2, .col3, .col4, .folder-body');
+        // Check if hovering over a folder
+        const folderElement = e.target.closest('.folder-element');
+        if (folderElement && folderElement !== this.draggedElement) {
+            const folderHead = folderElement.querySelector('.folder-head');
+            const body = folderElement.querySelector('.folder-body');
+            
+            // If hovering over the folder head area
+            if (e.target.closest('.folder-head')) {
+                this.handleFolderAutoOpen(folderElement);
+                return folderElement;
+            }
+            
+            // If folder is open and hovering over its body area
+            if (body && body.style.display === 'block') {
+                const rect = body.getBoundingClientRect();
+                if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    return body;
+                }
+            }
+            
+            return folderElement;
+        }
+
+        // Check for link elements
+        const linkElement = e.target.closest('.link-element');
+        if (linkElement && linkElement !== this.draggedElement) {
+            return linkElement;
+        }
+
+        // Finally check for column containers
+        return e.target.closest('.col1, .col2, .col3, .col4');
     }
 
     isInvalidDropTarget(target) {
@@ -1499,17 +1629,18 @@ class DragDropManager {
 
     showDropIndicator(e, container) {
         const rect = container.getBoundingClientRect();
+        const isFolder = container.classList.contains('folder-body');
         const children = Array.from(container.children).filter(child => 
             (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
             child !== this.draggedElement
         );
 
         if (children.length === 0) {
-            // Empty container, show indicator in the middle
+            // Empty container, show indicator according to container type
             this.dropIndicator.style.display = 'block';
-            this.dropIndicator.style.width = `${rect.width}px`;
-            this.dropIndicator.style.left = `${rect.left}px`;
-            this.dropIndicator.style.top = `${rect.top + 10}px`;
+            this.dropIndicator.style.width = `${rect.width - (isFolder ? 20 : 0)}px`; // Indent for folder body
+            this.dropIndicator.style.left = `${rect.left + (isFolder ? 10 : 0)}px`; // Indent for folder body
+            this.dropIndicator.style.top = `${rect.top + 5}px`;
             return;
         }
 
@@ -1556,18 +1687,24 @@ class DragDropManager {
         const dropTarget = this.findDropTarget(e);
         if (!dropTarget || this.isInvalidDropTarget(dropTarget)) return;
 
-        const container = dropTarget.classList.contains('folder-body') || 
-                         dropTarget.classList.contains('col1') || 
-                         dropTarget.classList.contains('col2') || 
-                         dropTarget.classList.contains('col3') || 
-                         dropTarget.classList.contains('col4')
-            ? dropTarget
-            : dropTarget.parentElement;
+        let container;
+        // Only allow dropping into folder-body or column containers
+        if (dropTarget.classList.contains('folder-body')) {
+            container = dropTarget;
+        } else if (dropTarget.classList.contains('col1') || 
+                   dropTarget.classList.contains('col2') || 
+                   dropTarget.classList.contains('col3') || 
+                   dropTarget.classList.contains('col4')) {
+            container = dropTarget;
+        } else {
+            container = dropTarget.parentElement;
+        }
 
         const insertBefore = this.getDropPosition(e, dropTarget);
         this.moveElement(container, insertBefore);
         
         this.hideDropIndicator();
+        this.closeFolders();
         saveBookmarks();
     }
 
@@ -1604,24 +1741,54 @@ class DragDropManager {
     }
 
     moveElement(targetContainer, insertBefore) {
-        // Remove original element
-        this.draggedElement.remove();
+        try {
+            // Remove original element
+            if (this.draggedElement.parentNode) {
+                this.draggedElement.remove();
+            }
 
-        // Create new element in target container
-        let newElement;
-        if (this.draggedData.type === 'link') {
-            newElement = createBookmarkElement(this.draggedData, targetContainer);
-        } else if (this.draggedData.type === 'folder') {
-            newElement = createFolderElement(this.draggedData, targetContainer);
-        }
+            // Create new element in target container
+            let newElement;
+            if (this.draggedData.type === 'link') {
+                newElement = createBookmarkElement(this.draggedData, targetContainer);
+            } else if (this.draggedData.type === 'folder') {
+                newElement = createFolderElement(this.draggedData, targetContainer);
+            }
 
-        // If we have a specific position to insert before
-        if (insertBefore) {
-            targetContainer.insertBefore(newElement, insertBefore);
-        } else {
-            // Otherwise append to the end
-            targetContainer.appendChild(newElement);
+            // Make sure the target container is still in the DOM
+            if (!document.contains(targetContainer)) {
+                return;
+            }
+
+            // If we have a specific position to insert before
+            if (insertBefore && insertBefore.parentNode === targetContainer) {
+                targetContainer.insertBefore(newElement, insertBefore);
+            } else {
+                // Otherwise append to the end
+                targetContainer.appendChild(newElement);
+            }
+
+            // Add moved animation
+            newElement.classList.add('moved-element');
+            setTimeout(() => newElement.classList.remove('moved-element'), 1500);
+        } catch (error) {
+            console.error('Error moving element:', error);
         }
+    }
+
+    closeFolder(folder) {
+        if (!folder) return;
+        const folderBody = folder.querySelector('.folder-body');
+        const folderHead = folder.querySelector('.folder-head');
+        if (!folderBody || !folderHead) return;
+
+        const closedIcon = folderHead.querySelector('.folder-closed-icon');
+        const openedIcon = folderHead.querySelector('.folder-opened-icon');
+        if (!closedIcon || !openedIcon) return;
+
+        folderBody.style.display = 'none';
+        closedIcon.style.display = 'block';
+        openedIcon.style.display = 'none';
     }
 }
 
