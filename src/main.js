@@ -1420,7 +1420,6 @@ class DragDropManager {
         }
         this.hideDropIndicator();
         this.clearDragOverEffects();
-        this.closeFolders();
     }
     
     handleFolderAutoOpen(target) {
@@ -1438,22 +1437,33 @@ class DragDropManager {
         const openedIcon = folderHead.querySelector('.folder-opened-icon');
         if (!folderBody || !closedIcon || !openedIcon) return;
 
-        // If folder is already open and we're still hovering over it, do nothing
-        if (folderElement === this.lastHoveredFolder) {
-            if (folderBody.style.display === 'block') {
-                return;
-            }
-        }
-
-        // Close any previously opened folder
-        if (this.lastHoveredFolder && this.lastHoveredFolder !== folderElement) {
-            this.closeFolder(this.lastHoveredFolder);
+        // If folder is already open, don't do anything
+        if (folderBody.style.display === 'block') {
+            return;
         }
 
         // Clear any pending open timeout
         if (this.folderOpenTimeout) {
             clearTimeout(this.folderOpenTimeout);
         }
+
+        // Helper function to recursively open nested folders
+        const openNestedFolders = (container) => {
+            const folders = container.querySelectorAll('.folder-element');
+            folders.forEach(folder => {
+                const body = folder.querySelector('.folder-body');
+                const head = folder.querySelector('.folder-head');
+                if (body && head) {
+                    body.style.display = 'block';
+                    const closedIcon = head.querySelector('.folder-closed-icon');
+                    const openedIcon = head.querySelector('.folder-opened-icon');
+                    if (closedIcon && openedIcon) {
+                        closedIcon.style.display = 'none';
+                        openedIcon.style.display = 'block';
+                    }
+                }
+            });
+        };
 
         const openFolder = () => {
             if (!document.contains(folderElement)) return;
@@ -1463,16 +1473,30 @@ class DragDropManager {
             closedIcon.style.display = 'none';
             openedIcon.style.display = 'block';
             
-            // Update drop indicator position
-            if (this.lastClientX && this.lastClientY) {
-                const rect = folderBody.getBoundingClientRect();
-                if (this.lastClientY >= rect.top && this.lastClientY <= rect.bottom) {
-                    this.showDropIndicator({
-                        clientX: this.lastClientX,
-                        clientY: this.lastClientY
-                    }, folderBody);
-                }
-            }
+            // Recursively open all nested folders
+            openNestedFolders(folderBody);
+            
+            // After opening the folder, show the drop indicator inside it
+            const rect = folderBody.getBoundingClientRect();
+            const children = Array.from(folderBody.children).filter(child => 
+                (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+                child !== this.draggedElement
+            );
+            
+            this.dropIndicator.style.display = 'block';
+            this.dropIndicator.style.width = `${rect.width - 25}px`; // Account for indent
+            this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.marginLeft = '25px';
+            
+            // Always position at the top when auto-opening folder
+            this.dropIndicator.style.top = children.length > 0 
+                ? `${children[0].getBoundingClientRect().top - 2}px` 
+                : `${rect.top + 5}px`;
+            // Set mouse position to top to force drop at the beginning
+            this.lastClientY = rect.top + 2;
+            
+            // Set folder body as the drop target
+            this.lastDropTarget = folderBody;
         };
 
         // Immediately open if dragging over folder head, otherwise delay
@@ -1480,25 +1504,6 @@ class DragDropManager {
             openFolder();
         } else {
             this.folderOpenTimeout = setTimeout(openFolder, 300);
-        }
-    }
-
-    closeFolders() {
-        // Clear any pending open timeouts
-        if (this.folderOpenTimeout) {
-            clearTimeout(this.folderOpenTimeout);
-            this.folderOpenTimeout = null;
-        }
-
-        // Close the last hovered folder
-        if (this.lastHoveredFolder) {
-            const folderBody = this.lastHoveredFolder.querySelector('.folder-body');
-            const img = this.lastHoveredFolder.querySelector('.folder-head img');
-            if (folderBody && img) {
-                folderBody.style.display = 'none';
-                img.src = 'img/closed.png';
-            }
-            this.lastHoveredFolder = null;
         }
     }
 
@@ -1536,7 +1541,10 @@ class DragDropManager {
         // First check if we're hovering over a folder body
         const folderBody = e.target.closest('.folder-body');
         if (folderBody) {
-            return folderBody;
+            const rect = folderBody.getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                return folderBody;
+            }
         }
 
         // Check if hovering over a folder
@@ -1596,10 +1604,19 @@ class DragDropManager {
                           target.classList.contains('col3') || 
                           target.classList.contains('col4') ||
                           target.classList.contains('folder-body');
+        
+        const isInsideFolder = target.classList.contains('folder-body') || target.closest('.folder-body');
 
         if (isContainer) {
             // For empty containers or positioning at the end
             this.showDropIndicator(e, target);
+            
+            // Add margin-left if inside a folder body
+            if (isInsideFolder) {
+                this.dropIndicator.style.marginLeft = '25px';
+            } else {
+                this.dropIndicator.style.marginLeft = '0';
+            }
         } else {
             // For positioning between elements
             const mouseY = e.clientY;
@@ -1609,6 +1626,10 @@ class DragDropManager {
             this.dropIndicator.style.display = 'block';
             this.dropIndicator.style.width = `${rect.width}px`;
             this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.marginLeft = isInsideFolder ? '25px' : '0';
+            if (isInsideFolder) {
+                this.dropIndicator.style.width = `${rect.width - 25}px`;
+            }
             
             if (position === 'before') {
                 this.dropIndicator.style.top = `${rect.top - 2}px`;
@@ -1630,6 +1651,7 @@ class DragDropManager {
     showDropIndicator(e, container) {
         const rect = container.getBoundingClientRect();
         const isFolder = container.classList.contains('folder-body');
+        const isInsideFolder = container.classList.contains('folder-body') || container.closest('.folder-body');
         const children = Array.from(container.children).filter(child => 
             (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
             child !== this.draggedElement
@@ -1637,9 +1659,11 @@ class DragDropManager {
 
         if (children.length === 0) {
             // Empty container, show indicator according to container type
+            const width = rect.width - (isInsideFolder ? 25 : 0);
             this.dropIndicator.style.display = 'block';
-            this.dropIndicator.style.width = `${rect.width - (isFolder ? 20 : 0)}px`; // Indent for folder body
-            this.dropIndicator.style.left = `${rect.left + (isFolder ? 10 : 0)}px`; // Indent for folder body
+            this.dropIndicator.style.width = `${width}px`;
+            this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.marginLeft = isInsideFolder ? '25px' : '0';
             this.dropIndicator.style.top = `${rect.top + 5}px`;
             return;
         }
@@ -1665,6 +1689,10 @@ class DragDropManager {
             this.dropIndicator.style.display = 'block';
             this.dropIndicator.style.width = `${rect.width}px`;
             this.dropIndicator.style.left = `${rect.left}px`;
+            this.dropIndicator.style.marginLeft = isInsideFolder ? '25px' : '0';
+            if (isInsideFolder) {
+                this.dropIndicator.style.width = `${rect.width - 25}px`;
+            }
             this.dropIndicator.style.top = position === 'before' 
                 ? `${closestRect.top - 2}px`
                 : `${closestRect.bottom - 2}px`;
@@ -1688,8 +1716,12 @@ class DragDropManager {
         if (!dropTarget || this.isInvalidDropTarget(dropTarget)) return;
 
         let container;
-        // Only allow dropping into folder-body or column containers
-        if (dropTarget.classList.contains('folder-body')) {
+        // If we have a lastDropTarget and it's a folder body, use that
+        if (this.lastDropTarget && this.lastDropTarget.classList.contains('folder-body')) {
+            container = this.lastDropTarget;
+        }
+        // Otherwise check the drop target
+        else if (dropTarget.classList.contains('folder-body')) {
             container = dropTarget;
         } else if (dropTarget.classList.contains('col1') || 
                    dropTarget.classList.contains('col2') || 
@@ -1704,7 +1736,6 @@ class DragDropManager {
         this.moveElement(container, insertBefore);
         
         this.hideDropIndicator();
-        this.closeFolders();
         saveBookmarks();
     }
 
@@ -1720,6 +1751,32 @@ class DragDropManager {
                 child !== this.draggedElement
             );
 
+            // If we have children and an active drop indicator
+            if (children.length > 0 && this.dropIndicator && this.dropIndicator.style.display === 'block') {
+                const indicatorTop = parseInt(this.dropIndicator.style.top);
+                const firstChildRect = children[0].getBoundingClientRect();
+                const lastChildRect = children[children.length - 1].getBoundingClientRect();
+                
+                // If indicator is at or above first child, insert at top
+                if (indicatorTop <= firstChildRect.top) {
+                    return children[0];
+                }
+                
+                // If indicator is below last child, return null to append at end
+                if (indicatorTop >= lastChildRect.bottom) {
+                    return null;
+                }
+                
+                // Find the correct position based on indicator
+                for (let i = 0; i < children.length; i++) {
+                    const childRect = children[i].getBoundingClientRect();
+                    if (indicatorTop <= childRect.bottom) {
+                        return children[i];
+                    }
+                }
+            }
+
+            // Fallback to closest position if no indicator or other cases
             let insertBefore = null;
             let closestDistance = Infinity;
 
@@ -1776,20 +1833,6 @@ class DragDropManager {
         }
     }
 
-    closeFolder(folder) {
-        if (!folder) return;
-        const folderBody = folder.querySelector('.folder-body');
-        const folderHead = folder.querySelector('.folder-head');
-        if (!folderBody || !folderHead) return;
-
-        const closedIcon = folderHead.querySelector('.folder-closed-icon');
-        const openedIcon = folderHead.querySelector('.folder-opened-icon');
-        if (!closedIcon || !openedIcon) return;
-
-        folderBody.style.display = 'none';
-        closedIcon.style.display = 'block';
-        openedIcon.style.display = 'none';
-    }
 }
 
 let dragDropManager;
