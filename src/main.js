@@ -3,7 +3,7 @@ const defaultThemeValues = {
     text: "#fbfbfe",
     frame: "#1c1b22",
     toolbar: "#2b2a33",
-    tab_background: "#2b2a33",
+    tab_background: "#42414d",
     accent: "#0061e0",
     divider: "#52525e"
 };
