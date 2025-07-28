@@ -91,10 +91,67 @@ function folder_toggle(element) {
 }
 
 //* handle search
+let currentSearchEngine = 'google';
+const searchEngines = {
+    google: {
+        name: 'Google',
+        icon: 'img/google.webp',
+        url: 'https://www.google.com/search?q=',
+        placeholder: 'Search with Google or type URL'
+    },
+    duckduckgo: {
+        name: 'DuckDuckGo',
+        icon: 'img/duckduckgo.png',
+        url: 'https://duckduckgo.com/?q=',
+        placeholder: 'Search with DuckDuckGo or type URL'
+    }
+};
+
+function initSearchToggle() {
+    const iconElement = document.querySelector('.search .icon');
+    const iconImg = iconElement.querySelector('img');
+    const searchInput = document.getElementById('searchInput');
+    
+    updateSearchInterface();
+    
+    iconElement.addEventListener('click', toggleSearchEngine);
+    
+    function toggleSearchEngine() {
+        currentSearchEngine = currentSearchEngine === 'google' ? 'duckduckgo' : 'google';
+        updateSearchInterface();
+        
+        try {
+            localStorage.setItem('preferredSearchEngine', currentSearchEngine);
+        } catch (e) {
+            console.error('Error saving preferred search engine to localStorage:', e);
+        }
+    }
+    
+    function updateSearchInterface() {
+        const engine = searchEngines[currentSearchEngine];
+        const iconImg = document.querySelector('.search .icon img');
+        const searchInput = document.getElementById('searchInput');
+        
+        iconImg.src = engine.icon;
+        iconImg.alt = engine.name;
+        searchInput.placeholder = engine.placeholder;
+        iconElement.setAttribute('data-tooltip', `switch to ${currentSearchEngine === 'google' ? 'DuckDuckGo' : 'Google'}`);
+    }
+    
+    try {
+        const savedEngine = localStorage.getItem('preferredSearchEngine');
+        if (savedEngine && searchEngines[savedEngine]) {
+            currentSearchEngine = savedEngine;
+            updateSearchInterface();
+        }
+    } catch (e) {
+        console.error('Error retrieving preferred search engine from localStorage:', e);
+    }
+}
+
 function handleSearch(event) {
     event.preventDefault();
     const input = document.getElementById('searchInput').value.trim();
-    
     const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-.,@?^=%&:/~+#]*[\w-@?^=%&/~+#])?$/;
     
     if (urlRegex.test(input)) {
@@ -102,9 +159,12 @@ function handleSearch(event) {
         window.location.href = url;
     } else {
         const searchQuery = encodeURIComponent(input);
-        window.location.href = `https://www.google.com/search?q=${searchQuery}`;
+        const searchUrl = searchEngines[currentSearchEngine].url + searchQuery;
+        window.location.href = searchUrl;
     }
 }
+
+document.addEventListener('DOMContentLoaded', initSearchToggle);
 
 //* handle url
 function normalizeUrl(url) {
@@ -1094,8 +1154,6 @@ class ContextMenuManager {
                     this.moveElementDirection(this.currentElement, direction);
                 } else if (action === 'new-tap' && this.currentElement) {
                     this.openInNewTab(this.currentElement);
-                } else if (action === 'new-window' && this.currentElement) {
-                    this.openInNewWindow(this.currentElement);
                 } else if (action === 'edit' && this.currentElement) {
                     this.editElement(this.currentElement);
                 } else if (action === 'delete' && this.currentElement) {
@@ -1287,27 +1345,13 @@ class ContextMenuManager {
             }
         }
     }
+    
     openInNewTab(element) {
     if (element.classList.contains('link-element')) {
             const p = element.querySelector('p');
             const url = p.getAttribute('data-url');
             if (url) {
                 window.open(url, '_blank');
-            }
-        }
-    }
-
-    openInNewWindow(element) {
-        if (element.classList.contains('link-element')) {
-            const p = element.querySelector('p');
-            const url = p.getAttribute('data-url');
-            if (url) {
-                const newWindow = window.open('', '_blank', 'width=1200,height=800,left=200,top=200,scrollbars=yes,resizable=yes,toolbar=yes,menubar=yes,location=yes,status=yes');
-                if (newWindow) {
-                    newWindow.location.href = url;
-                } else {
-                    window.open(url, '_blank');
-                }
             }
         }
     }
@@ -1618,10 +1662,17 @@ class DragDropManager {
                 this.dropIndicator.style.marginLeft = '0';
             }
         } else {
-            // For positioning between elements
+            // For positioning between elements - FIXED: only show below elements, above only for first
+            const container = target.parentElement;
+            const children = Array.from(container.children).filter(child => 
+                (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+                child !== this.draggedElement
+            );
+            
+            const elementIndex = children.indexOf(target);
             const mouseY = e.clientY;
-            const threshold = rect.top + (rect.height / 2);
-            const position = mouseY < threshold ? 'before' : 'after';
+            const elementTop = rect.top;
+            const elementMiddle = rect.top + (rect.height / 2);
             
             this.dropIndicator.style.display = 'block';
             this.dropIndicator.style.width = `${rect.width}px`;
@@ -1631,9 +1682,11 @@ class DragDropManager {
                 this.dropIndicator.style.width = `${rect.width - 25}px`;
             }
             
-            if (position === 'before') {
+            // Show above only if it's the first element AND mouse is in upper half
+            if (elementIndex === 0 && mouseY < elementMiddle) {
                 this.dropIndicator.style.top = `${rect.top - 2}px`;
             } else {
+                // Always show below for all other cases
                 this.dropIndicator.style.top = `${rect.bottom - 2}px`;
             }
         }
@@ -1668,24 +1721,36 @@ class DragDropManager {
             return;
         }
 
-        let closestChild = null;
-        let closestDistance = Infinity;
-        let position = 'after';
+        let targetChild = null;
+        let position = 'after'; // Default to 'after'
 
-        for (const child of children) {
+        // Find the closest child based on mouse position
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
             const childRect = child.getBoundingClientRect();
-            const childCenter = childRect.top + (childRect.height / 2);
-            const distance = Math.abs(e.clientY - childCenter);
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestChild = child;
-                position = e.clientY < childCenter ? 'before' : 'after';
+            
+            // Check if mouse is above the first element's middle point
+            if (i === 0 && e.clientY < (childRect.top + childRect.height / 2)) {
+                targetChild = child;
+                position = 'before';
+                break;
+            }
+            // For all elements, check if mouse is below their middle point
+            else if (e.clientY >= (childRect.top + childRect.height / 2)) {
+                targetChild = child;
+                position = 'after';
+                // Continue to find the last element that satisfies this condition
             }
         }
 
-        if (closestChild) {
-            const closestRect = closestChild.getBoundingClientRect();
+        // If no target found, default to after the last element
+        if (!targetChild) {
+            targetChild = children[children.length - 1];
+            position = 'after';
+        }
+
+        if (targetChild) {
+            const targetRect = targetChild.getBoundingClientRect();
             this.dropIndicator.style.display = 'block';
             this.dropIndicator.style.width = `${rect.width}px`;
             this.dropIndicator.style.left = `${rect.left}px`;
@@ -1694,8 +1759,8 @@ class DragDropManager {
                 this.dropIndicator.style.width = `${rect.width - 25}px`;
             }
             this.dropIndicator.style.top = position === 'before' 
-                ? `${closestRect.top - 2}px`
-                : `${closestRect.bottom - 2}px`;
+                ? `${targetRect.top - 2}px`
+                : `${targetRect.bottom - 2}px`;
         }
     }
 
@@ -1754,46 +1819,75 @@ class DragDropManager {
             // If we have children and an active drop indicator
             if (children.length > 0 && this.dropIndicator && this.dropIndicator.style.display === 'block') {
                 const indicatorTop = parseInt(this.dropIndicator.style.top);
-                const firstChildRect = children[0].getBoundingClientRect();
-                const lastChildRect = children[children.length - 1].getBoundingClientRect();
                 
-                // If indicator is at or above first child, insert at top
-                if (indicatorTop <= firstChildRect.top) {
-                    return children[0];
-                }
-                
-                // If indicator is below last child, return null to append at end
-                if (indicatorTop >= lastChildRect.bottom) {
-                    return null;
-                }
-                
-                // Find the correct position based on indicator
+                // Check each child to see where the indicator is positioned
                 for (let i = 0; i < children.length; i++) {
                     const childRect = children[i].getBoundingClientRect();
-                    if (indicatorTop <= childRect.bottom) {
+                    
+                    // If indicator is above this child (only possible for first child)
+                    if (i === 0 && indicatorTop <= childRect.top) {
                         return children[i];
                     }
+                    
+                    // If indicator is below this child
+                    if (indicatorTop >= childRect.bottom - 5 && indicatorTop <= childRect.bottom + 5) {
+                        return children[i + 1] || null; // Insert after this child
+                    }
                 }
-            }
-
-            // Fallback to closest position if no indicator or other cases
-            let insertBefore = null;
-            let closestDistance = Infinity;
-
-            for (let child of children) {
-                const rect = child.getBoundingClientRect();
-                const distance = Math.abs(e.clientY - (rect.top + rect.height / 2));
                 
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    insertBefore = e.clientY < rect.top + rect.height / 2 ? child : child.nextSibling;
+                // If no exact match found, append at end
+                return null;
+            }
+
+            // Fallback logic for when there's no indicator
+            if (children.length === 0) {
+                return null; // Empty container, append at beginning
+            }
+
+            // Find position based on mouse Y coordinate
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                const rect = child.getBoundingClientRect();
+                
+                // Only allow insertion before the first element if mouse is in upper half
+                if (i === 0 && e.clientY < rect.top + (rect.height / 2)) {
+                    return child;
+                }
+                
+                // For all elements, if mouse is below middle, continue to next
+                if (e.clientY >= rect.top + (rect.height / 2)) {
+                    // If this is the last element, insert after it
+                    if (i === children.length - 1) {
+                        return null;
+                    }
+                    continue;
+                } else {
+                    // Mouse is in upper half of non-first element, insert after previous
+                    return child;
                 }
             }
 
-            return insertBefore;
+            return null; // Append at end
         } else {
+            // Handle individual elements
+            const container = target.parentElement;
+            const children = Array.from(container.children).filter(child => 
+                (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
+                child !== this.draggedElement
+            );
+            
+            const elementIndex = children.indexOf(target);
             const rect = target.getBoundingClientRect();
-            return e.clientY < rect.top + (rect.height / 2) ? target : target.nextSibling;
+            const mouseY = e.clientY;
+            const elementMiddle = rect.top + (rect.height / 2);
+            
+            // Only allow before position for first element
+            if (elementIndex === 0 && mouseY < elementMiddle) {
+                return target;
+            } else {
+                // All other cases: insert after this element
+                return target.nextSibling;
+            }
         }
     }
 
@@ -1833,6 +1927,9 @@ class DragDropManager {
         }
     }
 
+    clearDragOverEffects() {
+        // Add any cleanup for drag over effects if needed
+    }
 }
 
 let dragDropManager;

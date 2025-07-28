@@ -97,6 +97,16 @@ body{
     place-items: center;
     padding-left: 1rem;
     padding-right: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-box .icon:hover {
+    transform: scale(1.05);
+}
+
+.search-box .icon:active {
+    transform: scale(0.95);
 }
 
 .search-box .icon img {
@@ -114,6 +124,27 @@ body{
     outline: none;
     padding-right: 1rem;
     cursor: text;
+}
+
+.search-box .icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--section-background);
+    color: var(--page-text);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 8px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.search-box .icon:hover::after {
+    opacity: 0.5;
 }
 
 /*  */
