@@ -384,6 +384,13 @@ function createFolderElement(folder, container) {
             folder_toggle(folderHead);
         }
     });
+
+    folderHead.addEventListener('contextmenu', (e) => {
+        if (!e.target.classList.contains('edit-icon')) {
+            e.stopPropagation();
+            contextMenuManager.showContextMenu(e, folderElement);
+        }
+    });
     
     const addLinkIcon = folderElement.querySelector('.add-link-icon');
     addLinkIcon.addEventListener('click', (e) => {
@@ -403,12 +410,6 @@ function createFolderElement(folder, container) {
     menuIcon.addEventListener('click', (e) => {
         e.stopPropagation();
         editFolder(menuIcon);
-    });
-
-    folderElement.addEventListener('contextmenu', (e) => {
-        if (!e.target.classList.contains('edit-icon')) {
-            contextMenuManager.showContextMenu(e, folderElement);
-        }
     });
     
     const folderBody = folderElement.querySelector('.folder-body');
@@ -495,8 +496,8 @@ folderForm.onsubmit = (e) => {
 function exportBookmarks() {
     const bookmarks = getAllBookmarks();
     const exportData = {
-        version: '1.0',
-        timestamp: new Date().toISOString(),
+        version: chrome.runtime.getManifest().version,
+        timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         bookmarks: bookmarks,
         clockSettings: settings,
         fluxThemeEnabled: isFluxThemeEnabled
@@ -506,7 +507,7 @@ function exportBookmarks() {
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', 'fluxboard_bookmarks.json');
+    linkElement.setAttribute('download', `fluxboard_bookmarks_${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}.json`);
     document.body.appendChild(linkElement);
     linkElement.click();
     document.body.removeChild(linkElement);
@@ -1171,6 +1172,7 @@ class ContextMenuManager {
         
         const currentColumn = this.getCurrentColumn(element);
         const isLinkElement = element.classList.contains('link-element');
+        const isFolderElement = element.classList.contains('folder-element');
         
         this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
             const action = item.dataset.action;
@@ -1180,7 +1182,7 @@ class ContextMenuManager {
             if ((action === 'new-tap' || action === 'new-window') && !isLinkElement) {
                 item.style.display = 'none';
                 return;
-            } else if (action === 'new-tap' || action === 'new-window') {
+            } else if ((action === 'new-tap' || action === 'new-window') && isLinkElement) {
                 item.style.display = 'block';
             }
         });
@@ -1928,7 +1930,7 @@ class DragDropManager {
     }
 
     clearDragOverEffects() {
-        // Add any cleanup for drag over effects if needed
+        pass
     }
 }
 
