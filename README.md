@@ -2,12 +2,14 @@
 Fluxboard is a minimal and fast new tab replacement extension for Firefox. It offers a clean interface with bookmarks, todos, notes, and a customizable clock. No clutter, no ads, no nonsense — just a simple, user-friendly productivity dashboard that just works.
 
 ## Features
-- Bookmarking with groups and folders
-- Built-in todo with history
-- Quick notes for jotting down thoughts
-- Customizable clock with multiple formats
-- Light/Dark mode toggle
-- Import/Export and reset data
+- Links: Bookmarking with groups and folders
+- Todo: Built-in todo with history
+- Stickies: Quick notes for jotting down thoughts
+- Widget: customizable clock with multiple formats
+- Data Management: import/export and reset data
+- Search Engines: Google and DuckDuckGo search engines support
+- Drag & Drop: drag-and-drop functionality to reorganize bookmarks
+- FluxTheme: automatically adapts to Firefox's current theme colors
 
 ## Installation
 1. Visit the [FluxBoard Firefox Add-on page](https://addons.mozilla.org/en-US/firefox/addon/fluxboard/)
@@ -28,7 +30,13 @@ Fluxboard is a minimal and fast new tab replacement extension for Firefox. It of
 5. The extension should now appear in your toolbar and run as expected.
 
 ## Notes
-- While installing, select "Use Current Page" with an extra new tap open so that firefox can pick the url.
+- When setting up the homepage, make sure to have Fluxboard (only one tab) open in the current window before selecting "Use Current Page" on settings so that firefox can pick the url.
+- All data is stored locally in your browser - no external servers or tracking.
+- The extension respects Firefox's theme colors when FluxTheme is enabled which won't always look good.
+
+## Support
+If you encounter any issues or have feature requests, please open an issue or create a feature request issue.
+contributors are welcome! Feel free to fork the repository and submit pull requests.
 
 <!-- ## 📸 Preview
 ![Fluxboard Screenshot](./preview.png) -->

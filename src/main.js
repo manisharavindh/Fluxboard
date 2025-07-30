@@ -789,7 +789,6 @@ groupTitleForm.addEventListener('submit', function(event) {
         const newTitle = groupTitleInput.value.trim();
         if (newTitle) {
             currentGroupTitleElement.querySelector('h5').textContent = newTitle;
-            // Save to localStorage if needed
             saveGroupTitles();
         }
     }
@@ -1477,23 +1476,19 @@ class DragDropManager {
         const folderElement = folderHead.closest('.folder-element');
         if (!folderElement || folderElement === this.draggedElement) return;
 
-        // Get folder body and icon references
         const folderBody = folderElement.querySelector('.folder-body');
         const closedIcon = folderHead.querySelector('.folder-closed-icon');
         const openedIcon = folderHead.querySelector('.folder-opened-icon');
         if (!folderBody || !closedIcon || !openedIcon) return;
 
-        // If folder is already open, don't do anything
         if (folderBody.style.display === 'block') {
             return;
         }
 
-        // Clear any pending open timeout
         if (this.folderOpenTimeout) {
             clearTimeout(this.folderOpenTimeout);
         }
 
-        // Helper function to recursively open nested folders
         const openNestedFolders = (container) => {
             const folders = container.querySelectorAll('.folder-element');
             folders.forEach(folder => {
@@ -1519,10 +1514,8 @@ class DragDropManager {
             closedIcon.style.display = 'none';
             openedIcon.style.display = 'block';
             
-            // Recursively open all nested folders
             openNestedFolders(folderBody);
             
-            // After opening the folder, show the drop indicator inside it
             const rect = folderBody.getBoundingClientRect();
             const children = Array.from(folderBody.children).filter(child => 
                 (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
@@ -1530,22 +1523,18 @@ class DragDropManager {
             );
             
             this.dropIndicator.style.display = 'block';
-            this.dropIndicator.style.width = `${rect.width - 25}px`; // Account for indent
+            this.dropIndicator.style.width = `${rect.width - 25}px`;
             this.dropIndicator.style.left = `${rect.left}px`;
             this.dropIndicator.style.marginLeft = '25px';
             
-            // Always position at the top when auto-opening folder
             this.dropIndicator.style.top = children.length > 0 
                 ? `${children[0].getBoundingClientRect().top - 2}px` 
                 : `${rect.top + 5}px`;
-            // Set mouse position to top to force drop at the beginning
             this.lastClientY = rect.top + 2;
             
-            // Set folder body as the drop target
             this.lastDropTarget = folderBody;
         };
 
-        // Immediately open if dragging over folder head, otherwise delay
         if (target === folderHead || target.parentNode === folderHead) {
             openFolder();
         } else {
@@ -1557,34 +1546,29 @@ class DragDropManager {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
-        // Store the current mouse position
         this.lastClientX = e.clientX;
         this.lastClientY = e.clientY;
 
-        // Check if hovering over folder head first
         const folderHead = e.target.closest('.folder-head');
         if (folderHead) {
             const folderElement = folderHead.closest('.folder-element');
             if (folderElement && folderElement !== this.draggedElement) {
                 this.handleFolderAutoOpen(folderHead);
-                return; // Don't process further while hovering over folder head
+                return;
             }
         }
 
         const target = this.findDropTarget(e);
         if (!target || !this.draggedElement) return;
 
-        // Don't allow dropping on self or inside own folder
         if (this.isInvalidDropTarget(target)) return;
 
-        // Handle folder auto-open for non-header areas
         this.handleFolderAutoOpen(target);
 
         this.updateDropIndicator(e, target);
     }
 
     findDropTarget(e) {
-        // First check if we're hovering over a folder body
         const folderBody = e.target.closest('.folder-body');
         if (folderBody) {
             const rect = folderBody.getBoundingClientRect();
@@ -1593,19 +1577,16 @@ class DragDropManager {
             }
         }
 
-        // Check if hovering over a folder
         const folderElement = e.target.closest('.folder-element');
         if (folderElement && folderElement !== this.draggedElement) {
             const folderHead = folderElement.querySelector('.folder-head');
             const body = folderElement.querySelector('.folder-body');
             
-            // If hovering over the folder head area
             if (e.target.closest('.folder-head')) {
                 this.handleFolderAutoOpen(folderElement);
                 return folderElement;
             }
             
-            // If folder is open and hovering over its body area
             if (body && body.style.display === 'block') {
                 const rect = body.getBoundingClientRect();
                 if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
@@ -1616,21 +1597,17 @@ class DragDropManager {
             return folderElement;
         }
 
-        // Check for link elements
         const linkElement = e.target.closest('.link-element');
         if (linkElement && linkElement !== this.draggedElement) {
             return linkElement;
         }
 
-        // Finally check for column containers
         return e.target.closest('.col1, .col2, .col3, .col4');
     }
 
     isInvalidDropTarget(target) {
-        // Can't drop on itself
         if (target === this.draggedElement) return true;
 
-        // Can't drop into own subfolder
         if (this.draggedElement.classList.contains('folder-element')) {
             const draggedFolder = this.draggedElement;
             let parent = target;
@@ -1654,17 +1631,14 @@ class DragDropManager {
         const isInsideFolder = target.classList.contains('folder-body') || target.closest('.folder-body');
 
         if (isContainer) {
-            // For empty containers or positioning at the end
             this.showDropIndicator(e, target);
             
-            // Add margin-left if inside a folder body
             if (isInsideFolder) {
                 this.dropIndicator.style.marginLeft = '25px';
             } else {
                 this.dropIndicator.style.marginLeft = '0';
             }
         } else {
-            // For positioning between elements - FIXED: only show below elements, above only for first
             const container = target.parentElement;
             const children = Array.from(container.children).filter(child => 
                 (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
@@ -1684,11 +1658,9 @@ class DragDropManager {
                 this.dropIndicator.style.width = `${rect.width - 25}px`;
             }
             
-            // Show above only if it's the first element AND mouse is in upper half
             if (elementIndex === 0 && mouseY < elementMiddle) {
                 this.dropIndicator.style.top = `${rect.top - 2}px`;
             } else {
-                // Always show below for all other cases
                 this.dropIndicator.style.top = `${rect.bottom - 2}px`;
             }
         }
@@ -1713,7 +1685,6 @@ class DragDropManager {
         );
 
         if (children.length === 0) {
-            // Empty container, show indicator according to container type
             const width = rect.width - (isInsideFolder ? 25 : 0);
             this.dropIndicator.style.display = 'block';
             this.dropIndicator.style.width = `${width}px`;
@@ -1726,26 +1697,21 @@ class DragDropManager {
         let targetChild = null;
         let position = 'after'; // Default to 'after'
 
-        // Find the closest child based on mouse position
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
             const childRect = child.getBoundingClientRect();
             
-            // Check if mouse is above the first element's middle point
             if (i === 0 && e.clientY < (childRect.top + childRect.height / 2)) {
                 targetChild = child;
                 position = 'before';
                 break;
             }
-            // For all elements, check if mouse is below their middle point
             else if (e.clientY >= (childRect.top + childRect.height / 2)) {
                 targetChild = child;
                 position = 'after';
-                // Continue to find the last element that satisfies this condition
             }
         }
 
-        // If no target found, default to after the last element
         if (!targetChild) {
             targetChild = children[children.length - 1];
             position = 'after';
@@ -1783,11 +1749,9 @@ class DragDropManager {
         if (!dropTarget || this.isInvalidDropTarget(dropTarget)) return;
 
         let container;
-        // If we have a lastDropTarget and it's a folder body, use that
         if (this.lastDropTarget && this.lastDropTarget.classList.contains('folder-body')) {
             container = this.lastDropTarget;
         }
-        // Otherwise check the drop target
         else if (dropTarget.classList.contains('folder-body')) {
             container = dropTarget;
         } else if (dropTarget.classList.contains('col1') || 
@@ -1818,60 +1782,48 @@ class DragDropManager {
                 child !== this.draggedElement
             );
 
-            // If we have children and an active drop indicator
             if (children.length > 0 && this.dropIndicator && this.dropIndicator.style.display === 'block') {
                 const indicatorTop = parseInt(this.dropIndicator.style.top);
                 
-                // Check each child to see where the indicator is positioned
                 for (let i = 0; i < children.length; i++) {
                     const childRect = children[i].getBoundingClientRect();
                     
-                    // If indicator is above this child (only possible for first child)
                     if (i === 0 && indicatorTop <= childRect.top) {
                         return children[i];
                     }
                     
-                    // If indicator is below this child
                     if (indicatorTop >= childRect.bottom - 5 && indicatorTop <= childRect.bottom + 5) {
-                        return children[i + 1] || null; // Insert after this child
+                        return children[i + 1] || null;
                     }
                 }
                 
-                // If no exact match found, append at end
                 return null;
             }
 
-            // Fallback logic for when there's no indicator
             if (children.length === 0) {
-                return null; // Empty container, append at beginning
+                return null;
             }
 
-            // Find position based on mouse Y coordinate
             for (let i = 0; i < children.length; i++) {
                 const child = children[i];
                 const rect = child.getBoundingClientRect();
                 
-                // Only allow insertion before the first element if mouse is in upper half
                 if (i === 0 && e.clientY < rect.top + (rect.height / 2)) {
                     return child;
                 }
                 
-                // For all elements, if mouse is below middle, continue to next
                 if (e.clientY >= rect.top + (rect.height / 2)) {
-                    // If this is the last element, insert after it
                     if (i === children.length - 1) {
                         return null;
                     }
                     continue;
                 } else {
-                    // Mouse is in upper half of non-first element, insert after previous
                     return child;
                 }
             }
 
-            return null; // Append at end
+            return null;
         } else {
-            // Handle individual elements
             const container = target.parentElement;
             const children = Array.from(container.children).filter(child => 
                 (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
@@ -1883,11 +1835,9 @@ class DragDropManager {
             const mouseY = e.clientY;
             const elementMiddle = rect.top + (rect.height / 2);
             
-            // Only allow before position for first element
             if (elementIndex === 0 && mouseY < elementMiddle) {
                 return target;
             } else {
-                // All other cases: insert after this element
                 return target.nextSibling;
             }
         }
@@ -1895,12 +1845,10 @@ class DragDropManager {
 
     moveElement(targetContainer, insertBefore) {
         try {
-            // Remove original element
             if (this.draggedElement.parentNode) {
                 this.draggedElement.remove();
             }
 
-            // Create new element in target container
             let newElement;
             if (this.draggedData.type === 'link') {
                 newElement = createBookmarkElement(this.draggedData, targetContainer);
@@ -1908,20 +1856,16 @@ class DragDropManager {
                 newElement = createFolderElement(this.draggedData, targetContainer);
             }
 
-            // Make sure the target container is still in the DOM
             if (!document.contains(targetContainer)) {
                 return;
             }
 
-            // If we have a specific position to insert before
             if (insertBefore && insertBefore.parentNode === targetContainer) {
                 targetContainer.insertBefore(newElement, insertBefore);
             } else {
-                // Otherwise append to the end
                 targetContainer.appendChild(newElement);
             }
 
-            // Add moved animation
             newElement.classList.add('moved-element');
             setTimeout(() => newElement.classList.remove('moved-element'), 1500);
         } catch (error) {

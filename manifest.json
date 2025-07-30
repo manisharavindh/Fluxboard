@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Fluxboard",
   "version": "1.4",
-  "description": "A personalized new tab page with bookmarks, todos, and quick notes",
+  "description": "⚠️ IMPORTANT: Please backup your data before updating this extension!\n\nFluxboard is a minimal and fast new tab replacement extension for Firefox. It offers a clean interface with bookmarks, todos, notes, and a customizable clock. No clutter, no ads, no nonsense — just a simple, user-friendly productivity dashboard that just works.",
   
   "chrome_url_overrides": {
     "newtab": "src/index.html"
