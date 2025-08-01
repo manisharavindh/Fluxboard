@@ -304,10 +304,12 @@ body{
     gap: 1rem;
     margin-top: 2rem;
     position: relative;
+    /* border: 1px solid red; */
 }
 
 .bookmarks .column {
     width: 100%;
+    max-width: calc(100%/5);
     min-height: calc(100vh - 14rem);
     height: auto;
     padding-bottom: 2.5rem;
@@ -359,7 +361,7 @@ body{
     transform: scale(0.7);
 }
 
-@media screen and (max-width: 800px){
+@media screen and (max-width: 1000px){
     .bookmarks{
         flex-direction: column;
         gap: 0;
@@ -368,6 +370,7 @@ body{
     .bookmarks .column{
         padding-bottom: 1rem;
         min-height: auto;
+        max-width: 100%;
     }
 }
 

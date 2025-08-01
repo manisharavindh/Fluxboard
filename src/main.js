@@ -206,7 +206,7 @@ window.onclick = (event) => {
 
 //* handle bookmarks saving
 function saveBookmarks() {
-    const sections = ['col1', 'col2', 'col3', 'col4'];
+    const sections = ['col1', 'col2', 'col3', 'col4', 'col5'];
     const bookmarks = {};
     
     sections.forEach(section => {
@@ -227,7 +227,7 @@ function saveBookmarks() {
 //* handle bookmarks adding
 function addLink(container) {
     if (container.classList.contains('col1') || container.classList.contains('col2') || 
-        container.classList.contains('col3') || container.classList.contains('col4')) {
+        container.classList.contains('col3') || container.classList.contains('col4') || container.classList.contains('col5')) {
         container = container;
     }
     currentContainer = container;
@@ -243,7 +243,7 @@ function addLink(container) {
 //* handle folders adding
 function addFolder(container) {
     if (container.classList.contains('col1') || container.classList.contains('col2') || 
-        container.classList.contains('col3') || container.classList.contains('col4')) {
+        container.classList.contains('col3') || container.classList.contains('col4') || container.classList.contains('col5')) {
         container = container;
     }
     currentFolderContainer = container;
@@ -556,7 +556,7 @@ function handleImport(event) {
 
 //* handle getting all bookmarks
 function getAllBookmarks() {
-    const sections = ['col1', 'col2', 'col3', 'col4'];
+    const sections = ['col1', 'col2', 'col3', 'col4', 'col5'];
     const bookmarks = {};
     
     sections.forEach(section => {
@@ -607,7 +607,7 @@ function clearAllBookmarks() {
         return;
     }
     
-    const sections = ['col1', 'col2', 'col3', 'col4'];
+    const sections = ['col1', 'col2', 'col3', 'col4', 'col5'];
     sections.forEach((section, index) => {
         const sectionElement = document.querySelector('.' + section);
         if (sectionElement) {
@@ -677,11 +677,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     document.querySelectorAll('.add-link svg').forEach(button => {
-        button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
+        button.onclick = () => addLink(button.closest('.col1, .col2, .col3, .col4, .col5, .folder-body'));
     });
     
     document.querySelectorAll('.add-folder svg').forEach(button => {
-        button.onclick = () => addFolder(button.closest('.col1, .col2, .col3, .col4, .folder-body'));
+        button.onclick = () => addFolder(button.closest('.col1, .col2, .col3, .col4, .col5, .folder-body'));
     });
     
     let currentEditingElement = null;
@@ -847,14 +847,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.add-link').forEach(linkElement => {
         linkElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            addLink(linkElement.closest('.col1, .col2, .col3, .col4'));
+            addLink(linkElement.closest('.col1, .col2, .col3, .col4, .col5'));
         });
     });
 
     document.querySelectorAll('.add-folder').forEach(folderElement => {
         folderElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            addFolder(folderElement.closest('.col1, .col2, .col3, .col4'));
+            addFolder(folderElement.closest('.col1, .col2, .col3, .col4, .col5'));
         });
     });
 
@@ -1218,7 +1218,7 @@ class ContextMenuManager {
     }
 
     updateDirectionalItemState(item, element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4');
+        const container = element.closest('.col1, .col2, .col3, .col4, .col5');
         const siblings = Array.from(container.children).filter(child => 
             !child.classList.contains('group-title') && 
             (child.classList.contains('link-element') || child.classList.contains('folder-element'))
@@ -1227,7 +1227,7 @@ class ContextMenuManager {
         const currentIndex = siblings.indexOf(element);
         let canMove = true;
 
-        if (['col1', 'col2', 'col3', 'col4'].includes(direction)) {
+        if (['col1', 'col2', 'col3', 'col4', 'col5'].includes(direction)) {
             const currentColumn = this.getCurrentColumn(element);
             if (currentColumn === direction) canMove = false;
         }
@@ -1235,7 +1235,7 @@ class ContextMenuManager {
         if (direction === 'up' && currentIndex <= 0) canMove = false;
         if (direction === 'down' && currentIndex >= siblings.length - 1) canMove = false;
         if (direction === 'left' && container.classList.contains('col1')) canMove = false;
-        if (direction === 'right' && container.classList.contains('col4')) canMove = false;
+        if (direction === 'right' && container.classList.contains('col5')) canMove = false;
         
         if (canMove) {
             item.style.opacity = '1';
@@ -1252,18 +1252,19 @@ class ContextMenuManager {
     }
 
     getCurrentColumn(element) {
-        const column = element.closest('.col1, .col2, .col3, .col4');
+        const column = element.closest('.col1, .col2, .col3, .col4, .col5');
         if (column.classList.contains('col1')) return 'col1';
         if (column.classList.contains('col2')) return 'col2';
         if (column.classList.contains('col3')) return 'col3';
         if (column.classList.contains('col4')) return 'col4';
+        if (column.classList.contains('col5')) return 'col5';
         return null;
     }
 
     moveElementDirection(element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4, .folder-body');
+        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .folder-body');
         
-        if (['col1', 'col2', 'col3', 'col4'].includes(direction)) {
+        if (['col1', 'col2', 'col3', 'col4', 'col5'].includes(direction)) {
             const targetColumn = document.querySelector('.' + direction);
             if (!targetColumn) return;
 
@@ -1305,7 +1306,7 @@ class ContextMenuManager {
         }
         
         if (direction === 'left' || direction === 'right') {
-            const columns = ['col1', 'col2', 'col3', 'col4'];
+            const columns = ['col1', 'col2', 'col3', 'col4', 'col5'];
             const currentColumnIndex = columns.findIndex(col => container.classList.contains(col));
             let targetColumnIndex;
             
@@ -1602,7 +1603,7 @@ class DragDropManager {
             return linkElement;
         }
 
-        return e.target.closest('.col1, .col2, .col3, .col4');
+        return e.target.closest('.col1, .col2, .col3, .col4, .col5');
     }
 
     isInvalidDropTarget(target) {
@@ -1626,6 +1627,7 @@ class DragDropManager {
                           target.classList.contains('col2') || 
                           target.classList.contains('col3') || 
                           target.classList.contains('col4') ||
+                          target.classList.contains('col5') ||
                           target.classList.contains('folder-body');
         
         const isInsideFolder = target.classList.contains('folder-body') || target.closest('.folder-body');
@@ -1669,7 +1671,7 @@ class DragDropManager {
     }
 
     handleDragLeave(e) {
-        const target = e.target.closest('.col1, .col2, .col3, .col4, .folder-body, .link-element, .folder-element');
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .col5, .folder-body, .link-element, .folder-element');
         if (target && target === this.lastDropTarget) {
             this.lastDropTarget = null;
         }
@@ -1757,7 +1759,8 @@ class DragDropManager {
         } else if (dropTarget.classList.contains('col1') || 
                    dropTarget.classList.contains('col2') || 
                    dropTarget.classList.contains('col3') || 
-                   dropTarget.classList.contains('col4')) {
+                   dropTarget.classList.contains('col4') ||
+                   dropTarget.classList.contains('col5')) {
             container = dropTarget;
         } else {
             container = dropTarget.parentElement;
@@ -1775,7 +1778,8 @@ class DragDropManager {
             target.classList.contains('col1') || 
             target.classList.contains('col2') || 
             target.classList.contains('col3') || 
-            target.classList.contains('col4')) {
+            target.classList.contains('col4') ||
+            target.classList.contains('col5')) {
             
             const children = Array.from(target.children).filter(child => 
                 (child.classList.contains('link-element') || child.classList.contains('folder-element')) &&
