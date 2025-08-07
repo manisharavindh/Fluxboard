@@ -308,6 +308,8 @@ body{
 }
 
 .bookmarks .column {
+    flex: 1;
+    min-width: 0; /* Prevent flex items from growing beyond container */
     width: 100%;
     max-width: calc(100%/5);
     min-height: calc(100vh - 14rem);
@@ -1169,4 +1171,24 @@ hr{
     height: 2px;
     background-color: var(--accent-color);
     pointer-events: none;
+}
+
+.column.dragging-column {
+    opacity: 0.5;
+    cursor: grabbing !important;
+}
+
+.column-drop-indicator {
+    position: absolute;
+    display: none;
+    width: 2px;
+    background: var(--accent-color);
+    pointer-events: none;
+}
+
+@media screen and (max-width: 1000px){
+    .column-drop-indicator{
+        width: 50% !important;
+        height: 2px !important;
+    }
 }
