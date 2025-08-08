@@ -791,7 +791,7 @@ body{
 }
 
 .action-btn {
-    width: 95%;
+    width: 100%;
     background-color: var(--section-background);
     color: var(--page-text);
     border: 0;
@@ -819,10 +819,28 @@ body{
 }
 
 .version{
-    text-align: center;
-    color: var(--page-text);
-    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: 0.5rem;
+    opacity: 0.5 !important;
+    color: var(--page-text);
+    transition: none;
+}
+
+.version a{
+    all: unset;
+    cursor: pointer;
+}
+
+.version a:hover{
+    opacity: 0.5 !important;
+    text-decoration: underline;
+}
+
+.version-section{
+    padding:1rem 1.5rem !important;
+    border-top: 1px solid var(--divider-color-processed);
 }
 
 /*  */
@@ -1096,6 +1114,100 @@ input[type="checkbox"]:checked::after {
 
 .clock-modal-content{
     max-width: 500px;
+}
+
+/*  */
+/** Settings Modal **/
+/*  */
+
+
+.settings-modal-content {
+    max-width: 500px;
+}
+
+.settings-sections {
+    padding: 1.5rem;
+}
+
+.settings-section {
+    margin-bottom: 1.5rem;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-group .action-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    background-color: var(--tab-background);
+}
+
+/* Search Settings */
+.search-settings {
+    background-color: var(--tab-background);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.setting-item {
+    margin-bottom: 1rem;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.settings-select {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--section-background);
+    color: var(--page-text);
+    border: 1px solid var(--divider-color-processed);
+    border-radius: 0.25rem;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.settings-input {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--section-background);
+    color: var(--page-text);
+    border: 1px solid var(--divider-color-processed);
+    border-radius: 0.25rem;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.settings-hint {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+}
+
+.custom-search-section {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--divider-color-processed);
 }
 
 @media screen and (max-width: 600px){

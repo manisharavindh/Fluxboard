@@ -1,3 +1,23 @@
+// Settings modal functionality
+const settingsModal = document.getElementById('settingsModal');
+const openSettingsBtn = document.getElementById('open-settings');
+const settingsCloseBtn = settingsModal.querySelector('.close');
+
+function openSettingsModal() {
+    settingsModal.style.display = "block";
+}
+
+function closeSettingsModal() {
+    settingsModal.style.display = "none";
+}
+
+settingsCloseBtn.onclick = () => closeSettingsModal();
+window.onclick = (event) => {
+    if (event.target === settingsModal) closeSettingsModal();
+    if (event.target === bookmarkModal) bookmarkModal.style.display = "none";
+    if (event.target === folderModal) folderModal.style.display = "none";
+};
+
 //* handle page colors
 const defaultThemeValues = {
     text: "#fbfbfe",
@@ -92,18 +112,22 @@ function folder_toggle(element) {
 
 //* handle search
 let currentSearchEngine = 'google';
+let secondarySearchEngine = 'duckduckgo';
 const searchEngines = {
     google: {
         name: 'Google',
         icon: 'img/google.webp',
         url: 'https://www.google.com/search?q=',
-        placeholder: 'Search with Google or type URL'
+        placeholder: 'Search with Google or type URL',
+        isDefault: true
     },
     duckduckgo: {
-        name: 'DuckDuckGo',
-        icon: 'img/duckduckgo.png',
-        url: 'https://duckduckgo.com/?q=',
-        placeholder: 'Search with DuckDuckGo or type URL'
+        name: localStorage.getItem('fluxboard_custom_search_name') || 'DuckDuckGo',
+        icon: localStorage.getItem('fluxboard_custom_search_icon') || 'img/duckduckgo.webp',
+        url: localStorage.getItem('fluxboard_custom_search_url') || 'https://duckduckgo.com/?q=',
+        placeholder: localStorage.getItem('fluxboard_custom_search_name') ? 
+            `Search with ${localStorage.getItem('fluxboard_custom_search_name')} or type URL` :
+            'Search with DuckDuckGo or type URL'
     }
 };
 
@@ -111,11 +135,68 @@ function initSearchToggle() {
     const iconElement = document.querySelector('.search .icon');
     const iconImg = iconElement.querySelector('img');
     const searchInput = document.getElementById('searchInput');
+
+    // Get references to custom search inputs
+    const customSearchNameInput = document.getElementById('customSearchName');
+    const customSearchIconInput = document.getElementById('customSearchIcon');
+    const customSearchUrlInput = document.getElementById('customSearchUrl');
+    const saveBtn = document.getElementById('save-custom-search');
+    const resetBtn = document.getElementById('reset-custom-search');
+
+    // Set initial values
+    customSearchNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
+    customSearchIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
+    customSearchUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
+
+    // Save custom search settings
+    saveBtn.addEventListener('click', () => {
+        const name = customSearchNameInput.value.trim() || 'DuckDuckGo';
+        const icon = customSearchIconInput.value.trim() || 'img/duckduckgo.webp';
+        const url = customSearchUrlInput.value.trim() || 'https://duckduckgo.com/?q=';
+
+        // Validate URL
+        if (url && !url.includes('{searchTerm}') && !url.includes('=')) {
+            alert('Please include {searchTerm} or use a valid search URL format');
+            return;
+        }
+
+        // Update searchEngines object
+        searchEngines.duckduckgo.name = name;
+        searchEngines.duckduckgo.icon = icon;
+        searchEngines.duckduckgo.url = url;
+        searchEngines.duckduckgo.placeholder = `Search with ${name} or type URL`;
+
+        // Save to localStorage
+        localStorage.setItem('fluxboard_custom_search_name', name === 'DuckDuckGo' ? '' : name);
+        localStorage.setItem('fluxboard_custom_search_icon', icon === 'img/duckduckgo.webp' ? '' : icon);
+        localStorage.setItem('fluxboard_custom_search_url', url === 'https://duckduckgo.com/?q=' ? '' : url);
+
+        updateSearchInterface();
+    });
+
+    // Reset to DuckDuckGo
+    resetBtn.addEventListener('click', () => {
+        if (confirm('Reset to DuckDuckGo defaults?')) {
+            searchEngines.duckduckgo.name = 'DuckDuckGo';
+            searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
+            searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
+            searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
+
+            // Clear localStorage
+            localStorage.removeItem('fluxboard_custom_search_name');
+            localStorage.removeItem('fluxboard_custom_search_icon');
+            localStorage.removeItem('fluxboard_custom_search_url');
+
+            // Update input fields
+            customSearchNameInput.value = '';
+            customSearchIconInput.value = '';
+            customSearchUrlInput.value = '';
+
+            updateSearchInterface();
+        }
+    });
     
-    updateSearchInterface();
-    
-    iconElement.addEventListener('click', toggleSearchEngine);
-    
+    // Function to toggle between search engines
     function toggleSearchEngine() {
         currentSearchEngine = currentSearchEngine === 'google' ? 'duckduckgo' : 'google';
         updateSearchInterface();
@@ -127,17 +208,13 @@ function initSearchToggle() {
         }
     }
     
-    function updateSearchInterface() {
-        const engine = searchEngines[currentSearchEngine];
-        const iconImg = document.querySelector('.search .icon img');
-        const searchInput = document.getElementById('searchInput');
-        
-        iconImg.src = engine.icon;
-        iconImg.alt = engine.name;
-        searchInput.placeholder = engine.placeholder;
-        iconElement.setAttribute('data-tooltip', `switch to ${currentSearchEngine === 'google' ? 'DuckDuckGo' : 'Google'}`);
-    }
+    // Add click event listener for search engine toggle
+    iconElement.addEventListener('click', toggleSearchEngine);
     
+    // Update interface initially
+    updateSearchInterface();
+    
+    // Load saved search engine preference
     try {
         const savedEngine = localStorage.getItem('preferredSearchEngine');
         if (savedEngine && searchEngines[savedEngine]) {
@@ -147,6 +224,30 @@ function initSearchToggle() {
     } catch (e) {
         console.error('Error retrieving preferred search engine from localStorage:', e);
     }
+}
+
+// Function to update search UI
+function updateSearchInterface() {
+    const engine = searchEngines[currentSearchEngine];
+    const iconImg = document.querySelector('.search .icon img');
+    const searchInput = document.getElementById('searchInput');
+    const iconElement = document.querySelector('.search .icon');
+    
+    if (!iconImg || !searchInput || !iconElement) return;
+    
+    // Check if icon exists by creating a temporary image
+    const tempImg = new Image();
+    tempImg.onerror = () => {
+        iconImg.src = 'img/custom.webp';
+    };
+    tempImg.onload = () => {
+        iconImg.src = engine.icon;
+    };
+    tempImg.src = engine.icon;
+    
+    iconImg.alt = engine.name;
+    searchInput.placeholder = engine.placeholder;
+    iconElement.setAttribute('data-tooltip', `switch to ${currentSearchEngine === 'google' ? searchEngines.duckduckgo.name : 'Google'}`);
 }
 
 function handleSearch(event) {
@@ -159,7 +260,17 @@ function handleSearch(event) {
         window.location.href = url;
     } else {
         const searchQuery = encodeURIComponent(input);
-        const searchUrl = searchEngines[currentSearchEngine].url + searchQuery;
+        let searchUrl;
+        
+        if (currentSearchEngine === 'duckduckgo') {
+            searchUrl = searchEngines.duckduckgo.url.replace('{searchTerm}', searchQuery);
+            if (!searchUrl.includes(searchQuery)) {
+                searchUrl = searchEngines.duckduckgo.url + searchQuery;
+            }
+        } else {
+            searchUrl = searchEngines[currentSearchEngine].url + searchQuery;
+        }
+        
         window.location.href = searchUrl;
     }
 }
@@ -497,7 +608,13 @@ function exportBookmarks() {
         timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
         bookmarks: bookmarks,
         clockSettings: settings,
-        fluxThemeEnabled: isFluxThemeEnabled
+        fluxThemeEnabled: isFluxThemeEnabled,
+        searchSettings: {
+            currentSearchEngine,
+            customSearchUrl: searchEngines.duckduckgo.url !== 'https://duckduckgo.com/?q=' ? searchEngines.duckduckgo.url : '',
+            customSearchName: searchEngines.duckduckgo.name !== 'DuckDuckGo' ? searchEngines.duckduckgo.name : '',
+            customSearchIcon: searchEngines.duckduckgo.icon !== 'img/duckduckgo.webp' ? searchEngines.duckduckgo.icon : ''
+        }
     };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -542,6 +659,39 @@ function handleImport(event) {
                     }
                     initializeFromBrowser();
                 }
+
+                if (data.searchSettings) {
+                    if (data.searchSettings.customSearchUrl) {
+                        searchEngines.duckduckgo.url = data.searchSettings.customSearchUrl;
+                        localStorage.setItem('fluxboard_custom_search_url', data.searchSettings.customSearchUrl);
+                    }
+
+                    if (data.searchSettings.customSearchName) {
+                        searchEngines.duckduckgo.name = data.searchSettings.customSearchName;
+                        localStorage.setItem('fluxboard_custom_search_name', data.searchSettings.customSearchName);
+                        searchEngines.duckduckgo.placeholder = `Search with ${data.searchSettings.customSearchName} or type URL`;
+                    }
+
+                    if (data.searchSettings.customSearchIcon) {
+                        searchEngines.duckduckgo.icon = data.searchSettings.customSearchIcon;
+                        localStorage.setItem('fluxboard_custom_search_icon', data.searchSettings.customSearchIcon);
+                    }
+                    
+                    if (data.searchSettings.currentSearchEngine && searchEngines[data.searchSettings.currentSearchEngine]) {
+                        currentSearchEngine = data.searchSettings.currentSearchEngine;
+                        localStorage.setItem('preferredSearchEngine', currentSearchEngine);
+                    }
+                    
+                    // Update input fields
+                    const customNameInput = document.getElementById('customSearchName');
+                    const customIconInput = document.getElementById('customSearchIcon');
+                    const customUrlInput = document.getElementById('customSearchUrl');
+                    if (customNameInput) customNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
+                    if (customIconInput) customIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
+                    if (customUrlInput) customUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
+                    
+                    updateSearchInterface();
+                }
             } catch (error) {
                 console.error('Error importing bookmarks:', error);
                 alert('Error importing bookmarks: Invalid file format');
@@ -553,21 +703,17 @@ function handleImport(event) {
 
 //* handle getting all bookmarks
 function getAllBookmarks() {
-    const sections = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).map(el => {
-        const classList = Array.from(el.classList);
-        return classList.find(cls => cls.startsWith('col'));
-    }).filter(Boolean);
+    const bookmarksContainer = document.querySelector('.bookmarks');
+    const sections = Array.from(bookmarksContainer.children);
     const bookmarks = {};
     
-    sections.forEach(section => {
-        const sectionElement = document.querySelector('.' + section);
-        if (sectionElement) {
-            const titleElement = sectionElement.querySelector('.group-title h5');
-            bookmarks[section] = {
-                title: titleElement ? titleElement.textContent : '',
-                items: serializeSection(sectionElement)
-            };
-        }
+    sections.forEach((sectionElement, index) => {
+        const section = `col${index + 1}`;
+        const titleElement = sectionElement.querySelector('.group-title h5');
+        bookmarks[section] = {
+            title: titleElement ? titleElement.textContent : '',
+            items: serializeSection(sectionElement)
+        };
     });
     
     return bookmarks;
@@ -575,19 +721,27 @@ function getAllBookmarks() {
 
 //* handle setting all bookmarks
 function setAllBookmarks(bookmarks) {
+    const columns = Array.from(document.querySelector('.bookmarks').children);
+    
+    // Clear existing items first
+    columns.forEach((sectionElement) => {
+        Array.from(sectionElement.children).forEach(child => {
+            if (!child.classList.contains('group-title')) {
+                child.remove();
+            }
+        });
+    });
+
+    // Set new items and titles
     Object.entries(bookmarks).forEach(([section, data]) => {
-        const sectionElement = document.querySelector('.' + section);
-        if (sectionElement) {
+        const columnIndex = parseInt(section.replace('col', '')) - 1;
+        if (columnIndex >= 0 && columnIndex < columns.length) {
+            const sectionElement = columns[columnIndex];
             const titleElement = sectionElement.querySelector('.group-title h5');
+            
             if (data.title !== undefined && titleElement) {
                 titleElement.textContent = data.title;
             }
-
-            Array.from(sectionElement.children).forEach(child => {
-                if (!child.classList.contains('group-title')) {
-                    child.remove();
-                }
-            });
 
             const items = Array.isArray(data) ? data : (data.items || []);
             items.forEach(item => {
@@ -607,41 +761,68 @@ function clearAllBookmarks() {
         return;
     }
     
-    const sections = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).map(el => {
-        const classList = Array.from(el.classList);
-        return classList.find(cls => cls.startsWith('col'));
-    }).filter(Boolean);
-    sections.forEach((section, index) => {
-        const sectionElement = document.querySelector('.' + section);
-        if (sectionElement) {
-            const titleElement = sectionElement.querySelector('.group-title h5');
-            if (titleElement) {
-                titleElement.textContent = String(index + 1);
-            }
-            
-            Array.from(sectionElement.children).forEach(child => {
-                if (!child.classList.contains('group-title')) {
-                    child.remove();
-                }
-            });
+    const columns = Array.from(document.querySelector('.bookmarks').children);
+    
+    // Clear content and reset titles
+    columns.forEach((sectionElement, index) => {
+        const titleElement = sectionElement.querySelector('.group-title h5');
+        if (titleElement) {
+            titleElement.textContent = String(index + 1);
         }
+        
+        Array.from(sectionElement.children).forEach(child => {
+            if (!child.classList.contains('group-title')) {
+                child.remove();
+            }
+        });
     });
     
+    // Create empty bookmarks structure
     const emptyBookmarks = {};
-    sections.forEach((section, index) => {
-        emptyBookmarks[section] = {
+    columns.forEach((col, index) => {
+        emptyBookmarks[`col${index + 1}`] = {
             title: String(index + 1),
             items: []
         };
     });
     
+    // Clear local storage
     localStorage.removeItem('groupTitles');
     localStorage.removeItem('fluxboard_bookmarks');
     localStorage.removeItem('fluxboard_todos');
     localStorage.removeItem('fluxboard_todo_history');
     localStorage.removeItem('clockSettings');
     localStorage.removeItem('fluxboard_sidebar_open');
+    localStorage.removeItem('fluxboard_secondary_search');
+    localStorage.removeItem('fluxboard_custom_search_url');
+    localStorage.removeItem('preferredSearchEngine');
+
+    // Reset search engine settings (add after existing removeItem calls)
+    localStorage.removeItem('fluxboard_custom_search_name');
+    localStorage.removeItem('fluxboard_custom_search_icon');
+    localStorage.removeItem('fluxboard_custom_search_url');
+
+    // Reset search engine settings (add after currentSearchEngine = 'google';)
+    searchEngines.duckduckgo.name = 'DuckDuckGo';
+    searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
+    searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
+    searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
+
+    // Clear custom search input fields if they exist (add after existing input clearing)
+    const customSearchNameInput = document.getElementById('customSearchName');
+    const customSearchIconInput = document.getElementById('customSearchIcon');
+    if (customSearchNameInput) customSearchNameInput.value = '';
+    if (customSearchIconInput) customSearchIconInput.value = '';
     
+    // Reset search engine settings
+    currentSearchEngine = 'google';
+    secondarySearchEngine = 'duckduckgo';
+    
+    // Clear custom search input fields if they exist
+    const customSearchUrlInput = document.getElementById('customSearchUrl');
+    if (customSearchUrlInput) customSearchUrlInput.value = '';
+    
+    // Reset settings
     Object.assign(settings, {
         timeFormat: '12',
         showSeconds: false,
@@ -650,6 +831,7 @@ function clearAllBookmarks() {
     });
     updateClock();
     
+    // Clear todo manager
     if (typeof todoManager !== 'undefined' && todoManager) {
         todoManager.completedTimers.forEach(timer => clearTimeout(timer));
         todoManager.completedTimers.clear();
@@ -660,11 +842,16 @@ function clearAllBookmarks() {
         todoManager.renderTodos();
     }
     
+    // Reset sidebar state
     sidebar.classList.remove('active');
     menu.classList.remove('active');
     home.classList.remove('active');
     
+    // Save empty bookmarks
     localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
+    
+    // Reload page
+    window.location.reload();
 }
 
 //* handle loading bookmarks
@@ -877,6 +1064,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     searchForm.addEventListener('submit', handleSearch);
 
+    // Settings modal event listeners
+    openSettingsBtn.addEventListener('click', openSettingsModal);
+    document.getElementById('export-data').addEventListener('click', () => {
+        exportBookmarks();
+        closeSettingsModal();
+    });
+    document.getElementById('import-data').addEventListener('click', () => {
+        importBookmarks();
+        closeSettingsModal();
+    });
+    document.getElementById('delete-all').addEventListener('click', () => {
+        clearAllBookmarks();
+        closeSettingsModal();
+    });
+    document.getElementById('edit-clock').addEventListener('click', () => {
+        document.getElementById('popup').style.display = 'block';
+        closeSettingsModal();
+    });
+
     document.querySelectorAll('.group-title').forEach(titleElement => {
         titleElement.addEventListener('click', (e) => {
             // Prevent click event during drag operations
@@ -907,14 +1113,6 @@ document.addEventListener('DOMContentLoaded', function() {
             addFolder(folderElement.closest('.col1, .col2, .col3, .col4, .col5'));
         });
     });
-
-    const exportBtn = document.getElementById('export-data');
-    const importBtn = document.getElementById('import-data');
-    const deleteBtn = document.getElementById('delete-all');
-
-    exportBtn.addEventListener('click', exportBookmarks);
-    importBtn.addEventListener('click', importBookmarks);
-    deleteBtn.addEventListener('click', clearAllBookmarks);
 
     document.querySelectorAll('.modal .close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
