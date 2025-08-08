@@ -757,7 +757,7 @@ function setAllBookmarks(bookmarks) {
 
 //* handle clearing all bookmarks
 function clearAllBookmarks() {
-    if (!confirm('Are you sure you want to delete all bookmarks? This action cannot be undone!')) {
+    if (!confirm('Are you sure you want to delete all the data? This action cannot be undone!')) {
         return;
     }
     
