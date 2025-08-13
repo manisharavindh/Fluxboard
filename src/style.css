@@ -311,7 +311,7 @@ body{
     flex: 1;
     min-width: 0; /* Prevent flex items from growing beyond container */
     width: 100%;
-    max-width: calc(100%/5);
+    max-width: calc(100%/4);
     min-height: calc(100vh - 14rem);
     height: auto;
     padding-bottom: 2.5rem;
@@ -1121,10 +1121,10 @@ input[type="checkbox"]:checked::after {
 /*  */
 
 .settings-modal-content {
-    max-width: 500px;
+    max-width: 600px;
     max-height: 90%;
     overflow-x: auto;
-    border: 1px solid red;
+    /* border: 1px solid red; */
 }
 
 .settings-sections {

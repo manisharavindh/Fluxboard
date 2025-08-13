@@ -1,4 +1,136 @@
-// Settings modal functionality
+//* Column count customization
+const numColumnsInput = document.getElementById('numColumns');
+const DEFAULT_COLS = 4;
+const MIN_COLS = 4;
+const MAX_COLS = 6;
+
+function getSavedColumnCount() {
+    let val = parseInt(localStorage.getItem('fluxboard_column_count'));
+    if (isNaN(val) || val < MIN_COLS || val > MAX_COLS) return DEFAULT_COLS;
+    return val;
+}
+
+function setColumnCount(val) {
+    val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
+    localStorage.setItem('fluxboard_column_count', val);
+    if (numColumnsInput) numColumnsInput.value = val;
+    adjustColumns(val);
+}
+
+function adjustColumns(newCount) {
+    try {
+        const bookmarksContainer = document.querySelector('.bookmarks');
+        if (!bookmarksContainer) return;
+
+        let columns = Array.from(bookmarksContainer.children);
+        
+        // Save existing data before adjusting
+        const existingData = {};
+        columns.forEach((col, idx) => {
+            const sectionKey = `col${idx + 1}`;
+            existingData[sectionKey] = {
+                title: col.querySelector('.group-title h5')?.textContent || `Group ${idx + 1}`,
+                items: serializeSection(col)
+            };
+        });
+
+        // Remove extra columns, preserving data where possible
+        while (columns.length > newCount) {
+            const removedCol = columns.pop();
+            // Try to merge data into remaining columns if possible
+            if (removedCol) {
+                const items = serializeSection(removedCol);
+                if (items.length > 0 && columns.length > 0) {
+                    // Distribute items to the last remaining column
+                    const lastCol = columns[columns.length - 1];
+                    items.forEach(item => {
+                        if (item.type === 'link') {
+                            createBookmarkElement(item, lastCol);
+                        } else if (item.type === 'folder') {
+                            createFolderElement(item, lastCol);
+                        }
+                    });
+                }
+                bookmarksContainer.removeChild(removedCol);
+            }
+        }
+
+        // Add missing columns
+        while (columns.length < newCount) {
+            const colNum = columns.length + 1;
+            const colDiv = document.createElement('div');
+            colDiv.className = `column col${colNum}`;
+            
+            // Add group title
+            const groupTitleDiv = document.createElement('div');
+            groupTitleDiv.className = 'group-title';
+            const h5 = document.createElement('h5');
+            h5.textContent = existingData[`col${colNum}`]?.title || `Group ${colNum}`;
+            groupTitleDiv.appendChild(h5);
+            
+            // Add new-link controls
+            const newLinkDiv = document.createElement('div');
+            newLinkDiv.className = 'new-link';
+            
+            const addLinkDiv = document.createElement('div');
+            addLinkDiv.className = 'add-link';
+            addLinkDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z"/></svg>';
+            newLinkDiv.appendChild(addLinkDiv);
+            
+            const addFolderDiv = document.createElement('div');
+            addFolderDiv.className = 'add-folder';
+            addFolderDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>';
+            newLinkDiv.appendChild(addFolderDiv);
+            
+            groupTitleDiv.appendChild(newLinkDiv);
+            colDiv.appendChild(groupTitleDiv);
+            
+            // Bind event listeners for new column
+            bindColumnEventListeners(colDiv);
+
+            // Add items from saved data if available
+            const items = existingData[`col${colNum}`]?.items || [];
+            items.forEach(item => {
+                if (item.type === 'link') {
+                    createBookmarkElement(item, colDiv);
+                } else if (item.type === 'folder') {
+                    createFolderElement(item, colDiv);
+                }
+            });
+
+            bookmarksContainer.appendChild(colDiv);
+            columns = Array.from(bookmarksContainer.children);
+        }
+        
+        saveBookmarks();
+        loadGroupTitles();
+    } catch (error) {
+        console.error('Error adjusting columns:', error);
+    }
+}
+
+// Input validation for column count
+if (numColumnsInput) {
+    numColumnsInput.value = getSavedColumnCount();
+    numColumnsInput.addEventListener('input', function(e) {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        if (val === '') val = DEFAULT_COLS;
+        val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
+        e.target.value = val;
+    });
+    numColumnsInput.addEventListener('change', function(e) {
+        setColumnCount(e.target.value);
+    });
+}
+
+// On page load, adjust columns
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        setColumnCount(getSavedColumnCount());
+    }, 0);
+});
+
+//* Settings modal functionality
 const settingsModal = document.getElementById('settingsModal');
 const openSettingsBtn = document.getElementById('open-settings');
 const settingsCloseBtn = settingsModal.querySelector('.close');
@@ -17,6 +149,42 @@ window.onclick = (event) => {
     if (event.target === bookmarkModal) bookmarkModal.style.display = "none";
     if (event.target === folderModal) folderModal.style.display = "none";
 };
+
+//* bind event listeners for column controls
+function bindColumnEventListeners(column) {
+    const addLinkBtn = column.querySelector('.add-link');
+    const addFolderBtn = column.querySelector('.add-folder');
+    const titleElement = column.querySelector('.group-title');
+
+    if (addLinkBtn) {
+        addLinkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addLink(column);
+        });
+    }
+
+    if (addFolderBtn) {
+        addFolderBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addFolder(column);
+        });
+    }
+
+    if (titleElement) {
+        titleElement.addEventListener('click', (e) => {
+            if (e.target.closest('.add-link') || e.target.closest('.add-folder') || titleElement.classList.contains('dragging-column')) {
+                return;
+            }
+            editGroupTitle(titleElement);
+        });
+        
+        titleElement.addEventListener('selectstart', (e) => {
+            if (titleElement.draggable) {
+                e.preventDefault();
+            }
+        });
+    }
+}
 
 //* handle page colors
 const defaultThemeValues = {
@@ -319,17 +487,18 @@ window.onclick = (event) => {
 function saveBookmarks() {
     const bookmarksContainer = document.querySelector('.bookmarks');
     const columns = Array.from(bookmarksContainer.children);
-    const bookmarks = {};
-    
+    const bookmarks = {
+        columnCount: getSavedColumnCount(),
+        data: {}
+    };
     columns.forEach((column, index) => {
         const sectionKey = `col${index + 1}`;
         const groupTitle = column.querySelector('.group-title h5').textContent;
-        bookmarks[sectionKey] = {
+        bookmarks.data[sectionKey] = {
             title: groupTitle,
             items: serializeSection(column)
         };
     });
-    
     localStorage.setItem('fluxboard_bookmarks', JSON.stringify(bookmarks));
     console.log('Bookmarks saved:', bookmarks);
 }
@@ -721,38 +890,108 @@ function getAllBookmarks() {
 
 //* handle setting all bookmarks
 function setAllBookmarks(bookmarks) {
-    const columns = Array.from(document.querySelector('.bookmarks').children);
-    
-    // Clear existing items first
-    columns.forEach((sectionElement) => {
-        Array.from(sectionElement.children).forEach(child => {
-            if (!child.classList.contains('group-title')) {
-                child.remove();
-            }
-        });
-    });
+    try {
+        // Support new format with columnCount and data
+        let colCount = DEFAULT_COLS;
+        let data = bookmarks;
 
-    // Set new items and titles
-    Object.entries(bookmarks).forEach(([section, data]) => {
-        const columnIndex = parseInt(section.replace('col', '')) - 1;
-        if (columnIndex >= 0 && columnIndex < columns.length) {
-            const sectionElement = columns[columnIndex];
-            const titleElement = sectionElement.querySelector('.group-title h5');
-            
-            if (data.title !== undefined && titleElement) {
-                titleElement.textContent = data.title;
+        // Handle both new and old format
+        if (bookmarks && typeof bookmarks === 'object') {
+            if (bookmarks.columnCount && bookmarks.data) {
+                // New format with explicit column count
+                colCount = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(bookmarks.columnCount)));
+                data = bookmarks.data;
+            } else {
+                // Old format, count the columns in data
+                const existingCols = Object.keys(bookmarks).filter(k => k.startsWith('col')).length;
+                colCount = Math.max(MIN_COLS, Math.min(MAX_COLS, existingCols || DEFAULT_COLS));
+                data = bookmarks;
             }
+        }
 
-            const items = Array.isArray(data) ? data : (data.items || []);
-            items.forEach(item => {
-                if (item.type === 'link') {
-                    createBookmarkElement(item, sectionElement);
-                } else if (item.type === 'folder') {
-                    createFolderElement(item, sectionElement);
+        // Always ensure we have at least MIN_COLS
+        colCount = Math.max(MIN_COLS, colCount);
+        
+        // Update column count in settings if needed
+        if (numColumnsInput) {
+            numColumnsInput.value = colCount;
+        }
+        localStorage.setItem('fluxboard_column_count', colCount);
+
+        const bookmarksContainer = document.querySelector('.bookmarks');
+        if (!bookmarksContainer) return;
+        
+        // Save current titles if we're keeping any existing columns
+        const existingTitles = {};
+        if (bookmarks.data) {
+            Object.keys(bookmarks.data).forEach(key => {
+                if (bookmarks.data[key] && bookmarks.data[key].title) {
+                    existingTitles[key] = bookmarks.data[key].title;
                 }
             });
         }
-    });
+        
+        bookmarksContainer.innerHTML = '';
+        
+        // Create columns
+        for (let i = 1; i <= colCount; i++) {
+            const sectionKey = `col${i}`;
+            const column = document.createElement('div');
+            column.className = `column ${sectionKey}`;
+            
+            // Add group title with proper precedence:
+            // 1. Existing title from imported data
+            // 2. Title from current state if available
+            // 3. Default "Group X" title
+            const groupTitleDiv = document.createElement('div');
+            groupTitleDiv.className = 'group-title';
+            const h5 = document.createElement('h5');
+            h5.textContent = (data[sectionKey]?.title || existingTitles[sectionKey] || `Group ${i}`);
+            groupTitleDiv.appendChild(h5);
+            
+            // Add new-link controls
+            const newLinkDiv = document.createElement('div');
+            newLinkDiv.className = 'new-link';
+            
+            const addLinkDiv = document.createElement('div');
+            addLinkDiv.className = 'add-link';
+            addLinkDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z"/></svg>';
+            newLinkDiv.appendChild(addLinkDiv);
+            
+            const addFolderDiv = document.createElement('div');
+            addFolderDiv.className = 'add-folder';
+            addFolderDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>';
+            newLinkDiv.appendChild(addFolderDiv);
+            
+            groupTitleDiv.appendChild(newLinkDiv);
+            column.appendChild(groupTitleDiv);
+            
+            // Bind event listeners for new column
+            bindColumnEventListeners(column);
+            
+            // Add items if they exist
+            if (data[sectionKey]) {
+                const items = Array.isArray(data[sectionKey]) ? data[sectionKey] : (data[sectionKey]?.items || []);
+                items.forEach(item => {
+                    try {
+                        if (item.type === 'link') {
+                            createBookmarkElement(item, column);
+                        } else if (item.type === 'folder') {
+                            createFolderElement(item, column);
+                        }
+                    } catch (itemError) {
+                        console.error('Error creating item:', itemError);
+                    }
+                });
+            }
+            
+            bookmarksContainer.appendChild(column);
+        }
+    } catch (error) {
+        console.error('Error setting bookmarks:', error);
+        // Fallback to default state
+        adjustColumns(DEFAULT_COLS);
+    }
 }
 
 //* handle clearing all bookmarks
@@ -760,33 +999,38 @@ function clearAllBookmarks() {
     if (!confirm('Are you sure you want to delete all the data? This action cannot be undone!')) {
         return;
     }
+
+    // Reset to 4 columns and prepare empty structure
+    const emptyBookmarks = {
+            columnCount: DEFAULT_COLS,
+            data: {}
+    };
     
-    const columns = Array.from(document.querySelector('.bookmarks').children);
-    
-    // Clear content and reset titles
-    columns.forEach((sectionElement, index) => {
-        const titleElement = sectionElement.querySelector('.group-title h5');
-        if (titleElement) {
-            titleElement.textContent = String(index + 1);
+    try {
+        // Create empty data structure for 4 columns
+        for (let i = 1; i <= DEFAULT_COLS; i++) {
+            emptyBookmarks.data[`col${i}`] = {
+                title: `Group ${i}`,
+                items: []
+            };
         }
         
-        Array.from(sectionElement.children).forEach(child => {
-            if (!child.classList.contains('group-title')) {
-                child.remove();
-            }
-        });
-    });
-    
-    // Create empty bookmarks structure
-    const emptyBookmarks = {};
-    columns.forEach((col, index) => {
-        emptyBookmarks[`col${index + 1}`] = {
-            title: String(index + 1),
-            items: []
-        };
-    });
-    
-    // Clear local storage
+        // Reset column count in settings UI and storage
+        if (numColumnsInput) {
+            numColumnsInput.value = DEFAULT_COLS;
+        }
+        localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
+        
+        // Clear the bookmarks container and create fresh columns
+        const bookmarksContainer = document.querySelector('.bookmarks');
+        if (bookmarksContainer) {
+            bookmarksContainer.innerHTML = '';
+            setAllBookmarks(emptyBookmarks);
+        }
+    } catch (error) {
+        console.error('Error clearing bookmarks:', error);
+    }
+    // Clear all local storage items
     localStorage.removeItem('groupTitles');
     localStorage.removeItem('fluxboard_bookmarks');
     localStorage.removeItem('fluxboard_todos');
@@ -796,6 +1040,9 @@ function clearAllBookmarks() {
     localStorage.removeItem('fluxboard_secondary_search');
     localStorage.removeItem('fluxboard_custom_search_url');
     localStorage.removeItem('preferredSearchEngine');
+    
+    // Reset column count to default
+    localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
 
     // Reset search engine settings (add after existing removeItem calls)
     localStorage.removeItem('fluxboard_custom_search_name');
