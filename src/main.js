@@ -1,462 +1,341 @@
-//* Column count customization
-const numColumnsInput = document.getElementById('numColumns');
-const DEFAULT_COLS = 4;
-const MIN_COLS = 4;
-const MAX_COLS = 6;
+//* ==========================================
+//* --- data management ---
+//* ==========================================
 
-function getSavedColumnCount() {
-    let val = parseInt(localStorage.getItem('fluxboard_column_count'));
-    if (isNaN(val) || val < MIN_COLS || val > MAX_COLS) return DEFAULT_COLS;
-    return val;
-}
+//* handle data loading
+document.addEventListener('DOMContentLoaded', () => {
+    const savedBookmarks = localStorage.getItem('fluxboard_bookmarks');
+    if (savedBookmarks) {
+        try {
+            const bookmarks = JSON.parse(savedBookmarks);
+            setAllBookmarks(bookmarks);
+        } catch (error) {
+            console.error('Error loading bookmarks:', error);
+        }
+    }
+    
+    document.querySelectorAll('.add-link svg').forEach(button => {
+        const closestCol = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).find(col => col.contains(button));
+        const folderBody = button.closest('.folder-body');
+        button.onclick = () => addLink(closestCol || folderBody);
+    });
 
-function setColumnCount(val) {
-    val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
-    localStorage.setItem('fluxboard_column_count', val);
-    if (numColumnsInput) numColumnsInput.value = val;
-    adjustColumns(val);
-}
+    document.querySelectorAll('.add-folder svg').forEach(button => {
+        const closestCol = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).find(col => col.contains(button));
+        const folderBody = button.closest('.folder-body');
+        button.onclick = () => addFolder(closestCol || folderBody);
+    });
+    
+    let currentEditingElement = null;
+    const deleteBookmarkBtn = document.getElementById('deleteBookmark');
+    const deleteFolderBtn = document.getElementById('deleteFolder');
 
-function adjustColumns(newCount) {
-    try {
-        const bookmarksContainer = document.querySelector('.bookmarks');
-        if (!bookmarksContainer) return;
+    function openModal(modal, isEdit = false, element = null) {
+        modal.style.display = "block";
+        currentEditingElement = element;
 
-        let columns = Array.from(bookmarksContainer.children);
-        
-        // Save existing data before adjusting
-        const existingData = {};
-        columns.forEach((col, idx) => {
-            const sectionKey = `col${idx + 1}`;
-            existingData[sectionKey] = {
-                title: col.querySelector('.group-title h5')?.textContent || `Group ${idx + 1}`,
-                items: serializeSection(col)
-            };
-        });
-
-        // Remove extra columns, preserving data where possible
-        while (columns.length > newCount) {
-            const removedCol = columns.pop();
-            // Try to merge data into remaining columns if possible
-            if (removedCol) {
-                const items = serializeSection(removedCol);
-                if (items.length > 0 && columns.length > 0) {
-                    // Distribute items to the last remaining column
-                    const lastCol = columns[columns.length - 1];
-                    items.forEach(item => {
-                        if (item.type === 'link') {
-                            createBookmarkElement(item, lastCol);
-                        } else if (item.type === 'folder') {
-                            createFolderElement(item, lastCol);
-                        }
-                    });
-                }
-                bookmarksContainer.removeChild(removedCol);
+        if (modal.id === 'bookmarkModal') {
+            const deleteBtn = document.getElementById('deleteBookmark');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (isEdit) {
+                modalTitle.textContent = 'Edit Bookmark';
+                deleteBtn.style.display = 'block';
+                document.getElementById('bookmarkName').value = element.querySelector('span').textContent;
+                document.getElementById('bookmarkUrl').value = element.querySelector('a').href;
+                document.getElementById('bookmarkNotes').value = element.getAttribute('data-notes') || '';
+            } else {
+                modalTitle.textContent = 'Add Bookmark';
+                deleteBtn.style.display = 'none';
+                document.getElementById('bookmarkForm').reset();
+            }
+        } else if (modal.id === 'folderModal') {
+            const deleteBtn = document.getElementById('deleteFolder');
+            const modalTitle = document.getElementById('folderModalTitle');
+            
+            if (isEdit) {
+                modalTitle.textContent = 'Edit Folder';
+                deleteBtn.style.display = 'block';
+                document.getElementById('folderName').value = element.querySelector('.folder-name').textContent;
+                document.getElementById('folderNotes').value = element.getAttribute('data-notes') || '';
+            } else {
+                modalTitle.textContent = 'Add Folder';
+                deleteBtn.style.display = 'none';
+                document.getElementById('folderForm').reset();
             }
         }
-
-        // Add missing columns
-        while (columns.length < newCount) {
-            const colNum = columns.length + 1;
-            const colDiv = document.createElement('div');
-            colDiv.className = `column col${colNum}`;
-            
-            // Add group title
-            const groupTitleDiv = document.createElement('div');
-            groupTitleDiv.className = 'group-title';
-            const h5 = document.createElement('h5');
-            h5.textContent = existingData[`col${colNum}`]?.title || `Group ${colNum}`;
-            groupTitleDiv.appendChild(h5);
-            
-            // Add new-link controls
-            const newLinkDiv = document.createElement('div');
-            newLinkDiv.className = 'new-link';
-            
-            const addLinkDiv = document.createElement('div');
-            addLinkDiv.className = 'add-link';
-            addLinkDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z"/></svg>';
-            newLinkDiv.appendChild(addLinkDiv);
-            
-            const addFolderDiv = document.createElement('div');
-            addFolderDiv.className = 'add-folder';
-            addFolderDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>';
-            newLinkDiv.appendChild(addFolderDiv);
-            
-            groupTitleDiv.appendChild(newLinkDiv);
-            colDiv.appendChild(groupTitleDiv);
-            
-            // Bind event listeners for new column
-            bindColumnEventListeners(colDiv);
-
-            // Add items from saved data if available
-            const items = existingData[`col${colNum}`]?.items || [];
-            items.forEach(item => {
-                if (item.type === 'link') {
-                    createBookmarkElement(item, colDiv);
-                } else if (item.type === 'folder') {
-                    createFolderElement(item, colDiv);
-                }
-            });
-
-            bookmarksContainer.appendChild(colDiv);
-            columns = Array.from(bookmarksContainer.children);
-        }
-        
-        saveBookmarks();
-        loadGroupTitles();
-    } catch (error) {
-        console.error('Error adjusting columns:', error);
     }
-}
 
-// Input validation for column count
-if (numColumnsInput) {
-    numColumnsInput.value = getSavedColumnCount();
-    numColumnsInput.addEventListener('input', function(e) {
-        let val = e.target.value.replace(/[^0-9]/g, '');
-        if (val === '') val = DEFAULT_COLS;
-        val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
-        e.target.value = val;
+    deleteBookmarkBtn.addEventListener('click', function() {
+        if (currentEditingElement) {
+            currentEditingElement.remove();
+            saveToLocalStorage();
+            closeModal(bookmarkModal);
+        }
     });
-    numColumnsInput.addEventListener('change', function(e) {
-        setColumnCount(e.target.value);
-    });
-}
 
-// On page load, adjust columns
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        setColumnCount(getSavedColumnCount());
-    }, 0);
+    deleteFolderBtn.addEventListener('click', function() {
+        if (currentEditingElement) {
+            if (currentEditingElement.querySelector('.folder-content').children.length > 0) {
+                if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
+                    return;
+                }
+            }
+            currentEditingElement.remove();
+            saveToLocalStorage();
+            closeModal(folderModal);
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('bookmark') || e.target.closest('.bookmark')) {
+            const bookmark = e.target.classList.contains('bookmark') ? e.target : e.target.closest('.bookmark');
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                openModal(bookmarkModal, true, bookmark);
+            }
+        } else if (e.target.classList.contains('folder-name')) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                openModal(folderModal, true, e.target.closest('.folder'));
+            }
+        }
+    });
+    
+    todoManager = new TodoManager();
+    contextMenuManager = new ContextMenuManager();
+    dragDropManager = new DragDropManager();
 });
 
-//* Settings modal functionality
-const settingsModal = document.getElementById('settingsModal');
-const openSettingsBtn = document.getElementById('open-settings');
-const settingsCloseBtn = settingsModal.querySelector('.close');
-
-function openSettingsModal() {
-    settingsModal.style.display = "block";
+//* handle exporting
+function exportBookmarks() {
+    const bookmarks = getAllBookmarks();
+    const exportData = {
+        version: chrome.runtime.getManifest().version,
+        timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+        bookmarks: bookmarks,
+        clockSettings: settings,
+        fluxThemeEnabled: isFluxThemeEnabled,
+        searchSettings: {
+            currentSearchEngine,
+            customSearchUrl: searchEngines.duckduckgo.url !== 'https://duckduckgo.com/?q=' ? searchEngines.duckduckgo.url : '',
+            customSearchName: searchEngines.duckduckgo.name !== 'DuckDuckGo' ? searchEngines.duckduckgo.name : '',
+            customSearchIcon: searchEngines.duckduckgo.icon !== 'img/duckduckgo.webp' ? searchEngines.duckduckgo.icon : ''
+        }
+    };
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', `fluxboard_bookmarks_${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}.json`);
+    document.body.appendChild(linkElement);
+    linkElement.click();
+    document.body.removeChild(linkElement);
 }
 
-function closeSettingsModal() {
-    settingsModal.style.display = "none";
+
+//* handel importing
+function importBookmarks() {
+    document.getElementById('importInput').click();
 }
 
-settingsCloseBtn.onclick = () => closeSettingsModal();
-window.onclick = (event) => {
-    if (event.target === settingsModal) closeSettingsModal();
-    if (event.target === bookmarkModal) bookmarkModal.style.display = "none";
-    if (event.target === folderModal) folderModal.style.display = "none";
-};
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                const bookmarks = data.bookmarks || data;
+                setAllBookmarks(bookmarks);
+                saveBookmarks();
+                
+                if (data.clockSettings) {
+                    Object.assign(settings, data.clockSettings);
+                    saveClockSettings();
+                    updateClock();
+                }
 
-//* bind event listeners for column controls
-function bindColumnEventListeners(column) {
-    const addLinkBtn = column.querySelector('.add-link');
-    const addFolderBtn = column.querySelector('.add-folder');
-    const titleElement = column.querySelector('.group-title');
+                if (data.fluxThemeEnabled !== undefined) {
+                    isFluxThemeEnabled = data.fluxThemeEnabled;
+                    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
+                    const toggleButton = document.getElementById('toggle-fluxtheme');
+                    if (toggleButton) {
+                        toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+                    }
+                    initializeFromBrowser();
+                }
 
-    if (addLinkBtn) {
-        addLinkBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            addLink(column);
-        });
-    }
+                if (data.searchSettings) {
+                    if (data.searchSettings.customSearchUrl) {
+                        searchEngines.duckduckgo.url = data.searchSettings.customSearchUrl;
+                        localStorage.setItem('fluxboard_custom_search_url', data.searchSettings.customSearchUrl);
+                    }
 
-    if (addFolderBtn) {
-        addFolderBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            addFolder(column);
-        });
-    }
+                    if (data.searchSettings.customSearchName) {
+                        searchEngines.duckduckgo.name = data.searchSettings.customSearchName;
+                        localStorage.setItem('fluxboard_custom_search_name', data.searchSettings.customSearchName);
+                        searchEngines.duckduckgo.placeholder = `Search with ${data.searchSettings.customSearchName} or type URL`;
+                    }
 
-    if (titleElement) {
-        titleElement.addEventListener('click', (e) => {
-            if (e.target.closest('.add-link') || e.target.closest('.add-folder') || titleElement.classList.contains('dragging-column')) {
-                return;
+                    if (data.searchSettings.customSearchIcon) {
+                        searchEngines.duckduckgo.icon = data.searchSettings.customSearchIcon;
+                        localStorage.setItem('fluxboard_custom_search_icon', data.searchSettings.customSearchIcon);
+                    }
+                    
+                    if (data.searchSettings.currentSearchEngine && searchEngines[data.searchSettings.currentSearchEngine]) {
+                        currentSearchEngine = data.searchSettings.currentSearchEngine;
+                        localStorage.setItem('preferredSearchEngine', currentSearchEngine);
+                    }
+                    
+                    // Update input fields
+                    const customNameInput = document.getElementById('customSearchName');
+                    const customIconInput = document.getElementById('customSearchIcon');
+                    const customUrlInput = document.getElementById('customSearchUrl');
+                    if (customNameInput) customNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
+                    if (customIconInput) customIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
+                    if (customUrlInput) customUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
+                    
+                    updateSearchInterface();
+                }
+            } catch (error) {
+                console.error('Error importing bookmarks:', error);
+                alert('Error importing bookmarks: Invalid file format');
             }
-            editGroupTitle(titleElement);
-        });
-        
-        titleElement.addEventListener('selectstart', (e) => {
-            if (titleElement.draggable) {
-                e.preventDefault();
-            }
-        });
+        };
+        reader.readAsText(file);
     }
 }
 
-//* handle page colors
-const defaultThemeValues = {
-    text: "#fbfbfe",
-    frame: "#1c1b22",
-    toolbar: "#2b2a33",
-    tab_background: "#42414d",
-    accent: "#0061e0",
-    divider: "#52525e"
-};
-
-let isFluxThemeEnabled = JSON.parse(localStorage.getItem('fluxboard_theme_enabled') || 'false');
-
-function updatePageStyle(colors) {
-    document.documentElement.style.setProperty('--page-text', colors.text);
-    document.documentElement.style.setProperty('--page-background', colors.frame);
-    document.documentElement.style.setProperty('--section-background', colors.toolbar);
-    document.documentElement.style.setProperty('--tab-background', colors.tab_background);
-    document.documentElement.style.setProperty('--accent-color', colors.accent);
-    document.documentElement.style.setProperty('--divider-color', colors.divider);
+//* handle getting all bookmarks
+function getAllBookmarks() {
+    const bookmarksContainer = document.querySelector('.bookmarks');
+    const sections = Array.from(bookmarksContainer.children);
+    const bookmarks = {};
+    
+    sections.forEach((sectionElement, index) => {
+        const section = `col${index + 1}`;
+        const titleElement = sectionElement.querySelector('.group-title h5');
+        bookmarks[section] = {
+            title: titleElement ? titleElement.textContent : '',
+            items: serializeSection(sectionElement)
+        };
+    });
+    
+    return bookmarks;
 }
 
-async function initializeFromBrowser() {
-    if (!isFluxThemeEnabled) {
-        updatePageStyle(defaultThemeValues);
+//* handle clearing all data
+function clearAllData() {
+    if (!confirm('Are you sure you want to delete all the data? This action cannot be undone!')) {
         return;
     }
 
+    // Reset to 4 columns and prepare empty structure
+    const emptyBookmarks = {
+            columnCount: DEFAULT_COLS,
+            data: {}
+    };
+    
     try {
-        const theme = await browser.theme.getCurrent();
-        if (theme && theme.colors) {
-            const colors = {
-                text: theme.colors.toolbar_text || defaultThemeValues.text,
-                frame: theme.colors.frame || defaultThemeValues.frame,
-                toolbar: theme.colors.toolbar || defaultThemeValues.toolbar,
-                tab_background: theme.colors.tab_selected || defaultThemeValues.tab_background,
-                accent: theme.colors.button_background_hover || defaultThemeValues.accent,
-                divider: theme.colors.popup_border || 
-                         theme.colors.popup_highlight || 
-                         theme.colors.toolbar_field_border || 
-                         theme.colors.tab_line ||
-                         theme.colors.toolbar_vertical_separator ||
-                         defaultThemeValues.divider
+        // Create empty data structure for 4 columns
+        for (let i = 1; i <= DEFAULT_COLS; i++) {
+            emptyBookmarks.data[`col${i}`] = {
+                title: `Group ${i}`,
+                items: []
             };
-            updatePageStyle(colors);
+        }
+        
+        // Reset column count in settings UI and storage
+        if (numColumnsInput) {
+            numColumnsInput.value = DEFAULT_COLS;
+        }
+        localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
+        
+        // Clear the bookmarks container and create fresh columns
+        const bookmarksContainer = document.querySelector('.bookmarks');
+        if (bookmarksContainer) {
+            bookmarksContainer.innerHTML = '';
+            setAllBookmarks(emptyBookmarks);
         }
     } catch (error) {
-        console.log('Using default theme values');
-        updatePageStyle(defaultThemeValues);
+        console.error('Error clearing bookmarks:', error);
     }
-}
-
-function toggleFluxTheme() {
-    isFluxThemeEnabled = !isFluxThemeEnabled;
-    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
-    initializeFromBrowser();
+    // Clear all local storage items
+    localStorage.removeItem('groupTitles');
+    localStorage.removeItem('fluxboard_bookmarks');
+    localStorage.removeItem('fluxboard_todos');
+    localStorage.removeItem('fluxboard_todo_history');
+    localStorage.removeItem('clockSettings');
+    localStorage.removeItem('fluxboard_sidebar_open');
+    localStorage.removeItem('fluxboard_secondary_search');
+    localStorage.removeItem('fluxboard_custom_search_url');
+    localStorage.removeItem('preferredSearchEngine');
     
-    const toggleButton = document.getElementById('toggle-fluxtheme');
-    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
-}
+    // Reset column count to default
+    localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
 
-function initTheme() {
-    const toggleButton = document.getElementById('toggle-fluxtheme');
-    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
-    toggleButton.addEventListener('click', toggleFluxTheme);
-    
-    initializeFromBrowser();
-    if (typeof browser !== 'undefined' && browser.theme && browser.theme.onUpdated) {
-        browser.theme.onUpdated.addListener((updateInfo) => {
-            if (isFluxThemeEnabled) {
-                initializeFromBrowser();
-            }
-        });
-    }
-}
+    // Reset search engine settings (add after existing removeItem calls)
+    localStorage.removeItem('fluxboard_custom_search_name');
+    localStorage.removeItem('fluxboard_custom_search_icon');
+    localStorage.removeItem('fluxboard_custom_search_url');
 
-//* handle folder visibility
-function folder_toggle(element) {
-    const folderBody = element.parentElement.querySelector('.folder-body');
-    const closedIcon = element.querySelector('.folder-closed-icon');
-    const openedIcon = element.querySelector('.folder-opened-icon');
+    // Reset search engine settings (add after currentSearchEngine = 'google';)
+    searchEngines.duckduckgo.name = 'DuckDuckGo';
+    searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
+    searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
+    searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
 
-    if (folderBody.style.display === 'block') {
-        folderBody.style.display = 'none';
-        closedIcon.style.display = 'block';
-        openedIcon.style.display = 'none';
-    } else {
-        folderBody.style.display = 'block';
-        closedIcon.style.display = 'none';
-        openedIcon.style.display = 'block';
-    }
-}
-
-//* handle search
-let currentSearchEngine = 'google';
-let secondarySearchEngine = 'duckduckgo';
-const searchEngines = {
-    google: {
-        name: 'Google',
-        icon: 'img/google.webp',
-        url: 'https://www.google.com/search?q=',
-        placeholder: 'Search with Google or type URL',
-        isDefault: true
-    },
-    duckduckgo: {
-        name: localStorage.getItem('fluxboard_custom_search_name') || 'DuckDuckGo',
-        icon: localStorage.getItem('fluxboard_custom_search_icon') || 'img/duckduckgo.webp',
-        url: localStorage.getItem('fluxboard_custom_search_url') || 'https://duckduckgo.com/?q=',
-        placeholder: localStorage.getItem('fluxboard_custom_search_name') ? 
-            `Search with ${localStorage.getItem('fluxboard_custom_search_name')} or type URL` :
-            'Search with DuckDuckGo or type URL'
-    }
-};
-
-function initSearchToggle() {
-    const iconElement = document.querySelector('.search .icon');
-    const iconImg = iconElement.querySelector('img');
-    const searchInput = document.getElementById('searchInput');
-
-    // Get references to custom search inputs
+    // Clear custom search input fields if they exist (add after existing input clearing)
     const customSearchNameInput = document.getElementById('customSearchName');
     const customSearchIconInput = document.getElementById('customSearchIcon');
+    if (customSearchNameInput) customSearchNameInput.value = '';
+    if (customSearchIconInput) customSearchIconInput.value = '';
+    
+    // Reset search engine settings
+    currentSearchEngine = 'google';
+    secondarySearchEngine = 'duckduckgo';
+    
+    // Clear custom search input fields if they exist
     const customSearchUrlInput = document.getElementById('customSearchUrl');
-    const saveBtn = document.getElementById('save-custom-search');
-    const resetBtn = document.getElementById('reset-custom-search');
-
-    // Set initial values
-    customSearchNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
-    customSearchIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
-    customSearchUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
-
-    // Save custom search settings
-    saveBtn.addEventListener('click', () => {
-        const name = customSearchNameInput.value.trim() || 'DuckDuckGo';
-        const icon = customSearchIconInput.value.trim() || 'img/duckduckgo.webp';
-        const url = customSearchUrlInput.value.trim() || 'https://duckduckgo.com/?q=';
-
-        // Validate URL
-        if (url && !url.includes('{searchTerm}') && !url.includes('=')) {
-            alert('Please include {searchTerm} or use a valid search URL format');
-            return;
-        }
-
-        // Update searchEngines object
-        searchEngines.duckduckgo.name = name;
-        searchEngines.duckduckgo.icon = icon;
-        searchEngines.duckduckgo.url = url;
-        searchEngines.duckduckgo.placeholder = `Search with ${name} or type URL`;
-
-        // Save to localStorage
-        localStorage.setItem('fluxboard_custom_search_name', name === 'DuckDuckGo' ? '' : name);
-        localStorage.setItem('fluxboard_custom_search_icon', icon === 'img/duckduckgo.webp' ? '' : icon);
-        localStorage.setItem('fluxboard_custom_search_url', url === 'https://duckduckgo.com/?q=' ? '' : url);
-
-        updateSearchInterface();
+    if (customSearchUrlInput) customSearchUrlInput.value = '';
+    
+    // Reset settings
+    Object.assign(settings, {
+        timeFormat: '12',
+        showSeconds: false,
+        dateFormat: 'short',
+        showClock: true
     });
-
-    // Reset to DuckDuckGo
-    resetBtn.addEventListener('click', () => {
-        if (confirm('Reset to DuckDuckGo defaults?')) {
-            searchEngines.duckduckgo.name = 'DuckDuckGo';
-            searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
-            searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
-            searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
-
-            // Clear localStorage
-            localStorage.removeItem('fluxboard_custom_search_name');
-            localStorage.removeItem('fluxboard_custom_search_icon');
-            localStorage.removeItem('fluxboard_custom_search_url');
-
-            // Update input fields
-            customSearchNameInput.value = '';
-            customSearchIconInput.value = '';
-            customSearchUrlInput.value = '';
-
-            updateSearchInterface();
-        }
-    });
+    updateClock();
     
-    // Function to toggle between search engines
-    function toggleSearchEngine() {
-        currentSearchEngine = currentSearchEngine === 'google' ? 'duckduckgo' : 'google';
-        updateSearchInterface();
+    // Clear todo manager
+    if (typeof todoManager !== 'undefined' && todoManager) {
+        todoManager.completedTimers.forEach(timer => clearTimeout(timer));
+        todoManager.completedTimers.clear();
         
-        try {
-            localStorage.setItem('preferredSearchEngine', currentSearchEngine);
-        } catch (e) {
-            console.error('Error saving preferred search engine to localStorage:', e);
-        }
-    }
-    
-    // Add click event listener for search engine toggle
-    iconElement.addEventListener('click', toggleSearchEngine);
-    
-    // Update interface initially
-    updateSearchInterface();
-    
-    // Load saved search engine preference
-    try {
-        const savedEngine = localStorage.getItem('preferredSearchEngine');
-        if (savedEngine && searchEngines[savedEngine]) {
-            currentSearchEngine = savedEngine;
-            updateSearchInterface();
-        }
-    } catch (e) {
-        console.error('Error retrieving preferred search engine from localStorage:', e);
-    }
-}
-
-// Function to update search UI
-function updateSearchInterface() {
-    const engine = searchEngines[currentSearchEngine];
-    const iconImg = document.querySelector('.search .icon img');
-    const searchInput = document.getElementById('searchInput');
-    const iconElement = document.querySelector('.search .icon');
-    
-    if (!iconImg || !searchInput || !iconElement) return;
-    
-    // Check if icon exists by creating a temporary image
-    const tempImg = new Image();
-    tempImg.onerror = () => {
-        iconImg.src = 'img/custom.webp';
-    };
-    tempImg.onload = () => {
-        iconImg.src = engine.icon;
-    };
-    tempImg.src = engine.icon;
-    
-    iconImg.alt = engine.name;
-    searchInput.placeholder = engine.placeholder;
-    iconElement.setAttribute('data-tooltip', `switch to ${currentSearchEngine === 'google' ? searchEngines.duckduckgo.name : 'Google'}`);
-}
-
-function handleSearch(event) {
-    event.preventDefault();
-    const input = document.getElementById('searchInput').value.trim();
-    const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-.,@?^=%&:/~+#]*[\w-@?^=%&/~+#])?$/;
-    
-    if (urlRegex.test(input)) {
-        const url = input.startsWith('http') ? input : `https://${input}`;
-        window.location.href = url;
-    } else {
-        const searchQuery = encodeURIComponent(input);
-        let searchUrl;
+        todoManager.todos = [];
+        todoManager.history = [];
         
-        if (currentSearchEngine === 'duckduckgo') {
-            searchUrl = searchEngines.duckduckgo.url.replace('{searchTerm}', searchQuery);
-            if (!searchUrl.includes(searchQuery)) {
-                searchUrl = searchEngines.duckduckgo.url + searchQuery;
-            }
-        } else {
-            searchUrl = searchEngines[currentSearchEngine].url + searchQuery;
-        }
-        
-        window.location.href = searchUrl;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', initSearchToggle);
-
-//* handle url
-function normalizeUrl(url) {
-    if (!url) return '';
-
-    url = url.trim();
-    
-    if (!url.match(/^https?:\/\//)) {
-        url = 'https://' + url;
+        todoManager.renderTodos();
     }
     
-    return url;
+    // Reset sidebar state
+    sidebar.classList.remove('active');
+    menu.classList.remove('active');
+    home.classList.remove('active');
+    
+    // Save empty bookmarks
+    localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
+    
+    // Reload page
+    window.location.reload();
 }
+
+//* ==========================================
+//* --- components ---
+//* ==========================================
 
 const bookmarkModal = document.getElementById('bookmarkModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -500,7 +379,7 @@ function saveBookmarks() {
         };
     });
     localStorage.setItem('fluxboard_bookmarks', JSON.stringify(bookmarks));
-    console.log('Bookmarks saved:', bookmarks);
+    console.log('Changes saved:', bookmarks);
 }
 
 //* handle bookmarks adding
@@ -713,6 +592,19 @@ document.getElementById('deleteBookmark').onclick = () => {
     }
 };
 
+//* handle normalizing url
+function normalizeUrl(url) {
+    if (!url) return '';
+
+    url = url.trim();
+    
+    if (!url.match(/^https?:\/\//)) {
+        url = 'https://' + url;
+    }
+    
+    return url;
+}
+
 //* handle folder deletion
 document.getElementById('deleteFolder').onclick = () => {
     if (currentFolderElement) {
@@ -767,125 +659,6 @@ folderForm.onsubmit = (e) => {
 
     folderModal.style.display = "none";
     saveBookmarks();
-}
-
-//* handle exporting
-function exportBookmarks() {
-    const bookmarks = getAllBookmarks();
-    const exportData = {
-        version: chrome.runtime.getManifest().version,
-        timestamp: new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
-        bookmarks: bookmarks,
-        clockSettings: settings,
-        fluxThemeEnabled: isFluxThemeEnabled,
-        searchSettings: {
-            currentSearchEngine,
-            customSearchUrl: searchEngines.duckduckgo.url !== 'https://duckduckgo.com/?q=' ? searchEngines.duckduckgo.url : '',
-            customSearchName: searchEngines.duckduckgo.name !== 'DuckDuckGo' ? searchEngines.duckduckgo.name : '',
-            customSearchIcon: searchEngines.duckduckgo.icon !== 'img/duckduckgo.webp' ? searchEngines.duckduckgo.icon : ''
-        }
-    };
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', `fluxboard_bookmarks_${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}.json`);
-    document.body.appendChild(linkElement);
-    linkElement.click();
-    document.body.removeChild(linkElement);
-}
-
-
-//* handel importing
-function importBookmarks() {
-    document.getElementById('importInput').click();
-}
-
-function handleImport(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                const bookmarks = data.bookmarks || data;
-                setAllBookmarks(bookmarks);
-                saveBookmarks();
-                
-                if (data.clockSettings) {
-                    Object.assign(settings, data.clockSettings);
-                    saveClockSettings();
-                    updateClock();
-                }
-
-                if (data.fluxThemeEnabled !== undefined) {
-                    isFluxThemeEnabled = data.fluxThemeEnabled;
-                    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
-                    const toggleButton = document.getElementById('toggle-fluxtheme');
-                    if (toggleButton) {
-                        toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
-                    }
-                    initializeFromBrowser();
-                }
-
-                if (data.searchSettings) {
-                    if (data.searchSettings.customSearchUrl) {
-                        searchEngines.duckduckgo.url = data.searchSettings.customSearchUrl;
-                        localStorage.setItem('fluxboard_custom_search_url', data.searchSettings.customSearchUrl);
-                    }
-
-                    if (data.searchSettings.customSearchName) {
-                        searchEngines.duckduckgo.name = data.searchSettings.customSearchName;
-                        localStorage.setItem('fluxboard_custom_search_name', data.searchSettings.customSearchName);
-                        searchEngines.duckduckgo.placeholder = `Search with ${data.searchSettings.customSearchName} or type URL`;
-                    }
-
-                    if (data.searchSettings.customSearchIcon) {
-                        searchEngines.duckduckgo.icon = data.searchSettings.customSearchIcon;
-                        localStorage.setItem('fluxboard_custom_search_icon', data.searchSettings.customSearchIcon);
-                    }
-                    
-                    if (data.searchSettings.currentSearchEngine && searchEngines[data.searchSettings.currentSearchEngine]) {
-                        currentSearchEngine = data.searchSettings.currentSearchEngine;
-                        localStorage.setItem('preferredSearchEngine', currentSearchEngine);
-                    }
-                    
-                    // Update input fields
-                    const customNameInput = document.getElementById('customSearchName');
-                    const customIconInput = document.getElementById('customSearchIcon');
-                    const customUrlInput = document.getElementById('customSearchUrl');
-                    if (customNameInput) customNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
-                    if (customIconInput) customIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
-                    if (customUrlInput) customUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
-                    
-                    updateSearchInterface();
-                }
-            } catch (error) {
-                console.error('Error importing bookmarks:', error);
-                alert('Error importing bookmarks: Invalid file format');
-            }
-        };
-        reader.readAsText(file);
-    }
-}
-
-//* handle getting all bookmarks
-function getAllBookmarks() {
-    const bookmarksContainer = document.querySelector('.bookmarks');
-    const sections = Array.from(bookmarksContainer.children);
-    const bookmarks = {};
-    
-    sections.forEach((sectionElement, index) => {
-        const section = `col${index + 1}`;
-        const titleElement = sectionElement.querySelector('.group-title h5');
-        bookmarks[section] = {
-            title: titleElement ? titleElement.textContent : '',
-            items: serializeSection(sectionElement)
-        };
-    });
-    
-    return bookmarks;
 }
 
 //* handle setting all bookmarks
@@ -994,217 +767,6 @@ function setAllBookmarks(bookmarks) {
     }
 }
 
-//* handle clearing all bookmarks
-function clearAllBookmarks() {
-    if (!confirm('Are you sure you want to delete all the data? This action cannot be undone!')) {
-        return;
-    }
-
-    // Reset to 4 columns and prepare empty structure
-    const emptyBookmarks = {
-            columnCount: DEFAULT_COLS,
-            data: {}
-    };
-    
-    try {
-        // Create empty data structure for 4 columns
-        for (let i = 1; i <= DEFAULT_COLS; i++) {
-            emptyBookmarks.data[`col${i}`] = {
-                title: `Group ${i}`,
-                items: []
-            };
-        }
-        
-        // Reset column count in settings UI and storage
-        if (numColumnsInput) {
-            numColumnsInput.value = DEFAULT_COLS;
-        }
-        localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
-        
-        // Clear the bookmarks container and create fresh columns
-        const bookmarksContainer = document.querySelector('.bookmarks');
-        if (bookmarksContainer) {
-            bookmarksContainer.innerHTML = '';
-            setAllBookmarks(emptyBookmarks);
-        }
-    } catch (error) {
-        console.error('Error clearing bookmarks:', error);
-    }
-    // Clear all local storage items
-    localStorage.removeItem('groupTitles');
-    localStorage.removeItem('fluxboard_bookmarks');
-    localStorage.removeItem('fluxboard_todos');
-    localStorage.removeItem('fluxboard_todo_history');
-    localStorage.removeItem('clockSettings');
-    localStorage.removeItem('fluxboard_sidebar_open');
-    localStorage.removeItem('fluxboard_secondary_search');
-    localStorage.removeItem('fluxboard_custom_search_url');
-    localStorage.removeItem('preferredSearchEngine');
-    
-    // Reset column count to default
-    localStorage.setItem('fluxboard_column_count', DEFAULT_COLS);
-
-    // Reset search engine settings (add after existing removeItem calls)
-    localStorage.removeItem('fluxboard_custom_search_name');
-    localStorage.removeItem('fluxboard_custom_search_icon');
-    localStorage.removeItem('fluxboard_custom_search_url');
-
-    // Reset search engine settings (add after currentSearchEngine = 'google';)
-    searchEngines.duckduckgo.name = 'DuckDuckGo';
-    searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
-    searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
-    searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
-
-    // Clear custom search input fields if they exist (add after existing input clearing)
-    const customSearchNameInput = document.getElementById('customSearchName');
-    const customSearchIconInput = document.getElementById('customSearchIcon');
-    if (customSearchNameInput) customSearchNameInput.value = '';
-    if (customSearchIconInput) customSearchIconInput.value = '';
-    
-    // Reset search engine settings
-    currentSearchEngine = 'google';
-    secondarySearchEngine = 'duckduckgo';
-    
-    // Clear custom search input fields if they exist
-    const customSearchUrlInput = document.getElementById('customSearchUrl');
-    if (customSearchUrlInput) customSearchUrlInput.value = '';
-    
-    // Reset settings
-    Object.assign(settings, {
-        timeFormat: '12',
-        showSeconds: false,
-        dateFormat: 'short',
-        showClock: true
-    });
-    updateClock();
-    
-    // Clear todo manager
-    if (typeof todoManager !== 'undefined' && todoManager) {
-        todoManager.completedTimers.forEach(timer => clearTimeout(timer));
-        todoManager.completedTimers.clear();
-        
-        todoManager.todos = [];
-        todoManager.history = [];
-        
-        todoManager.renderTodos();
-    }
-    
-    // Reset sidebar state
-    sidebar.classList.remove('active');
-    menu.classList.remove('active');
-    home.classList.remove('active');
-    
-    // Save empty bookmarks
-    localStorage.setItem('fluxboard_bookmarks', JSON.stringify(emptyBookmarks));
-    
-    // Reload page
-    window.location.reload();
-}
-
-//* handle loading bookmarks
-document.addEventListener('DOMContentLoaded', () => {
-    const savedBookmarks = localStorage.getItem('fluxboard_bookmarks');
-    if (savedBookmarks) {
-        try {
-            const bookmarks = JSON.parse(savedBookmarks);
-            setAllBookmarks(bookmarks);
-        } catch (error) {
-            console.error('Error loading bookmarks:', error);
-        }
-    }
-    
-    document.querySelectorAll('.add-link svg').forEach(button => {
-        const closestCol = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).find(col => col.contains(button));
-        const folderBody = button.closest('.folder-body');
-        button.onclick = () => addLink(closestCol || folderBody);
-    });
-
-    document.querySelectorAll('.add-folder svg').forEach(button => {
-        const closestCol = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).find(col => col.contains(button));
-        const folderBody = button.closest('.folder-body');
-        button.onclick = () => addFolder(closestCol || folderBody);
-    });
-    
-    let currentEditingElement = null;
-    const deleteBookmarkBtn = document.getElementById('deleteBookmark');
-    const deleteFolderBtn = document.getElementById('deleteFolder');
-
-    function openModal(modal, isEdit = false, element = null) {
-        modal.style.display = "block";
-        currentEditingElement = element;
-
-        if (modal.id === 'bookmarkModal') {
-            const deleteBtn = document.getElementById('deleteBookmark');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            if (isEdit) {
-                modalTitle.textContent = 'Edit Bookmark';
-                deleteBtn.style.display = 'block';
-                document.getElementById('bookmarkName').value = element.querySelector('span').textContent;
-                document.getElementById('bookmarkUrl').value = element.querySelector('a').href;
-                document.getElementById('bookmarkNotes').value = element.getAttribute('data-notes') || '';
-            } else {
-                modalTitle.textContent = 'Add Bookmark';
-                deleteBtn.style.display = 'none';
-                document.getElementById('bookmarkForm').reset();
-            }
-        } else if (modal.id === 'folderModal') {
-            const deleteBtn = document.getElementById('deleteFolder');
-            const modalTitle = document.getElementById('folderModalTitle');
-            
-            if (isEdit) {
-                modalTitle.textContent = 'Edit Folder';
-                deleteBtn.style.display = 'block';
-                document.getElementById('folderName').value = element.querySelector('.folder-name').textContent;
-                document.getElementById('folderNotes').value = element.getAttribute('data-notes') || '';
-            } else {
-                modalTitle.textContent = 'Add Folder';
-                deleteBtn.style.display = 'none';
-                document.getElementById('folderForm').reset();
-            }
-        }
-    }
-
-    deleteBookmarkBtn.addEventListener('click', function() {
-        if (currentEditingElement) {
-            currentEditingElement.remove();
-            saveToLocalStorage();
-            closeModal(bookmarkModal);
-        }
-    });
-
-    deleteFolderBtn.addEventListener('click', function() {
-        if (currentEditingElement) {
-            if (currentEditingElement.querySelector('.folder-content').children.length > 0) {
-                if (!confirm('This folder contains items. Are you sure you want to delete it and all its contents?')) {
-                    return;
-                }
-            }
-            currentEditingElement.remove();
-            saveToLocalStorage();
-            closeModal(folderModal);
-        }
-    });
-
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('bookmark') || e.target.closest('.bookmark')) {
-            const bookmark = e.target.classList.contains('bookmark') ? e.target : e.target.closest('.bookmark');
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                openModal(bookmarkModal, true, bookmark);
-            }
-        } else if (e.target.classList.contains('folder-name')) {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                openModal(folderModal, true, e.target.closest('.folder'));
-            }
-        }
-    });
-    
-    todoManager = new TodoManager();
-    contextMenuManager = new ContextMenuManager();
-    dragDropManager = new DragDropManager();
-});
 
 //* handle group title
 const groupTitleModal = document.getElementById('groupTitleModal');
@@ -1301,327 +863,173 @@ function getCurrentColumnOrder() {
 
 document.addEventListener('DOMContentLoaded', loadGroupTitles);
 
-//* handle loading bookmarks from local
+//* Column count customization
+const numColumnsInput = document.getElementById('numColumns');
+const DEFAULT_COLS = 4;
+const MIN_COLS = 4;
+const MAX_COLS = 6;
+
+function getSavedColumnCount() {
+    let val = parseInt(localStorage.getItem('fluxboard_column_count'));
+    if (isNaN(val) || val < MIN_COLS || val > MAX_COLS) return DEFAULT_COLS;
+    return val;
+}
+
+function setColumnCount(val) {
+    val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
+    localStorage.setItem('fluxboard_column_count', val);
+    if (numColumnsInput) numColumnsInput.value = val;
+    adjustColumns(val);
+}
+
+function adjustColumns(newCount) {
+    try {
+        const bookmarksContainer = document.querySelector('.bookmarks');
+        if (!bookmarksContainer) return;
+
+        let columns = Array.from(bookmarksContainer.children);
+        
+        // Save existing data before adjusting
+        const existingData = {};
+        columns.forEach((col, idx) => {
+            const sectionKey = `col${idx + 1}`;
+            existingData[sectionKey] = {
+                title: col.querySelector('.group-title h5')?.textContent || `Group ${idx + 1}`,
+                items: serializeSection(col)
+            };
+        });
+
+        // Remove extra columns, preserving data where possible
+        while (columns.length > newCount) {
+            const removedCol = columns.pop();
+            // Try to merge data into remaining columns if possible
+            if (removedCol) {
+                const items = serializeSection(removedCol);
+                if (items.length > 0 && columns.length > 0) {
+                    // Distribute items to the last remaining column
+                    const lastCol = columns[columns.length - 1];
+                    items.forEach(item => {
+                        if (item.type === 'link') {
+                            createBookmarkElement(item, lastCol);
+                        } else if (item.type === 'folder') {
+                            createFolderElement(item, lastCol);
+                        }
+                    });
+                }
+                bookmarksContainer.removeChild(removedCol);
+            }
+        }
+
+        // Add missing columns
+        while (columns.length < newCount) {
+            const colNum = columns.length + 1;
+            const colDiv = document.createElement('div');
+            colDiv.className = `column col${colNum}`;
+            
+            // Add group title
+            const groupTitleDiv = document.createElement('div');
+            groupTitleDiv.className = 'group-title';
+            const h5 = document.createElement('h5');
+            h5.textContent = existingData[`col${colNum}`]?.title || `Group ${colNum}`;
+            groupTitleDiv.appendChild(h5);
+            
+            // Add new-link controls
+            const newLinkDiv = document.createElement('div');
+            newLinkDiv.className = 'new-link';
+            
+            const addLinkDiv = document.createElement('div');
+            addLinkDiv.className = 'add-link';
+            addLinkDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z"/></svg>';
+            newLinkDiv.appendChild(addLinkDiv);
+            
+            const addFolderDiv = document.createElement('div');
+            addFolderDiv.className = 'add-folder';
+            addFolderDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>';
+            newLinkDiv.appendChild(addFolderDiv);
+            
+            groupTitleDiv.appendChild(newLinkDiv);
+            colDiv.appendChild(groupTitleDiv);
+            
+            // Bind event listeners for new column
+            bindColumnEventListeners(colDiv);
+
+            // Add items from saved data if available
+            const items = existingData[`col${colNum}`]?.items || [];
+            items.forEach(item => {
+                if (item.type === 'link') {
+                    createBookmarkElement(item, colDiv);
+                } else if (item.type === 'folder') {
+                    createFolderElement(item, colDiv);
+                }
+            });
+
+            bookmarksContainer.appendChild(colDiv);
+            columns = Array.from(bookmarksContainer.children);
+        }
+        
+        saveBookmarks();
+        loadGroupTitles();
+    } catch (error) {
+        console.error('Error adjusting columns:', error);
+    }
+}
+
+// Input validation for column count
+if (numColumnsInput) {
+    numColumnsInput.value = getSavedColumnCount();
+    numColumnsInput.addEventListener('input', function(e) {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        if (val === '') val = DEFAULT_COLS;
+        val = Math.max(MIN_COLS, Math.min(MAX_COLS, parseInt(val)));
+        e.target.value = val;
+    });
+    numColumnsInput.addEventListener('change', function(e) {
+        setColumnCount(e.target.value);
+    });
+}
+
+// On page load, adjust columns
 document.addEventListener('DOMContentLoaded', function() {
-    initTheme();
-    loadSidebarState();
-    const importInput = document.getElementById('importInput');
-    importInput.addEventListener('change', handleImport);
+    setTimeout(() => {
+        setColumnCount(getSavedColumnCount());
+    }, 0);
+});
 
-    const searchForm = document.getElementById('searchForm');
-    searchForm.addEventListener('submit', handleSearch);
+//* bind event listeners for column controls
+function bindColumnEventListeners(column) {
+    const addLinkBtn = column.querySelector('.add-link');
+    const addFolderBtn = column.querySelector('.add-folder');
+    const titleElement = column.querySelector('.group-title');
 
-    // Settings modal event listeners
-    openSettingsBtn.addEventListener('click', openSettingsModal);
-    document.getElementById('export-data').addEventListener('click', () => {
-        exportBookmarks();
-        closeSettingsModal();
-    });
-    document.getElementById('import-data').addEventListener('click', () => {
-        importBookmarks();
-        closeSettingsModal();
-    });
-    document.getElementById('delete-all').addEventListener('click', () => {
-        clearAllBookmarks();
-        closeSettingsModal();
-    });
-    document.getElementById('edit-clock').addEventListener('click', () => {
-        document.getElementById('popup').style.display = 'block';
-        closeSettingsModal();
-    });
+    if (addLinkBtn) {
+        addLinkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addLink(column);
+        });
+    }
 
-    document.querySelectorAll('.group-title').forEach(titleElement => {
+    if (addFolderBtn) {
+        addFolderBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addFolder(column);
+        });
+    }
+
+    if (titleElement) {
         titleElement.addEventListener('click', (e) => {
-            // Prevent click event during drag operations
             if (e.target.closest('.add-link') || e.target.closest('.add-folder') || titleElement.classList.contains('dragging-column')) {
                 return;
             }
             editGroupTitle(titleElement);
         });
         
-        // Prevent text selection during drag
         titleElement.addEventListener('selectstart', (e) => {
             if (titleElement.draggable) {
                 e.preventDefault();
             }
         });
-    });
-
-    document.querySelectorAll('.add-link').forEach(linkElement => {
-        linkElement.addEventListener('click', (e) => {
-            e.stopPropagation();
-            addLink(linkElement.closest('.col1, .col2, .col3, .col4, .col5'));
-        });
-    });
-
-    document.querySelectorAll('.add-folder').forEach(folderElement => {
-        folderElement.addEventListener('click', (e) => {
-            e.stopPropagation();
-            addFolder(folderElement.closest('.col1, .col2, .col3, .col4, .col5'));
-        });
-    });
-
-    document.querySelectorAll('.modal .close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', function() {
-            const modal = this.closest('.modal');
-            if (modal.id === 'groupTitleModal') {
-                closeGroupTitleModal();
-            } else {
-                modal.style.display = 'none';
-            }
-        });
-    });
-
-    window.addEventListener('click', function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-            if (event.target.id === 'groupTitleModal') {
-                currentGroupTitleElement = null;
-            }
-        }
-    });
-});
-
-//* sidebar
-const sidebar = document.querySelector('.sidebar');
-const menu = document.querySelector('.menu');
-const home = document.querySelector('.home');
-
-menu.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-    menu.classList.toggle('active');
-    home.classList.toggle('active');
-    saveSidebarState();
-});
-
-//* handle saving sidebar state
-function saveSidebarState() {
-    const isActive = sidebar.classList.contains('active');
-    localStorage.setItem('fluxboard_sidebar_open', JSON.stringify(isActive));
-}
-
-//* handle loading sidebar state
-function loadSidebarState() {
-    const savedState = localStorage.getItem('fluxboard_sidebar_open');
-    if (savedState !== null) {
-        const isOpen = JSON.parse(savedState);
-        if (isOpen) {
-            sidebar.classList.add('active');
-            menu.classList.add('active');
-            home.classList.add('active');
-        }
     }
 }
-
-
-//* todo functionality
-class TodoManager {
-    constructor() {
-        this.todos = JSON.parse(localStorage.getItem('fluxboard_todos')) || [];
-        this.history = JSON.parse(localStorage.getItem('fluxboard_todo_history')) || [];
-        this.completedTimers = new Map();
-        this.init();
-    }
-
-    init() {
-        this.renderTodos();
-        this.bindEvents();
-        this.checkCompletedTodos();
-    }
-
-    bindEvents() {
-        const addBtn = document.getElementById('addTodoBtn');
-        const todoInput = document.getElementById('todoInput');
-        const historyBtn = document.getElementById('historyBtn');
-        const historyModal = document.getElementById('historyModal');
-        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-
-        addBtn.addEventListener('click', () => this.addTodo());
-        todoInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addTodo();
-        });
-
-        historyBtn.addEventListener('click', () => this.showHistory());
-        clearHistoryBtn.addEventListener('click', () => this.clearHistory());
-
-        const closeBtn = historyModal.querySelector('.close');
-        closeBtn.addEventListener('click', () => {
-            historyModal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === historyModal) {
-                historyModal.style.display = 'none';
-            }
-        });
-    }
-
-    addTodo() {
-        const input = document.getElementById('todoInput');
-        const text = input.value.trim();
-        
-        if (text) {
-            const todo = {
-                id: Date.now(),
-                text: text,
-                completed: false,
-                createdAt: new Date().toISOString()
-            };
-            
-            this.todos.push(todo);
-            this.saveTodos();
-            this.renderTodos();
-            input.value = '';
-        }
-    }
-
-    toggleTodo(id) {
-        const todo = this.todos.find(t => t.id === id);
-        if (todo) {
-            todo.completed = !todo.completed;
-            todo.completedAt = todo.completed ? new Date().toISOString() : null;
-            
-            if (todo.completed) {
-                const timer = setTimeout(() => {
-                    this.moveToHistory(id);
-                }, 7000);
-                this.completedTimers.set(id, timer);
-            } else {
-                if (this.completedTimers.has(id)) {
-                    clearTimeout(this.completedTimers.get(id));
-                    this.completedTimers.delete(id);
-                }
-            }
-            
-            this.saveTodos();
-            this.renderTodos();
-        }
-    }
-
-    deleteTodo(id) {
-        if (this.completedTimers.has(id)) {
-            clearTimeout(this.completedTimers.get(id));
-            this.completedTimers.delete(id);
-        }
-        
-        this.todos = this.todos.filter(t => t.id !== id);
-        this.saveTodos();
-        this.renderTodos();
-    }
-
-    moveToHistory(id) {
-        const todo = this.todos.find(t => t.id === id);
-        if (todo && todo.completed) {
-            this.history.unshift({
-                ...todo,
-                movedToHistoryAt: new Date().toISOString()
-            });
-            
-            this.todos = this.todos.filter(t => t.id !== id);
-            
-            if (this.completedTimers.has(id)) {
-                clearTimeout(this.completedTimers.get(id));
-                this.completedTimers.delete(id);
-            }
-            
-            this.saveTodos();
-            this.saveHistory();
-            this.renderTodos();
-        }
-    }
-
-    checkCompletedTodos() {
-        const now = new Date();
-        this.todos.forEach(todo => {
-            if (todo.completed && todo.completedAt) {
-                const completedTime = new Date(todo.completedAt);
-                const timeDiff = now - completedTime;
-                
-                if (timeDiff >= 7000) {
-                    this.moveToHistory(todo.id);
-                } else {
-                    const remainingTime = 7000 - timeDiff;
-                    const timer = setTimeout(() => {
-                        this.moveToHistory(todo.id);
-                    }, remainingTime);
-                    this.completedTimers.set(todo.id, timer);
-                }
-            }
-        });
-    }
-
-    renderTodos() {
-        const todoList = document.getElementById('todoList');
-        todoList.innerHTML = '';
-        
-        const sortedTodos = [...this.todos].sort((a, b) => {
-            if (a.completed === b.completed) return 0;
-            return a.completed ? 1 : -1;
-        });
-        
-        sortedTodos.forEach(todo => {
-            const todoItem = document.createElement('div');
-            todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-            
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = todo.completed;
-            checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
-            
-            const span = document.createElement('span');
-            span.textContent = todo.text;
-            
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = '✕';
-            deleteButton.addEventListener('click', () => this.deleteTodo(todo.id));
-            
-            todoItem.appendChild(checkbox);
-            todoItem.appendChild(span);
-            todoItem.appendChild(deleteButton);
-            
-            todoList.appendChild(todoItem);
-        });
-    }
-
-    showHistory() {
-        const historyModal = document.getElementById('historyModal');
-        const historyList = document.getElementById('historyList');
-        
-        if (this.history.length === 0) {
-            historyList.innerHTML = '<div class="empty-history">No completed todos in history</div>';
-        } else {
-            historyList.innerHTML = this.history.map(item => `
-                <div class="history-item">
-                    <div class="history-item-text">${item.text}</div>
-                    <div class="history-item-date">
-                        Completed: ${new Date(item.completedAt).toLocaleDateString()} 
-                        ${new Date(item.completedAt).toLocaleTimeString()}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        historyModal.style.display = 'block';
-    }
-
-    clearHistory() {
-        if (confirm('Are you sure you want to clear all todo history?')) {
-            this.history = [];
-            this.saveHistory();
-            this.showHistory();
-        }
-    }
-
-    saveTodos() {
-        localStorage.setItem('fluxboard_todos', JSON.stringify(this.todos));
-    }
-
-    saveHistory() {
-        localStorage.setItem('fluxboard_todo_history', JSON.stringify(this.history));
-    }
-}
-
-let todoManager;
 
 //* Context Menu functionality
 class ContextMenuManager {
@@ -1713,7 +1121,7 @@ class ContextMenuManager {
     }
 
     updateDirectionalItemState(item, element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4, .col5');
+        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .col6');
         const siblings = Array.from(container.children).filter(child => 
             !child.classList.contains('group-title') && 
             (child.classList.contains('link-element') || child.classList.contains('folder-element'))
@@ -1757,7 +1165,7 @@ class ContextMenuManager {
     }
 
     moveElementDirection(element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .folder-body');
+        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .col6, .folder-body');
         
         if (['col1', 'col2', 'col3', 'col4', 'col5'].includes(direction)) {
             const targetColumn = document.querySelector('.' + direction);
@@ -1896,6 +1304,58 @@ class ContextMenuManager {
 }
 
 let contextMenuManager;
+
+//* ==========================================
+//* --- UI management ---
+//* ==========================================
+
+//* handle folder visibility
+function folder_toggle(element) {
+    const folderBody = element.parentElement.querySelector('.folder-body');
+    const closedIcon = element.querySelector('.folder-closed-icon');
+    const openedIcon = element.querySelector('.folder-opened-icon');
+
+    if (folderBody.style.display === 'block') {
+        folderBody.style.display = 'none';
+        closedIcon.style.display = 'block';
+        openedIcon.style.display = 'none';
+    } else {
+        folderBody.style.display = 'block';
+        closedIcon.style.display = 'none';
+        openedIcon.style.display = 'block';
+    }
+}
+
+//* sidebar
+const sidebar = document.querySelector('.sidebar');
+const menu = document.querySelector('.menu');
+const home = document.querySelector('.home');
+
+menu.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+    menu.classList.toggle('active');
+    home.classList.toggle('active');
+    saveSidebarState();
+});
+
+//* handle saving sidebar state
+function saveSidebarState() {
+    const isActive = sidebar.classList.contains('active');
+    localStorage.setItem('fluxboard_sidebar_open', JSON.stringify(isActive));
+}
+
+//* handle loading sidebar state
+function loadSidebarState() {
+    const savedState = localStorage.getItem('fluxboard_sidebar_open');
+    if (savedState !== null) {
+        const isOpen = JSON.parse(savedState);
+        if (isOpen) {
+            sidebar.classList.add('active');
+            menu.classList.add('active');
+            home.classList.add('active');
+        }
+    }
+}
 
 //* handle drag and drop
 class DragDropManager {
@@ -2227,7 +1687,7 @@ class DragDropManager {
     }
 
     handleDragLeave(e) {
-        const target = e.target.closest('.col1, .col2, .col3, .col4, .col5, .folder-body, .link-element, .folder-element');
+        const target = e.target.closest('.col1, .col2, .col3, .col4, .col5, .col6, .folder-body, .link-element, .folder-element');
         if (target && target === this.lastDropTarget) {
             this.lastDropTarget = null;
         }
@@ -2545,7 +2005,462 @@ class DragDropManager {
 
 let dragDropManager;
 
-//* clock functionality
+//* ==========================================
+//* --- features management ---
+//* ==========================================
+
+//* handle page colors
+const defaultThemeValues = {
+    text: "#fbfbfe",
+    frame: "#1c1b22",
+    toolbar: "#2b2a33",
+    tab_background: "#42414d",
+    accent: "#0061e0",
+    divider: "#52525e"
+};
+
+let isFluxThemeEnabled = JSON.parse(localStorage.getItem('fluxboard_theme_enabled') || 'false');
+
+function updatePageStyle(colors) {
+    document.documentElement.style.setProperty('--page-text', colors.text);
+    document.documentElement.style.setProperty('--page-background', colors.frame);
+    document.documentElement.style.setProperty('--section-background', colors.toolbar);
+    document.documentElement.style.setProperty('--tab-background', colors.tab_background);
+    document.documentElement.style.setProperty('--accent-color', colors.accent);
+    document.documentElement.style.setProperty('--divider-color', colors.divider);
+}
+
+async function initializeFromBrowser() {
+    if (!isFluxThemeEnabled) {
+        updatePageStyle(defaultThemeValues);
+        return;
+    }
+
+    try {
+        const theme = await browser.theme.getCurrent();
+        if (theme && theme.colors) {
+            const colors = {
+                text: theme.colors.toolbar_text || defaultThemeValues.text,
+                frame: theme.colors.frame || defaultThemeValues.frame,
+                toolbar: theme.colors.toolbar || defaultThemeValues.toolbar,
+                tab_background: theme.colors.tab_selected || defaultThemeValues.tab_background,
+                accent: theme.colors.button_background_hover || defaultThemeValues.accent,
+                divider: theme.colors.popup_border || 
+                         theme.colors.popup_highlight || 
+                         theme.colors.toolbar_field_border || 
+                         theme.colors.tab_line ||
+                         theme.colors.toolbar_vertical_separator ||
+                         defaultThemeValues.divider
+            };
+            updatePageStyle(colors);
+        }
+    } catch (error) {
+        console.log('Using default theme values');
+        updatePageStyle(defaultThemeValues);
+    }
+}
+
+function toggleFluxTheme() {
+    isFluxThemeEnabled = !isFluxThemeEnabled;
+    localStorage.setItem('fluxboard_theme_enabled', JSON.stringify(isFluxThemeEnabled));
+    initializeFromBrowser();
+    
+    const toggleButton = document.getElementById('toggle-fluxtheme');
+    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+}
+
+function initTheme() {
+    const toggleButton = document.getElementById('toggle-fluxtheme');
+    toggleButton.textContent = isFluxThemeEnabled ? 'Disable FluxTheme' : 'Enable FluxTheme';
+    toggleButton.addEventListener('click', toggleFluxTheme);
+    
+    initializeFromBrowser();
+    if (typeof browser !== 'undefined' && browser.theme && browser.theme.onUpdated) {
+        browser.theme.onUpdated.addListener((updateInfo) => {
+            if (isFluxThemeEnabled) {
+                initializeFromBrowser();
+            }
+        });
+    }
+}
+
+//* handle search
+let currentSearchEngine = 'google';
+let secondarySearchEngine = 'duckduckgo';
+const searchEngines = {
+    google: {
+        name: 'Google',
+        icon: 'img/google.webp',
+        url: 'https://www.google.com/search?q=',
+        placeholder: 'Search with Google or type URL',
+        isDefault: true
+    },
+    duckduckgo: {
+        name: localStorage.getItem('fluxboard_custom_search_name') || 'DuckDuckGo',
+        icon: localStorage.getItem('fluxboard_custom_search_icon') || 'img/duckduckgo.webp',
+        url: localStorage.getItem('fluxboard_custom_search_url') || 'https://duckduckgo.com/?q=',
+        placeholder: localStorage.getItem('fluxboard_custom_search_name') ? 
+            `Search with ${localStorage.getItem('fluxboard_custom_search_name')} or type URL` :
+            'Search with DuckDuckGo or type URL'
+    }
+};
+
+function initSearchToggle() {
+    const iconElement = document.querySelector('.search .icon');
+    const iconImg = iconElement.querySelector('img');
+    const searchInput = document.getElementById('searchInput');
+
+    // Get references to custom search inputs
+    const customSearchNameInput = document.getElementById('customSearchName');
+    const customSearchIconInput = document.getElementById('customSearchIcon');
+    const customSearchUrlInput = document.getElementById('customSearchUrl');
+    const saveBtn = document.getElementById('save-custom-search');
+    const resetBtn = document.getElementById('reset-custom-search');
+
+    // Set initial values
+    customSearchNameInput.value = searchEngines.duckduckgo.name === 'DuckDuckGo' ? '' : searchEngines.duckduckgo.name;
+    customSearchIconInput.value = searchEngines.duckduckgo.icon === 'img/duckduckgo.webp' ? '' : searchEngines.duckduckgo.icon;
+    customSearchUrlInput.value = searchEngines.duckduckgo.url === 'https://duckduckgo.com/?q=' ? '' : searchEngines.duckduckgo.url;
+
+    // Save custom search settings
+    saveBtn.addEventListener('click', () => {
+        const name = customSearchNameInput.value.trim() || 'DuckDuckGo';
+        const icon = customSearchIconInput.value.trim() || 'img/duckduckgo.webp';
+        const url = customSearchUrlInput.value.trim() || 'https://duckduckgo.com/?q=';
+
+        // Validate URL
+        if (url && !url.includes('{searchTerm}') && !url.includes('=')) {
+            alert('Please include {searchTerm} or use a valid search URL format');
+            return;
+        }
+
+        // Update searchEngines object
+        searchEngines.duckduckgo.name = name;
+        searchEngines.duckduckgo.icon = icon;
+        searchEngines.duckduckgo.url = url;
+        searchEngines.duckduckgo.placeholder = `Search with ${name} or type URL`;
+
+        // Save to localStorage
+        localStorage.setItem('fluxboard_custom_search_name', name === 'DuckDuckGo' ? '' : name);
+        localStorage.setItem('fluxboard_custom_search_icon', icon === 'img/duckduckgo.webp' ? '' : icon);
+        localStorage.setItem('fluxboard_custom_search_url', url === 'https://duckduckgo.com/?q=' ? '' : url);
+
+        updateSearchInterface();
+    });
+
+    // Reset to DuckDuckGo
+    resetBtn.addEventListener('click', () => {
+        if (confirm('Reset to DuckDuckGo defaults?')) {
+            searchEngines.duckduckgo.name = 'DuckDuckGo';
+            searchEngines.duckduckgo.icon = 'img/duckduckgo.webp';
+            searchEngines.duckduckgo.url = 'https://duckduckgo.com/?q=';
+            searchEngines.duckduckgo.placeholder = 'Search with DuckDuckGo or type URL';
+
+            // Clear localStorage
+            localStorage.removeItem('fluxboard_custom_search_name');
+            localStorage.removeItem('fluxboard_custom_search_icon');
+            localStorage.removeItem('fluxboard_custom_search_url');
+
+            // Update input fields
+            customSearchNameInput.value = '';
+            customSearchIconInput.value = '';
+            customSearchUrlInput.value = '';
+
+            updateSearchInterface();
+        }
+    });
+    
+    // Function to toggle between search engines
+    function toggleSearchEngine() {
+        currentSearchEngine = currentSearchEngine === 'google' ? 'duckduckgo' : 'google';
+        updateSearchInterface();
+        
+        try {
+            localStorage.setItem('preferredSearchEngine', currentSearchEngine);
+        } catch (e) {
+            console.error('Error saving preferred search engine to localStorage:', e);
+        }
+    }
+    
+    // Add click event listener for search engine toggle
+    iconElement.addEventListener('click', toggleSearchEngine);
+    
+    // Update interface initially
+    updateSearchInterface();
+    
+    // Load saved search engine preference
+    try {
+        const savedEngine = localStorage.getItem('preferredSearchEngine');
+        if (savedEngine && searchEngines[savedEngine]) {
+            currentSearchEngine = savedEngine;
+            updateSearchInterface();
+        }
+    } catch (e) {
+        console.error('Error retrieving preferred search engine from localStorage:', e);
+    }
+}
+
+// Function to update search UI
+function updateSearchInterface() {
+    const engine = searchEngines[currentSearchEngine];
+    const iconImg = document.querySelector('.search .icon img');
+    const searchInput = document.getElementById('searchInput');
+    const iconElement = document.querySelector('.search .icon');
+    
+    if (!iconImg || !searchInput || !iconElement) return;
+    
+    // Check if icon exists by creating a temporary image
+    const tempImg = new Image();
+    tempImg.onerror = () => {
+        iconImg.src = 'img/custom.webp';
+    };
+    tempImg.onload = () => {
+        iconImg.src = engine.icon;
+    };
+    tempImg.src = engine.icon;
+    
+    iconImg.alt = engine.name;
+    searchInput.placeholder = engine.placeholder;
+    iconElement.setAttribute('data-tooltip', `switch to ${currentSearchEngine === 'google' ? searchEngines.duckduckgo.name : 'Google'}`);
+}
+
+function handleSearch(event) {
+    event.preventDefault();
+    const input = document.getElementById('searchInput').value.trim();
+    const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-.,@?^=%&:/~+#]*[\w-@?^=%&/~+#])?$/;
+    
+    if (urlRegex.test(input)) {
+        const url = input.startsWith('http') ? input : `https://${input}`;
+        window.location.href = url;
+    } else {
+        const searchQuery = encodeURIComponent(input);
+        let searchUrl;
+        
+        if (currentSearchEngine === 'duckduckgo') {
+            searchUrl = searchEngines.duckduckgo.url.replace('{searchTerm}', searchQuery);
+            if (!searchUrl.includes(searchQuery)) {
+                searchUrl = searchEngines.duckduckgo.url + searchQuery;
+            }
+        } else {
+            searchUrl = searchEngines[currentSearchEngine].url + searchQuery;
+        }
+        
+        window.location.href = searchUrl;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initSearchToggle);
+
+//* todo functionality
+class TodoManager {
+    constructor() {
+        this.todos = JSON.parse(localStorage.getItem('fluxboard_todos')) || [];
+        this.history = JSON.parse(localStorage.getItem('fluxboard_todo_history')) || [];
+        this.completedTimers = new Map();
+        this.init();
+    }
+
+    init() {
+        this.renderTodos();
+        this.bindEvents();
+        this.checkCompletedTodos();
+    }
+
+    bindEvents() {
+        const addBtn = document.getElementById('addTodoBtn');
+        const todoInput = document.getElementById('todoInput');
+        const historyBtn = document.getElementById('historyBtn');
+        const historyModal = document.getElementById('historyModal');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        addBtn.addEventListener('click', () => this.addTodo());
+        todoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTodo();
+        });
+
+        historyBtn.addEventListener('click', () => this.showHistory());
+        clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+
+        const closeBtn = historyModal.querySelector('.close');
+        closeBtn.addEventListener('click', () => {
+            historyModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.style.display = 'none';
+            }
+        });
+    }
+
+    addTodo() {
+        const input = document.getElementById('todoInput');
+        const text = input.value.trim();
+        
+        if (text) {
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            this.todos.push(todo);
+            this.saveTodos();
+            this.renderTodos();
+            input.value = '';
+        }
+    }
+
+    toggleTodo(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo) {
+            todo.completed = !todo.completed;
+            todo.completedAt = todo.completed ? new Date().toISOString() : null;
+            
+            if (todo.completed) {
+                const timer = setTimeout(() => {
+                    this.moveToHistory(id);
+                }, 7000);
+                this.completedTimers.set(id, timer);
+            } else {
+                if (this.completedTimers.has(id)) {
+                    clearTimeout(this.completedTimers.get(id));
+                    this.completedTimers.delete(id);
+                }
+            }
+            
+            this.saveTodos();
+            this.renderTodos();
+        }
+    }
+
+    deleteTodo(id) {
+        if (this.completedTimers.has(id)) {
+            clearTimeout(this.completedTimers.get(id));
+            this.completedTimers.delete(id);
+        }
+        
+        this.todos = this.todos.filter(t => t.id !== id);
+        this.saveTodos();
+        this.renderTodos();
+    }
+
+    moveToHistory(id) {
+        const todo = this.todos.find(t => t.id === id);
+        if (todo && todo.completed) {
+            this.history.unshift({
+                ...todo,
+                movedToHistoryAt: new Date().toISOString()
+            });
+            
+            this.todos = this.todos.filter(t => t.id !== id);
+            
+            if (this.completedTimers.has(id)) {
+                clearTimeout(this.completedTimers.get(id));
+                this.completedTimers.delete(id);
+            }
+            
+            this.saveTodos();
+            this.saveHistory();
+            this.renderTodos();
+        }
+    }
+
+    checkCompletedTodos() {
+        const now = new Date();
+        this.todos.forEach(todo => {
+            if (todo.completed && todo.completedAt) {
+                const completedTime = new Date(todo.completedAt);
+                const timeDiff = now - completedTime;
+                
+                if (timeDiff >= 7000) {
+                    this.moveToHistory(todo.id);
+                } else {
+                    const remainingTime = 7000 - timeDiff;
+                    const timer = setTimeout(() => {
+                        this.moveToHistory(todo.id);
+                    }, remainingTime);
+                    this.completedTimers.set(todo.id, timer);
+                }
+            }
+        });
+    }
+
+    renderTodos() {
+        const todoList = document.getElementById('todoList');
+        todoList.innerHTML = '';
+        
+        const sortedTodos = [...this.todos].sort((a, b) => {
+            if (a.completed === b.completed) return 0;
+            return a.completed ? 1 : -1;
+        });
+        
+        sortedTodos.forEach(todo => {
+            const todoItem = document.createElement('div');
+            todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = todo.completed;
+            checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
+            
+            const span = document.createElement('span');
+            span.textContent = todo.text;
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '✕';
+            deleteButton.addEventListener('click', () => this.deleteTodo(todo.id));
+            
+            todoItem.appendChild(checkbox);
+            todoItem.appendChild(span);
+            todoItem.appendChild(deleteButton);
+            
+            todoList.appendChild(todoItem);
+        });
+    }
+
+    showHistory() {
+        const historyModal = document.getElementById('historyModal');
+        const historyList = document.getElementById('historyList');
+        
+        if (this.history.length === 0) {
+            historyList.innerHTML = '<div class="empty-history">No completed todos in history</div>';
+        } else {
+            historyList.innerHTML = this.history.map(item => `
+                <div class="history-item">
+                    <div class="history-item-text">${item.text}</div>
+                    <div class="history-item-date">
+                        Completed: ${new Date(item.completedAt).toLocaleDateString()} 
+                        ${new Date(item.completedAt).toLocaleTimeString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        historyModal.style.display = 'block';
+    }
+
+    clearHistory() {
+        if (confirm('Are you sure you want to clear all todo history?')) {
+            this.history = [];
+            this.saveHistory();
+            this.showHistory();
+        }
+    }
+
+    saveTodos() {
+        localStorage.setItem('fluxboard_todos', JSON.stringify(this.todos));
+    }
+
+    saveHistory() {
+        localStorage.setItem('fluxboard_todo_history', JSON.stringify(this.history));
+    }
+}
+
+let todoManager;
+
+//* handle clock functionality
 document.addEventListener('DOMContentLoaded', function() {
     loadClockSettings();
     
@@ -2685,11 +2600,115 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateClock, 1000);
 });
 
-//* quick notes text area
-
+//* handle quick notes text area
 const textarea = document.getElementById('notes-textarea');
 
 textarea.value = localStorage.getItem('textareaContent') || '';
 textarea.addEventListener('input', function() {
     localStorage.setItem('textareaContent', this.value);
+});
+
+//* ==========================================
+//* --- settings management ---
+//* ==========================================
+
+//* Settings modal functionality
+const settingsModal = document.getElementById('settingsModal');
+const openSettingsBtn = document.getElementById('open-settings');
+const settingsCloseBtn = settingsModal.querySelector('.close');
+
+function openSettingsModal() {
+    settingsModal.style.display = "block";
+}
+
+function closeSettingsModal() {
+    settingsModal.style.display = "none";
+}
+
+settingsCloseBtn.onclick = () => closeSettingsModal();
+window.onclick = (event) => {
+    if (event.target === settingsModal) closeSettingsModal();
+    if (event.target === bookmarkModal) bookmarkModal.style.display = "none";
+    if (event.target === folderModal) folderModal.style.display = "none";
+};
+
+//* handle sidebar and settings
+document.addEventListener('DOMContentLoaded', function() {
+    initTheme();
+    loadSidebarState();
+    const importInput = document.getElementById('importInput');
+    importInput.addEventListener('change', handleImport);
+
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', handleSearch);
+
+    // Settings modal event listeners
+    openSettingsBtn.addEventListener('click', openSettingsModal);
+    document.getElementById('export-data').addEventListener('click', () => {
+        exportBookmarks();
+        closeSettingsModal();
+    });
+    document.getElementById('import-data').addEventListener('click', () => {
+        importBookmarks();
+        closeSettingsModal();
+    });
+    document.getElementById('delete-all').addEventListener('click', () => {
+        clearAllData();
+        closeSettingsModal();
+    });
+    document.getElementById('edit-clock').addEventListener('click', () => {
+        document.getElementById('popup').style.display = 'block';
+        closeSettingsModal();
+    });
+
+    document.querySelectorAll('.group-title').forEach(titleElement => {
+        titleElement.addEventListener('click', (e) => {
+            // Prevent click event during drag operations
+            if (e.target.closest('.add-link') || e.target.closest('.add-folder') || titleElement.classList.contains('dragging-column')) {
+                return;
+            }
+            editGroupTitle(titleElement);
+        });
+        
+        // Prevent text selection during drag
+        titleElement.addEventListener('selectstart', (e) => {
+            if (titleElement.draggable) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    document.querySelectorAll('.add-link').forEach(linkElement => {
+        linkElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addLink(linkElement.closest('.col1, .col2, .col3, .col4, .col5, .col6'));
+        });
+    });
+
+    document.querySelectorAll('.add-folder').forEach(folderElement => {
+        folderElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addFolder(folderElement.closest('.col1, .col2, .col3, .col4, .col5, .col6'));
+        });
+    });
+
+    document.querySelectorAll('.modal .close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal.id === 'groupTitleModal') {
+                closeGroupTitleModal();
+            } else {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+            if (event.target.id === 'groupTitleModal') {
+                currentGroupTitleElement = null;
+            }
+        }
+    });
 });
