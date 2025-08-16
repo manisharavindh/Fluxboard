@@ -1368,15 +1368,11 @@ class DragDropManager {
         this.lastHoveredFolder = null;
         this.lastClientX = 0;
         this.lastClientY = 0;
-        this.draggedColumn = null;
-        this.columnDropIndicator = null;
         this.init();
     }
 
     init() {
         this.createDropIndicator();
-        this.createColumnDropIndicator();
-        this.bindColumnDragEvents();
         this.bindEvents();
     }
 
@@ -1384,52 +1380,6 @@ class DragDropManager {
         this.dropIndicator = document.createElement('div');
         this.dropIndicator.className = 'drop-indicator';
         document.body.appendChild(this.dropIndicator);
-    }
-
-    createColumnDropIndicator() {
-        this.columnDropIndicator = document.createElement('div');
-        this.columnDropIndicator.className = 'column-drop-indicator';
-        document.body.appendChild(this.columnDropIndicator);
-    }
-
-    bindColumnDragEvents() {
-        // Use mousedown/mouseup to prevent conflicts with existing drag events
-        document.addEventListener('dragstart', (e) => {
-            const groupTitle = e.target.closest('.group-title');
-            if (groupTitle && e.target.tagName !== 'SVG' && !e.target.closest('.add-link') && !e.target.closest('.add-folder')) {
-                this.handleColumnDragStart(e);
-                // Prevent normal element dragging when dragging columns
-                document.querySelectorAll('.link-element, .folder-element').forEach(el => {
-                    el.draggable = false;
-                });
-            }
-        });
-
-        document.addEventListener('dragend', (e) => {
-            if (this.draggedColumn) {
-                this.handleColumnDragEnd(e);
-                // Re-enable normal element dragging
-                document.querySelectorAll('.link-element, .folder-element').forEach(el => {
-                    el.draggable = true;
-                });
-            }
-        });
-
-        document.addEventListener('dragover', (e) => {
-            if (this.draggedColumn) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.handleColumnDragOver(e);
-            }
-        });
-
-        document.addEventListener('drop', (e) => {
-            if (this.draggedColumn) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.handleColumnDrop(e);
-            }
-        });
     }
 
     bindEvents() {
@@ -1558,11 +1508,6 @@ class DragDropManager {
     }
 
     handleDragOver(e) {
-        // Don't handle normal drag over when dragging columns
-        if (this.draggedColumn) {
-            return;
-        }
-        
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
 
@@ -1786,115 +1731,6 @@ class DragDropManager {
         saveBookmarks();
     }
 
-    handleColumnDragStart(e) {
-        const groupTitle = e.target.closest('.group-title');
-        const column = groupTitle.closest('.column');
-        
-        if (!column) return;
-        
-        this.draggedColumn = column;
-        column.classList.add('dragging-column');
-        
-        // Hide normal drop indicators
-        if (this.dropIndicator) {
-            this.dropIndicator.style.display = 'none';
-        }
-        
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', ''); // Required for drag to work
-    }
-
-    handleColumnDragEnd(e) {
-        if (this.draggedColumn) {
-            this.draggedColumn.classList.remove('dragging-column');
-            this.draggedColumn = null;
-        }
-        this.hideColumnDropIndicator();
-    }
-
-    handleColumnDragOver(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = 'move';
-        
-        // Don't show normal drop indicator during column drag
-        if (this.dropIndicator) {
-            this.dropIndicator.style.display = 'none';
-        }
-        
-        const targetColumn = e.target.closest('.column');
-        if (!targetColumn || targetColumn === this.draggedColumn) {
-            this.hideColumnDropIndicator();
-            return;
-        }
-        
-        this.updateColumnDropIndicator(e, targetColumn);
-    }
-
-    handleColumnDrop(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const targetColumn = e.target.closest('.column');
-        if (!targetColumn || targetColumn === this.draggedColumn) return;
-        
-        const bookmarksContainer = document.querySelector('.bookmarks');
-        
-        // Get the current position of target column
-        const rect = targetColumn.getBoundingClientRect();
-        const insertBefore = e.clientX < rect.left + (rect.width / 2);
-        
-        // Move the column
-        if (insertBefore) {
-            bookmarksContainer.insertBefore(this.draggedColumn, targetColumn);
-        } else {
-            bookmarksContainer.insertBefore(this.draggedColumn, targetColumn.nextSibling);
-        }
-        
-        this.hideColumnDropIndicator();
-        saveBookmarks();
-    }
-
-    updateColumnDropIndicator(e, targetColumn) {
-        const rect = targetColumn.getBoundingClientRect();
-        const mouseX = e.clientX;
-        
-        this.columnDropIndicator.style.display = 'block';
-        this.columnDropIndicator.style.height = `${rect.height}px`;
-        this.columnDropIndicator.style.top = `${rect.top + window.scrollY}px`;
-        
-        // Show indicator on the left or right side based on mouse position
-        if (mouseX < rect.left + (rect.width / 2)) {
-            // Insert before target
-            this.columnDropIndicator.style.left = `${rect.left + window.scrollX - 2}px`;
-        } else {
-            // Insert after target
-            this.columnDropIndicator.style.left = `${rect.right + window.scrollX - 2}px`;
-        }
-    }
-
-    hideColumnDropIndicator() {
-        if (this.columnDropIndicator) {
-            this.columnDropIndicator.style.display = 'none';
-        }
-    }
-
-    // updateColumnNumbers() {
-    //     const bookmarksContainer = document.querySelector('.bookmarks');
-    //     const columns = Array.from(bookmarksContainer.children);
-        
-    //     columns.forEach((column, index) => {
-    //         const newColumnNumber = index + 1;
-    //         const oldClass = Array.from(column.classList).find(cls => cls.startsWith('col'));
-    //         const newClass = `col${newColumnNumber}`;
-            
-    //         if (oldClass !== newClass) {
-    //             column.classList.remove(oldClass);
-    //             column.classList.add(newClass);
-    //         }
-    //     });
-    // }
-
     getDropPosition(e, target) {
         if (target.classList.contains('folder-body') || 
             Array.from(target.classList).some(cls => cls.startsWith('col'))) {
@@ -1996,7 +1832,6 @@ class DragDropManager {
     }
 
     clearDragOverEffects() {
-    // Remove any drag-over visual effects
         document.querySelectorAll('.drag-over').forEach(element => {
             element.classList.remove('drag-over');
         });
