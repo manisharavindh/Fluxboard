@@ -632,6 +632,7 @@ body{
     .sidebar{
         width: 100%;
         transform: translateX(100%);
+        border-right: 0.25rem solid var(--section-background);
     }
 
     .sidebar.active{
@@ -640,7 +641,9 @@ body{
     }
 
     .menu.active{
-        width: 100% !important;
+        right: 0.25rem !important;
+        width: calc(100% - 0.5rem) !important;
+        border-radius: 0.4rem 0.4rem 0 0 !important;
     }
 
     .home{
@@ -652,12 +655,27 @@ body{
         transform: translateX(0);
     }
 
-    .todo, .notes, .more{
+    .todo{
+        border-top-right-radius: 0.4rem;
+    }
+
+    .todo, .notes{
         padding: 0.5rem 1rem !important;
     }
 
+    .notes{
+        height: 41% !important;
+    }
+
     .more{
-        padding: 0.5rem 2rem;
+        /* padding: 0.5rem 2rem; */
+        height: 9% !important;
+        padding: 0.5rem;
+        border-bottom-right-radius: 0.4rem;
+    }
+
+    .more .data-buttons{
+        flex-direction: row;
     }
 }
 
@@ -691,10 +709,9 @@ body{
 
 .menu.active{
     bottom: 0;
-    right: 0.25rem;
-    width: calc(20% - 0.5rem);
-    border-radius: 0;
-    border-left: 0.25rem solid var();
+    right: 0;
+    width: calc(20% - 0.25rem);
+    border-radius: 0.4rem 0 0 0;
     box-shadow: none !important;
 }
 
@@ -706,24 +723,26 @@ body{
     display: block;
     font-size: 0.7rem;
     font-weight: 400;
-    opacity: 0.8;
+    opacity: 0.75;
 }
 
 .todo{
-    height: 35%;
+    height: 50%;
     width: 100%;
     border-bottom: 0.25rem solid var(--section-background);
     background-color: var(--page-background);
     padding: 0.5rem;
     border-top-left-radius: 0.4rem;
+    /* border: 1px solid red; */
 }
 
 .notes{
-    height: 40%;
+    height: 35%;
     width: 100%;
     border-bottom: 0.25rem solid var(--section-background);
     background-color: var(--page-background);
     padding: 0.5rem;
+    /* border: 1px solid blue; */
 }
 
 .notes p {
@@ -741,12 +760,13 @@ body{
 }
 
 .more{
-    height: 25%;
+    height: 15%;
     width: 100%;
     padding: 0.5rem;
     overflow-y: auto;
     background-color: var(--page-background);
     border-bottom-left-radius: 0.4rem;
+    /* border: 1px solid green; */
 }
 
 .more p {
@@ -756,11 +776,19 @@ body{
     justify-content: start;
     gap: 0.1rem;
     opacity: 0.9;
+    /* border: 1px solid red; */
 }
 
 .more p svg{
     height: 16px;
     width: 16px;
+}
+
+.more .action-btn{
+    /* border: 1px solid red; */
+    width: 100%;
+    font-size: 55%;
+    /* padding: 1.75% 0; */
 }
 
 .notes textarea{
@@ -786,7 +814,7 @@ body{
     justify-content: space-around;
     flex-direction: column;
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 2.5%;
     /* opacity: 0.8; */
 }
 
@@ -826,21 +854,6 @@ body{
     opacity: 0.5 !important;
     color: var(--page-text);
     transition: none;
-}
-
-.version a{
-    all: unset;
-    cursor: pointer;
-}
-
-.version a:hover{
-    opacity: 0.5 !important;
-    text-decoration: underline;
-}
-
-.version-section{
-    padding:1rem 1.5rem !important;
-    border-top: 1px solid var(--divider-color-processed);
 }
 
 /*  */
@@ -1124,15 +1137,15 @@ input[type="checkbox"]:checked::after {
     max-width: 600px;
     max-height: 90%;
     overflow-x: auto;
-    /* border: 1px solid red; */
 }
 
 .settings-sections {
     padding: 1.5rem;
+    padding-top: 1.25rem;
 }
 
 .settings-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .settings-section:last-child {
@@ -1140,8 +1153,8 @@ input[type="checkbox"]:checked::after {
 }
 
 .settings-section h3 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
     opacity: 0.9;
 }
 
@@ -1150,13 +1163,35 @@ input[type="checkbox"]:checked::after {
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem;
-    background-color: color-mix(in srgb, var(--tab-background) 25%, transparent);
+    background-color: color-mix(in srgb, var(--tab-background) 30%, transparent);
+}
+
+.settings-group.data-actions{
+    flex-direction: row;
 }
 
 .settings-group .action-btn {
     font-size: 0.8rem;
     padding: 0.5rem;
     background-color: var(--tab-background);
+}
+
+.version-info{
+    font-size: 0.5rem;
+}
+
+.version-info p{
+    opacity: 0.4;
+}
+
+.version-info a{
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.version-info a:hover{
+    opacity: 0.5;
 }
 
 /*  */
@@ -1188,12 +1223,6 @@ input[type="checkbox"]:checked::after {
     border: 0;
     outline: none;
     font-size: 0.65rem;
-}
-
-.settings-hint {
-    font-size: 0.6rem;
-    opacity: 0.5;
-    margin-top: 0.25rem;
 }
 
 .search-settings .custom-controls {

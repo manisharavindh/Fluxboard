@@ -84,7 +84,7 @@
                     <button class="action-btn" id="toggle-fluxtheme">Toggle FluxTheme</button>
                     <button class="customize-btn action-btn" id="edit-clock">Customize Clock</button>
                     <button class="action-btn" id="open-settings">More Settings</button>
-                    <div class="version"><p>version 1.4 | build v1.4.5</p></div>
+                    <!-- <div class="version"><p>~ version 1.4 ~</p></div> -->
                 </div>
             </div>
         </div>
@@ -220,11 +220,9 @@
             </div>
             <div class="settings-sections">
                 <section class="settings-section">
-                    <h3>Link Groups</h3>
+                    <h3>Number of Link Groups (4~6)</h3>
                     <div class="settings-group">
-                        <label for="numColumns">Number of Link Groups (Columns)</label>
-                        <input type="number" id="numColumns" class="settings-input" min="4" max="6" value="4" required/>
-                        <span class="settings-hint">Choose between 4 and 6 columns</span>
+                        <input type="number" id="numColumns" class="settings-input num-columns" min="4" max="6" value="4" required/>
                     </div>
                 </section>
                 <section class="settings-section">
@@ -241,7 +239,7 @@
                         <div class="setting-item">
                             <label for="customSearchUrl">Search Engine URL</label>
                             <input type="text" id="customSearchUrl" class="settings-input" placeholder="https://duckduckgo.com/?q={searchTerm}">
-                            <p class="settings-hint">Use {searchTerm} where the search query should be inserted</p>
+                            <!-- <p class="settings-hint">Use {searchTerm} where the search query should be inserted</p> -->
                         </div>
                         <div class="setting-item custom-controls">
                             <button class="action-btn" id="save-custom-search">Save</button>
@@ -251,22 +249,17 @@
                 </section>
                 <section class="settings-section">
                     <h3>Data Management</h3>
-                    <div class="settings-group">
+                    <div class="settings-group data-actions">
                         <button class="action-btn" id="export-data">Export Data</button>
                         <button class="action-btn" id="import-data">Import Data</button>
                         <button class="action-btn action-btn-danger" id="delete-all">Delete All</button>
                     </div>
                 </section>
-            </div>
-            <div class="settings-sections version-section">
-                <div class="settings-section">
-                    <div class="version">
-                        <p>version 1.4 | build v1.4.5</p>
-                        <p>
-                            <a href="https://github.com/manisharavindh/Fluxboard" target="_blank">github</a>
-                        </p>
+                <section class="settings-section">
+                    <div class="settings-group version-info">
+                        <p>version 1.4 | build v1.4.6 | <a href="https://github.com/manisharavindh/Fluxboard" target="_blank">github</a></p>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>

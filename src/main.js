@@ -720,6 +720,10 @@ function setAllBookmarks(bookmarks) {
             groupTitleDiv.className = 'group-title';
             const h5 = document.createElement('h5');
             h5.textContent = (data[sectionKey]?.title || existingTitles[sectionKey] || `Group ${i}`);
+            // Only mark as user-set if it's coming from the main data structure
+            if (data[sectionKey]?.title) {
+                h5.setAttribute('data-user-set', 'true');
+            }
             groupTitleDiv.appendChild(h5);
             
             // Add new-link controls
@@ -791,7 +795,9 @@ groupTitleForm.addEventListener('submit', function(event) {
     if (currentGroupTitleElement) {
         const newTitle = groupTitleInput.value.trim();
         if (newTitle) {
-            currentGroupTitleElement.querySelector('h5').textContent = newTitle;
+            const titleElement = currentGroupTitleElement.querySelector('h5');
+            titleElement.textContent = newTitle;
+            titleElement.setAttribute('data-user-set', 'true');
             saveGroupTitles();
         }
     }
@@ -807,20 +813,15 @@ window.addEventListener('click', function(event) {
 
 //* handel saving group title
 function saveGroupTitles() {
-    const titles = {};
-    document.querySelectorAll('.group-title').forEach((element, index) => {
-        const title = element.querySelector('h5').textContent;
-        titles[`group${index + 1}`] = title;
-    });
-    localStorage.setItem('groupTitles', JSON.stringify(titles));
+    saveBookmarks();
 }
 
-//* handle loading group title
+//* handle loading group title - now only used for initial loading
 function loadGroupTitles() {
     const titles = JSON.parse(localStorage.getItem('groupTitles')) || {};
     document.querySelectorAll('.group-title').forEach((element, index) => {
         const savedTitle = titles[`group${index + 1}`];
-        if (savedTitle) {
+        if (savedTitle && !element.querySelector('h5').hasAttribute('data-user-set')) {
             element.querySelector('h5').textContent = savedTitle;
         }
     });
@@ -1326,15 +1327,48 @@ function folder_toggle(element) {
     }
 }
 
-//* sidebar
+//* sidebar and responsive behavior
 const sidebar = document.querySelector('.sidebar');
 const menu = document.querySelector('.menu');
 const home = document.querySelector('.home');
+
+// Keep track of sidebar state before auto-close
+let wasOpenBeforeAutoClose = false;
+
+// Add media query listener for responsive behavior
+const mediaQuery = window.matchMedia('(max-width: 700px)');
+
+function handleScreenSizeChange(e) {
+    if (e.matches) {
+        // Screen is narrower than 700px
+        if (sidebar.classList.contains('active')) {
+            wasOpenBeforeAutoClose = true;
+            sidebar.classList.remove('active');
+            menu.classList.remove('active');
+            home.classList.remove('active');
+            saveSidebarState();
+        }
+    } else {
+        // Screen is wider than 700px
+        if (wasOpenBeforeAutoClose) {
+            sidebar.classList.add('active');
+            menu.classList.add('active');
+            home.classList.add('active');
+            saveSidebarState();
+            wasOpenBeforeAutoClose = false;
+        }
+    }
+}
+
+// Initial check
+mediaQuery.addListener(handleScreenSizeChange);
+handleScreenSizeChange(mediaQuery);
 
 menu.addEventListener('click', () => {
     sidebar.classList.toggle('active');
     menu.classList.toggle('active');
     home.classList.toggle('active');
+    wasOpenBeforeAutoClose = sidebar.classList.contains('active');
     saveSidebarState();
 });
 
@@ -1349,10 +1383,11 @@ function loadSidebarState() {
     const savedState = localStorage.getItem('fluxboard_sidebar_open');
     if (savedState !== null) {
         const isOpen = JSON.parse(savedState);
-        if (isOpen) {
+        if (isOpen && !mediaQuery.matches) {  // Only open if screen is wide enough
             sidebar.classList.add('active');
             menu.classList.add('active');
             home.classList.add('active');
+            wasOpenBeforeAutoClose = true;
         }
     }
 }
