@@ -1,17 +1,3 @@
-:root {
-    --page-text: #ffffff;
-    --page-background: #1c1b22;
-    --section-background: #2b2a33;
-    --tab-background: #42414d;
-    --accent-color: #0061e0;
-    --divider-color: #52525e;
-    
-    --button-text: #fbfbfe;
-    --destructive-color: #ff5252;
-    --destructive-hover-color: #ff6b6b;
-    --divider-color-processed: color-mix(in srgb, var(--divider-color) 65%, transparent);
-}
-
 .sidebar{
     height: 100%;
     width: 20%;
@@ -39,58 +25,7 @@
     transform: translateX(0);
 }
 
-@media screen and (max-width: 700px) {
-    .sidebar{
-        width: 100%;
-        transform: translateX(100%);
-        border-right: 0.25rem solid var(--section-background);
-    }
-
-    .sidebar.active{
-        position: absolute;
-        transform: translateX(0);
-    }
-
-    .menu.active{
-        right: 0.25rem !important;
-        width: calc(100% - 0.5rem) !important;
-        border-radius: 0.4rem 0.4rem 0 0 !important;
-    }
-
-    .home{
-        padding: 1.5rem;
-    }
-
-    .home.active{
-        width: 100%;
-        transform: translateX(0);
-    }
-
-    .todo{
-        border-top-right-radius: 0.4rem;
-    }
-
-    .todo, .notes{
-        padding: 0.5rem 1rem !important;
-    }
-
-    .notes{
-        height: 41% !important;
-    }
-
-    .more{
-        /* padding: 0.5rem 2rem; */
-        height: 9% !important;
-        padding: 0.5rem;
-        border-bottom-right-radius: 0.4rem;
-    }
-
-    .more .data-buttons{
-        flex-direction: row;
-    }
-}
-
-.menu{
+.open-sidebar-btn{
     position: absolute;
     bottom: 0.5rem;
     right: 0.5rem;
@@ -103,22 +38,22 @@
     background-color: var(--section-background);
 }
 
-.menu:hover{
+.open-sidebar-btn:hover{
     background-color: var(--tab-background);
 }
 
-.menu .menu-text{
+.open-sidebar-btn .open-sidebar-btn-text{
     display: none;
 }
 
-.menu svg{
+.open-sidebar-btn svg{
     transform: scale(0.8);
     width: 1rem;
     aspect-ratio: 1;
     opacity: 0.8;
 }
 
-.menu.active{
+.open-sidebar-btn.active{
     bottom: 0;
     right: 0;
     width: calc(20% - 0.25rem);
@@ -126,11 +61,11 @@
     box-shadow: none !important;
 }
 
-.menu.active svg{
+.open-sidebar-btn.active svg{
     display: none;
 }
 
-.menu.active .menu-text{
+.open-sidebar-btn.active .open-sidebar-btn-text{
     display: block;
     font-size: 0.7rem;
     font-weight: 400;
@@ -165,9 +100,17 @@
     opacity: 0.9;
 }
 
-.notes p img{
-    height: 19px;
-    width: 19px;
+.notes textarea{
+    height: 90%;
+    width: 100%;
+    overflow-y: auto;
+    resize: none;
+    background-color: transparent;
+    outline: none;
+    border: none;
+    color: var(--page-text);
+    opacity: 0.8;
+    padding-top: 0.15rem;
 }
 
 .more{
@@ -195,42 +138,18 @@
     width: 16px;
 }
 
-.more .action-btn{
-    /* border: 1px solid red; */
-    width: 100%;
-    font-size: 55%;
-    /* padding: 1.75% 0; */
-}
-
-.notes textarea{
-    height: 90%;
-    width: 100%;
-    overflow-y: auto;
-    resize: none;
-    background-color: transparent;
-    outline: none;
-    border: none;
-    color: var(--page-text);
-    opacity: 0.8;
-    padding-top: 0.15rem;
-}
-
-.no-transition {
-    transition: none !important;
-}
-
-.data-buttons{
+.more .data-buttons{
     display: flex;
     align-items: center;
     justify-content: space-around;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 2.5%;
-    /* opacity: 0.8; */
 }
 
-.action-btn {
+.more .data-buttons .action-btn{
     width: 100%;
+    font-size: 55%;
     background-color: var(--section-background);
     color: color-mix(in srgb, var(--page-text) 75%, transparent);
     border: 0;
@@ -242,27 +161,109 @@
     border-radius: 0.25rem;
 }
 
-.action-btn:hover {
+.more .data-buttons .action-btn:hover {
     opacity: 0.75;
 }
 
-.action-btn-danger {
-    background-color: var(--destructive-color) !important;
-    color: var(--button-text) !important;
-    opacity: 1;
+
+@media screen and (max-width: 700px) {
+    .sidebar{
+        width: 100%;
+        transform: translateX(100%);
+        border-right: 0.25rem solid var(--section-background);
+        border-width: 0.4rem;
+    }
+
+    .sidebar.active{
+        position: absolute;
+        transform: translateX(0);
+    }
+
+    .open-sidebar-btn.active{
+        right: 0.25rem !important;
+        width: calc(100% - 0.5rem) !important;
+        border-radius: 0.4rem 0.4rem 0 0 !important;
+    }
+
+    .home{
+        padding: 1.5rem;
+    }
+
+    .home.active{
+        width: 100%;
+        transform: translateX(0);
+    }
+
+    .todo{
+        border-top-right-radius: 0.4rem;
+    }
+    
+    .todo, .notes{
+        padding: 0.5rem 1rem !important;
+        border-width: 0.4rem;
+    }
+
+    .notes{
+        height: 41% !important;
+    }
+
+    .more{
+        height: 9% !important;
+        padding: 0.5rem;
+        border-bottom-right-radius: 0.4rem;
+    }
+
+    .more .data-buttons{
+        flex-direction: row;
+    }
 }
 
-.action-btn-danger:hover {
-    opacity: 1 !important;
-    background-color: var(--destructive-hover-color) !important;
-}
 
-.version{
+/*  */
+/** Quick Notes  */
+/*  */
+
+.notes-header {
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.5rem;
-    opacity: 0.5 !important;
-    color: var(--page-text);
-    transition: none;
+}
+
+.notes-header p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+}
+
+.notes-header p svg{
+    height: 19px;
+    width: 19px;
+}
+
+.notes-header img{
+    height: 24px;
+    width: 24px;
+}
+
+.clear-notes-btn {
+    cursor: pointer;
+    border-radius: 0.25rem;
+    position: relative;
+    height: 26px;
+    width: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-notes-btn img{
+    width: 65%;
+    height: 65%;
+}
+
+.clear-notes-btn:hover {
+    background-color: var(--section-background);
 }

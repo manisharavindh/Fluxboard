@@ -1,0 +1,120 @@
+.settings-modal-content {
+    max-width: 600px;
+    max-height: 90%;
+    overflow-x: auto;
+}
+
+.settings-sections {
+    padding: 1.5rem;
+    padding-top: 1.25rem;
+}
+
+.settings-section {
+    margin-bottom: 0.5rem;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    opacity: 0.9;
+}
+
+.settings-group {
+    border-radius: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: color-mix(in srgb, var(--tab-background) 30%, transparent);
+}
+
+.settings-group .action-btn {
+    background-color: var(--tab-background);
+    width: 100%;
+    background-color: var(--section-background);
+    color: color-mix(in srgb, var(--page-text) 75%, transparent);
+    border: 0;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem !important;
+}
+
+.settings-group.data-actions{
+    flex-direction: row;
+}
+
+.settings-group .action-btn:hover {
+    opacity: 0.75;
+}
+
+.settings-group.data-actions .action-btn-danger {
+    background-color: var(--destructive-color) !important;
+    color: var(--button-text) !important;
+    opacity: 1;
+}
+
+.settings-group.data-actions .action-btn-danger:hover {
+    opacity: 1 !important;
+    background-color: var(--destructive-hover-color) !important;
+}
+
+.version-info{
+    font-size: 0.5rem;
+}
+
+.version-info p{
+    opacity: 0.4;
+}
+
+.version-info a{
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.version-info a:hover{
+    opacity: 0.5;
+}
+
+.search-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.setting-item label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-left: 0.05rem;
+}
+
+.settings-input {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--section-background);
+    color: var(--page-text);
+    border: 0;
+    outline: none;
+    font-size: 0.65rem;
+    border-radius: 0.25rem;
+}
+
+.search-settings .search-controls{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.settings-section .action-btn{
+    font-size: 0.7rem;
+    border-radius: 0;
+    background-color: var(--section-background);
+}

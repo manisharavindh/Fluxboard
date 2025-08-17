@@ -323,7 +323,7 @@ function clearAllData() {
     
     // Reset sidebar state
     sidebar.classList.remove('active');
-    menu.classList.remove('active');
+    openSidebarBtn.classList.remove('active');
     home.classList.remove('active');
     
     // Save empty bookmarks
@@ -827,41 +827,6 @@ function loadGroupTitles() {
     });
 }
 
-//* handle dynamic column management
-function getColumnCount() {
-    return document.querySelectorAll('[class*="col"]:not(.column-controls)').length;
-}
-
-function getNextColumnNumber() {
-    const existingColumns = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)'))
-        .map(el => {
-            const classList = Array.from(el.classList);
-            const colClass = classList.find(cls => cls.startsWith('col'));
-            return colClass ? parseInt(colClass.replace('col', '')) : 0;
-        })
-        .filter(num => !isNaN(num));
-    
-    return existingColumns.length > 0 ? Math.max(...existingColumns) + 1 : 1;
-}
-
-function createNewColumn() {
-    const columnNumber = getNextColumnNumber();
-    const newColumnClass = `col${columnNumber}`;
-    
-    // This function will be expanded when you implement the UI for adding columns
-    console.log(`Ready to create ${newColumnClass}`);
-    return newColumnClass;
-}
-
-//* handle getting current column order
-function getCurrentColumnOrder() {
-    const bookmarksContainer = document.querySelector('.bookmarks');
-    return Array.from(bookmarksContainer.children).map(col => {
-        const classList = Array.from(col.classList);
-        return classList.find(cls => cls.startsWith('col'));
-    }).filter(Boolean);
-}
-
 document.addEventListener('DOMContentLoaded', loadGroupTitles);
 
 //* Column count customization
@@ -1052,11 +1017,8 @@ class ContextMenuManager {
             if (item) {
                 const action = item.dataset.action;
                 const target = item.dataset.target;
-                const direction = item.dataset.direction;
-                
-                if (action === 'move-direction' && this.currentElement) {
-                    this.moveElementDirection(this.currentElement, direction);
-                } else if (action === 'new-tap' && this.currentElement) {
+
+                if (action === 'new-tap' && this.currentElement) {
                     this.openInNewTab(this.currentElement);
                 } else if (action === 'edit' && this.currentElement) {
                     this.editElement(this.currentElement);
@@ -1072,8 +1034,7 @@ class ContextMenuManager {
     showContextMenu(e, element) {
         e.preventDefault();
         this.currentElement = element;
-        
-        const currentColumn = this.getCurrentColumn(element);
+
         const isLinkElement = element.classList.contains('link-element');
         const isFolderElement = element.classList.contains('folder-element');
         
@@ -1082,10 +1043,10 @@ class ContextMenuManager {
             const target = item.dataset.target;
             const direction = item.dataset.direction;
             
-            if ((action === 'new-tap' || action === 'new-window') && !isLinkElement) {
+            if ((action === 'new-tap') && !isLinkElement) {
                 item.style.display = 'none';
                 return;
-            } else if ((action === 'new-tap' || action === 'new-window') && isLinkElement) {
+            } else if ((action === 'new-tap') && isLinkElement) {
                 item.style.display = 'block';
             }
         });
@@ -1094,19 +1055,6 @@ class ContextMenuManager {
         if (firstSeparator) {
             firstSeparator.style.display = isLinkElement ? 'block' : 'none';
         }
-
-        this.contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
-            const action = item.dataset.action;
-            const target = item.dataset.target;
-            const direction = item.dataset.direction;
-            
-            if (direction) {
-                this.updateDirectionalItemState(item, element, direction);
-            } else {
-                item.style.opacity = '1';
-                item.style.pointerEvents = 'auto';
-            }
-        });
 
         this.contextMenu.style.left = e.pageX + 'px';
         this.contextMenu.style.top = e.pageY + 'px';
@@ -1121,144 +1069,9 @@ class ContextMenuManager {
         }
     }
 
-    updateDirectionalItemState(item, element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .col6');
-        const siblings = Array.from(container.children).filter(child => 
-            !child.classList.contains('group-title') && 
-            (child.classList.contains('link-element') || child.classList.contains('folder-element'))
-        );
-        
-        const currentIndex = siblings.indexOf(element);
-        let canMove = true;
-
-        if (['col1', 'col2', 'col3', 'col4', 'col5'].includes(direction)) {
-            const currentColumn = this.getCurrentColumn(element);
-            if (currentColumn === direction) canMove = false;
-        }
-        
-        if (direction === 'up' && currentIndex <= 0) canMove = false;
-        if (direction === 'down' && currentIndex >= siblings.length - 1) canMove = false;
-        if (direction === 'left' && container.classList.contains('col1')) canMove = false;
-        if (direction === 'right' && container.classList.contains('col5')) canMove = false;
-        
-        if (canMove) {
-            item.style.opacity = '1';
-            item.style.pointerEvents = 'auto';
-        } else {
-            item.style.opacity = '0.5';
-            item.style.pointerEvents = 'none';
-        }
-    }
-
     hideContextMenu() {
         this.contextMenu.style.display = 'none';
         this.currentElement = null;
-    }
-
-    getCurrentColumn(element) {
-        const columns = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)'));
-        const column = columns.find(col => col.contains(element));
-        if (column) {
-            const classList = Array.from(column.classList);
-            return classList.find(cls => cls.startsWith('col'));
-        }
-        return null;
-    }
-
-    moveElementDirection(element, direction) {
-        const container = element.closest('.col1, .col2, .col3, .col4, .col5, .col6, .folder-body');
-        
-        if (['col1', 'col2', 'col3', 'col4', 'col5'].includes(direction)) {
-            const targetColumn = document.querySelector('.' + direction);
-            if (!targetColumn) return;
-
-            let elementData;
-            if (element.classList.contains('link-element')) {
-                const p = element.querySelector('p');
-                elementData = {
-                    type: 'link',
-                    name: p.textContent,
-                    url: p.getAttribute('data-url') || '',
-                    notes: p.getAttribute('data-notes') || ''
-                };
-            } else if (element.classList.contains('folder-element')) {
-                const folderHead = element.querySelector('.folder-head');
-                const folderBody = element.querySelector('.folder-body');
-                const folderNameP = folderHead.querySelector('p');
-                elementData = {
-                    type: 'folder',
-                    name: folderNameP.textContent,
-                    notes: folderNameP.getAttribute('data-notes') || '',
-                    items: serializeSection(folderBody)
-                };
-            }
-
-            element.remove();
-
-            if (elementData.type === 'link') {
-                const newElement = createBookmarkElement(elementData, targetColumn);
-                newElement.classList.add('moved-element');
-                setTimeout(() => newElement.classList.remove('moved-element'), 1500);
-            } else if (elementData.type === 'folder') {
-                const newElement = createFolderElement(elementData, targetColumn);
-                newElement.classList.add('moved-element');
-                setTimeout(() => newElement.classList.remove('moved-element'), 1500);
-            }
-
-            saveBookmarks();
-            return;
-        }
-        
-        if (direction === 'left' || direction === 'right') {
-            const columns = Array.from(document.querySelectorAll('[class*="col"]:not(.column-controls)')).map(el => {
-                const classList = Array.from(el.classList);
-                return classList.find(cls => cls.startsWith('col'));
-            }).filter(Boolean).sort((a, b) => {
-                const numA = parseInt(a.replace('col', ''));
-                const numB = parseInt(b.replace('col', ''));
-                return numA - numB;
-            });
-            
-            const currentColumnClass = this.getCurrentColumn(element);
-            const currentColumnIndex = columns.indexOf(currentColumnClass);
-            let targetColumnIndex;
-            
-            if (direction === 'left') {
-                targetColumnIndex = currentColumnIndex - 1;
-            } else {
-                targetColumnIndex = currentColumnIndex + 1;
-            }
-            
-            if (targetColumnIndex >= 0 && targetColumnIndex < columns.length) {
-                this.moveElementDirection(element, columns[targetColumnIndex]);
-            }
-        } else if (direction === 'up' || direction === 'down') {
-            const siblings = Array.from(container.children).filter(child => 
-                !child.classList.contains('group-title') && 
-                (child.classList.contains('link-element') || child.classList.contains('folder-element'))
-            );
-            
-            const currentIndex = siblings.indexOf(element);
-            let targetIndex;
-            
-            if (direction === 'up') {
-                targetIndex = currentIndex - 1;
-            } else {
-                targetIndex = currentIndex + 1;
-            }
-            
-            if (targetIndex >= 0 && targetIndex < siblings.length) {
-                const targetElement = siblings[targetIndex];
-                if (direction === 'up') {
-                    container.insertBefore(element, targetElement);
-                } else {
-                    container.insertBefore(element, targetElement.nextSibling);
-                }
-                element.classList.add('moved-element'); 
-                setTimeout(() => element.classList.remove('moved-element'), 1500); 
-                saveBookmarks();
-            }
-        }
     }
     
     openInNewTab(element) {
@@ -1329,7 +1142,7 @@ function folder_toggle(element) {
 
 //* sidebar and responsive behavior
 const sidebar = document.querySelector('.sidebar');
-const menu = document.querySelector('.menu');
+const openSidebarBtn = document.querySelector('.open-sidebar-btn');
 const home = document.querySelector('.home');
 
 // Keep track of sidebar state before auto-close
@@ -1344,7 +1157,7 @@ function handleScreenSizeChange(e) {
         if (sidebar.classList.contains('active')) {
             wasOpenBeforeAutoClose = true;
             sidebar.classList.remove('active');
-            menu.classList.remove('active');
+            openSidebarBtn.classList.remove('active');
             home.classList.remove('active');
             saveSidebarState();
         }
@@ -1352,7 +1165,7 @@ function handleScreenSizeChange(e) {
         // Screen is wider than 700px
         if (wasOpenBeforeAutoClose) {
             sidebar.classList.add('active');
-            menu.classList.add('active');
+            openSidebarBtn.classList.add('active');
             home.classList.add('active');
             saveSidebarState();
             wasOpenBeforeAutoClose = false;
@@ -1364,9 +1177,9 @@ function handleScreenSizeChange(e) {
 mediaQuery.addListener(handleScreenSizeChange);
 handleScreenSizeChange(mediaQuery);
 
-menu.addEventListener('click', () => {
+openSidebarBtn.addEventListener('click', () => {
     sidebar.classList.toggle('active');
-    menu.classList.toggle('active');
+    openSidebarBtn.classList.toggle('active');
     home.classList.toggle('active');
     wasOpenBeforeAutoClose = sidebar.classList.contains('active');
     saveSidebarState();
@@ -1384,7 +1197,7 @@ function loadSidebarState() {
     if (savedState === null) {
         if (!mediaQuery.matches) {
             sidebar.classList.add('active');
-            menu.classList.add('active');
+            openSidebarBtn.classList.add('active');
             home.classList.add('active');
             wasOpenBeforeAutoClose = true;
             saveSidebarState();
@@ -1393,7 +1206,7 @@ function loadSidebarState() {
         const isOpen = JSON.parse(savedState);
         if (isOpen && !mediaQuery.matches) {
             sidebar.classList.add('active');
-            menu.classList.add('active');
+            openSidebarBtn.classList.add('active');
             home.classList.add('active');
             wasOpenBeforeAutoClose = true;
         }
@@ -2309,6 +2122,8 @@ class TodoManager {
         
         if (this.history.length === 0) {
             historyList.innerHTML = '<div class="empty-history">No completed todos in history</div>';
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            clearHistoryBtn.style.display = 'none';
         } else {
             historyList.innerHTML = this.history.map(item => `
                 <div class="history-item">

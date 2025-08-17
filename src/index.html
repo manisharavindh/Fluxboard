@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fluxboard</title>
     <link rel="icon" type="image/png" href="../icons/favicon.png" type="image/x-icon">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="./css/sidebar.css">
+    <link rel="stylesheet" href="./css/modal.css">
+    <link rel="stylesheet" href="./css/todo.css">
+    <link rel="stylesheet" href="./css/settings.css">
 </head>
 <body>
     <div class="wrapper">
@@ -85,14 +88,12 @@
                     <button class="action-btn" id="toggle-fluxtheme">Toggle FluxTheme</button>
                     <button class="customize-btn action-btn" id="edit-clock">Customize Clock</button>
                     <button class="action-btn" id="open-settings">More Settings</button>
-                    <!-- <div class="version"><p>~ version 1.4 ~</p></div> -->
                 </div>
             </div>
         </div>
-
-        <div class="menu">
+        <div class="open-sidebar-btn">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg>
-            <div class="menu-text">close</div>
+            <div class="open-sidebar-btn-text">close</div>
         </div>
     </div>
 
@@ -241,7 +242,7 @@
                             <label for="customSearchUrl">Search Engine URL</label>
                             <input type="text" id="customSearchUrl" class="settings-input" placeholder="https://duckduckgo.com/?q={searchTerm}">
                         </div>
-                        <div class="setting-item custom-controls">
+                        <div class="setting-item search-controls">
                             <button class="action-btn" id="save-custom-search">Save</button>
                             <button class="action-btn action-btn-secondary" id="reset-custom-search">Reset to DuckDuckGo</button>
                         </div>
@@ -257,25 +258,17 @@
                 </section>
                 <section class="settings-section">
                     <div class="settings-group version-info">
-                        <p>version 1.4 | build v1.4.6 | <a href="https://github.com/manisharavindh/Fluxboard" target="_blank">github</a></p>
+                        <p>version 1.4 | build v1.4.7 | <a href="https://github.com/manisharavindh/Fluxboard" target="_blank">github</a></p>
                     </div>
                 </section>
             </div>
         </div>
     </div>
 
-    
-
     <!-- Context Menu -->
     <div id="contextMenu" class="context-menu">
         <div class="context-menu-item" data-action="new-tap" data-direction="-"><p>Open Link in New Tab</p></div>
-        <!-- <div class="context-menu-item" data-action="new-window" data-direction="-"><p>Open Link in New Window</p></div> -->
-         <hr class="context-menu-separator">
-        <!-- <div class="context-menu-item" data-action="move-direction" data-direction="up"><p>Move Up</p></div>
-        <div class="context-menu-item" data-action="move-direction" data-direction="down"><p>Move Down</p></div>
-        <div class="context-menu-item" data-action="move-direction" data-direction="left"><p>Move Left</p></div>
-        <div class="context-menu-item" data-action="move-direction" data-direction="right"><p>Move Right</p></div> -->
-        <!-- <hr class="context-menu-separator"> -->
+        <div class="context-menu-separator"></div>
         <div class="context-menu-item" data-action="edit" data-direction="-"><p>Edit</p></div>
         <div class="context-menu-item" data-action="delete" data-direction="-"><p>Delete</p></div>
     </div>
