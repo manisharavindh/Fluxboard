@@ -1381,9 +1381,17 @@ function saveSidebarState() {
 //* handle loading sidebar state
 function loadSidebarState() {
     const savedState = localStorage.getItem('fluxboard_sidebar_open');
-    if (savedState !== null) {
+    if (savedState === null) {
+        if (!mediaQuery.matches) {
+            sidebar.classList.add('active');
+            menu.classList.add('active');
+            home.classList.add('active');
+            wasOpenBeforeAutoClose = true;
+            saveSidebarState();
+        }
+    } else {
         const isOpen = JSON.parse(savedState);
-        if (isOpen && !mediaQuery.matches) {  // Only open if screen is wide enough
+        if (isOpen && !mediaQuery.matches) {
             sidebar.classList.add('active');
             menu.classList.add('active');
             home.classList.add('active');
@@ -1994,13 +2002,17 @@ function initSearchToggle() {
 
     // Save custom search settings
     saveBtn.addEventListener('click', () => {
-        const name = customSearchNameInput.value.trim() || 'DuckDuckGo';
-        const icon = customSearchIconInput.value.trim() || 'img/duckduckgo.webp';
-        const url = customSearchUrlInput.value.trim() || 'https://duckduckgo.com/?q=';
+        const name = customSearchNameInput.value.trim();
+        const icon = customSearchIconInput.value.trim();
+        const url = customSearchUrlInput.value.trim();
 
-        // Validate URL
-        if (url && !url.includes('{searchTerm}') && !url.includes('=')) {
-            alert('Please include {searchTerm} or use a valid search URL format');
+        if (!name || !icon || !url) {
+            alert('Please fill all fields: Name, Icon URL, and Search Engine URL');
+            return;
+        }
+
+        if (!url.includes('{searchTerm}') && !url.includes('=')) {
+            alert('Please use a valid search URL format');
             return;
         }
 
@@ -2015,6 +2027,7 @@ function initSearchToggle() {
         localStorage.setItem('fluxboard_custom_search_icon', icon === 'img/duckduckgo.webp' ? '' : icon);
         localStorage.setItem('fluxboard_custom_search_url', url === 'https://duckduckgo.com/?q=' ? '' : url);
 
+        closeSettingsModal();
         updateSearchInterface();
     });
 
@@ -2525,6 +2538,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('delete-all').addEventListener('click', () => {
         clearAllData();
         closeSettingsModal();
+        localStorage.removeItem('textareaContent');
     });
     document.getElementById('edit-clock').addEventListener('click', () => {
         document.getElementById('popup').style.display = 'block';
