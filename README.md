@@ -7,7 +7,7 @@ Fluxboard is a minimal and fast new tab replacement extension for Firefox. It of
 - Stickies: Quick notes for jotting down thoughts
 - Widget: customizable clock with multiple formats
 - Data Management: import/export and reset data
-- Search Engines: Google and DuckDuckGo search engines support
+- Search Engines: Google, DuckDuckGo and custom search engine options
 - Drag & Drop: drag-and-drop functionality to reorganize bookmarks
 - FluxTheme: automatically adapts to Firefox's current theme colors
 
